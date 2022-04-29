@@ -2,4 +2,4 @@ FileVersion = 1
 
 [Project]
 Name = "BLox"
-StartupObject = "BLox.Program"
+StartupObject = "BLox.Lox"
