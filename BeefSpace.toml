@@ -1,5 +1,2 @@
 FileVersion = 1
 Projects = {BLox = {Path = "."}}
-
-[Workspace]
-StartupProject = "BLox"
