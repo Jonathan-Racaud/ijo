@@ -55,7 +55,10 @@ def define_types(file, basename, classname, fieldList):
 
     fields = fieldList.split(', ')
     for field in fields:
-        file.write(f"        public {field} ~ delete _;\n")
+        field_name = field.split(' ')[0]
+        delete_str = "" if field_name == "Token" else "~ delete _"
+        delete_str = "~ value.Dispose()" if field_name == "Variant" else delete_str
+        file.write(f"        public {field} {delete_str};\n")
     
     file.write("\n")
 

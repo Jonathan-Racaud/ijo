@@ -2,10 +2,10 @@ using System;
 
 namespace BLox
 {
-    public interface Expr
+    public abstract class Expr
     {
         // Virtual/Abstract generic are not yet supported
-        public void Accept(Visitor visitor);
+        public abstract void Accept(Visitor visitor);
     }
 
     public interface Visitor
@@ -23,7 +23,7 @@ namespace BLox
 
     public class Unary: Expr
     {
-        public Token op;
+        public Token op ;
         public Expr right ~ delete _;
 
         public this(Token op, Expr right)
@@ -33,7 +33,7 @@ namespace BLox
         }
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
-        public void Accept(Visitor visitor)
+        public override void Accept(Visitor visitor)
         {
             visitor.VisitUnaryExpr(this);
         }
@@ -42,7 +42,7 @@ namespace BLox
     public class Binary: Expr
     {
         public Expr left ~ delete _;
-        public Token op;
+        public Token op ;
         public Expr right ~ delete _;
 
         public this(Expr left, Token op, Expr right)
@@ -53,7 +53,7 @@ namespace BLox
         }
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
-        public void Accept(Visitor visitor)
+        public override void Accept(Visitor visitor)
         {
             visitor.VisitBinaryExpr(this);
         }
@@ -69,7 +69,7 @@ namespace BLox
         }
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
-        public void Accept(Visitor visitor)
+        public override void Accept(Visitor visitor)
         {
             visitor.VisitGroupingExpr(this);
         }
@@ -85,7 +85,7 @@ namespace BLox
         }
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
-        public void Accept(Visitor visitor)
+        public override void Accept(Visitor visitor)
         {
             visitor.VisitLiteralExpr(this);
         }
