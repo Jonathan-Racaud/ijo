@@ -57,7 +57,7 @@ namespace BLox
 				if (Console.ReadLine(line) case .Err)
 					return 75;
 
-				if (line.IsEmpty) break;
+				if (ShouldExit(line)) break;
 
 				Run(line);
 				_hadError = false;
@@ -71,15 +71,40 @@ namespace BLox
 			let scanner = scope Scanner(source);
 			let tokens = scanner.ScanTokens();
 
-			for (let token in tokens)
+			let parser = scope Parser(tokens);
+			Expr expr;
+
+			if (parser.Parse(out expr) case .Ok)
 			{
-				Console.WriteLine(token);
+				let astPrinter = scope AstPrinter();
+				astPrinter.Build(expr);
+
+				Console.WriteLine(astPrinter.Result);
+
+				delete expr;
 			}
+		}
+
+		static bool ShouldExit(StringView line)
+		{
+			return (line.IsEmpty || line.Equals("exit"));
 		}
 
 		public static void Error(int line, String message)
 		{
 			Report(line, "", message);
+		}
+
+		public static void Error(Token token, StringView message)
+		{
+			if (token.type == .EOF)
+			{
+				Report(token.line, " at end", scope .(message));
+			}
+			else
+			{
+				Report(token.line, scope $" at '{token.lexeme}'", scope .(message));
+			}
 		}
 
 		public static void Report(int line, String location, String message)

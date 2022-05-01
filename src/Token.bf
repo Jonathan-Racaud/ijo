@@ -3,10 +3,10 @@ namespace BLox
 {
 	public class Token
 	{
-		private TokenType type;
-		private String lexeme = new .() ~ delete _;
-		private Variant literal ~ literal.Dispose();
-		private int line;
+		public TokenType type;
+		public String lexeme = new .() ~ delete _;
+		public Variant literal ~ literal.Dispose();
+		public int line;
 
 		public this(TokenType type, String lexeme, Variant literal, int line)
 		{

@@ -2,48 +2,92 @@ using System;
 
 namespace BLox
 {
-    public abstract class Expr {}
-
-    public static class Binary: Expr
+    public interface Expr
     {
-        private static Expr left;
-        private static Token op;
-        private static Expr right;
-        public static void Init(Expr left, Token op, Expr right)
+        // Virtual/Abstract generic are not yet supported
+        public void Accept(Visitor visitor);
+    }
+
+    public interface Visitor
+    {
+        void VisitUnaryExpr(Unary expr);
+        void VisitBinaryExpr(Binary expr);
+        void VisitGroupingExpr(Grouping expr);
+        void VisitLiteralExpr(Literal expr);
+    }
+
+    public interface Visitor<T>: Visitor
+    {
+        public T Result { get; };
+    }
+
+    public class Unary: Expr
+    {
+        public Token op;
+        public Expr right ~ delete _;
+
+        public this(Token op, Expr right)
         {
-            Binary.left = left;
-            Binary.op = op;
-            Binary.right = right;
+            this.op = op;
+            this.right = right;
+        }
+
+        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
+        public void Accept(Visitor visitor)
+        {
+            visitor.VisitUnaryExpr(this);
         }
     }
 
-    public static class Grouping: Expr
+    public class Binary: Expr
     {
-        private static Expr expression;
-        public static void Init(Expr expression)
+        public Expr left ~ delete _;
+        public Token op;
+        public Expr right ~ delete _;
+
+        public this(Expr left, Token op, Expr right)
         {
-            Grouping.expression = expression;
+            this.left = left;
+            this.op = op;
+            this.right = right;
+        }
+
+        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
+        public void Accept(Visitor visitor)
+        {
+            visitor.VisitBinaryExpr(this);
         }
     }
 
-    public static class Literal: Expr
+    public class Grouping: Expr
     {
-        private static Variant value;
-        public static void Init(Variant value)
+        public Expr expression ~ delete _;
+
+        public this(Expr expression)
         {
-            Literal.value = value;
+            this.expression = expression;
+        }
+
+        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
+        public void Accept(Visitor visitor)
+        {
+            visitor.VisitGroupingExpr(this);
         }
     }
 
-    public static class Unary: Expr
+    public class Literal: Expr
     {
-        private static Token op;
-        private static Expr expression;
-        public static void Init(Token op, Expr expression)
+        public Variant value ~ value.Dispose();
+
+        public this(Variant value)
         {
-            Unary.op = op;
-            Unary.expression = expression;
+            this.value = value;
+        }
+
+        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
+        public void Accept(Visitor visitor)
+        {
+            visitor.VisitLiteralExpr(this);
         }
     }
-
 }
