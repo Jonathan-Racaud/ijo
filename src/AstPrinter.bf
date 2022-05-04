@@ -1,4 +1,5 @@
 using System;
+using static BLox.Expr;
 
 namespace BLox
 {

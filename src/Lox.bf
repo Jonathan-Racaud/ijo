@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections;
 
 namespace BLox
 {
@@ -63,6 +64,7 @@ namespace BLox
 				if (ShouldExit(line)) break;
 
 				Run(line);
+				_interpreter.HandleResult();
 				_hadError = false;
 			}
 
@@ -71,36 +73,24 @@ namespace BLox
 
 		static void Run(String source)
 		{
+			List<Token> tokens;
+			defer { DeleteContainerAndItems!(tokens); }
+
+			List<Stmt> statements;
+			defer { DeleteContainerAndItems!(statements); }
+
 			let scanner = scope Scanner(source);
-			let tokens = scanner.ScanTokens();
+			scanner.ScanTokens(out tokens);
 
 			let parser = scope Parser(tokens);
-			Expr expr;
-
-			if (parser.Parse(out expr) case .Ok)
+			if (parser.Parse(out statements) case .Ok)
 			{
-#if DEBUG_AST
-				let astPrinter = scope AstPrinter();
-				astPrinter.Build(expr);
-				Console.WriteLine(expr);
-#endif
-				_interpreter.Interpret(expr);
-
-				if (_interpreter.HasError)
-				{
-					PrintRuntimeError(_interpreter.Error);
-					_interpreter.HandledError();
-				}
-				else
-				{
-					PrintResult(_interpreter.Result);
-				}
-
-				delete expr;
+				_interpreter.Interpret(statements);
+				_interpreter.HandledError();
 			}
 		}
 
-		static void PrintResult(Variant result)
+		public static void PrintResult(Variant result)
 		{
 			switch (result.VariantType)
 			{
@@ -119,7 +109,7 @@ namespace BLox
 			}
 		}
 
-		static void PrintRuntimeError(RuntimeError error)
+		public static void PrintRuntimeError(RuntimeError error)
 		{
 			Console.Error.WriteLine(scope $"[Error]: {error.Message} at line {error.Token.line}");
 			_hadRuntimeError = true;

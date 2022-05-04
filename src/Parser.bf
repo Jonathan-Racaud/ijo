@@ -13,20 +13,85 @@ namespace BLox
 			this.tokens = tokens;
 		}
 
-		public Result<void, ParseError> Parse(out Expr expr)
+		public Result<void, ParseError> Parse(out List<Stmt> statements)
 		{
-			Guard!(
-				Expression(out expr),
-				(Action)scope [&]() => {
-					delete expr;
-					expr = null;
-				}
-			);
+			statements = new List<Stmt>();
+
+			while (!IsAtEnd())
+			{
+				Stmt statement;
+
+				Guard!(
+					Statement(out statement),
+					(Action)scope [&]() => {
+						delete statement;
+						statement = null;
+					});
+
+				statements.Add(statement);
+			}
 
 			return .Ok;
 		}
 
-		private Result<void, ParseError>  Expression(out Expr expr)
+		private Result<void, ParseError> Statement(out Stmt statement)
+		{
+			if (Match(.PRINT))
+			{
+				return PrintStatement(out statement);
+			}
+
+			return ExpressionStatement(out statement);
+		}
+
+		private Result<void, ParseError> PrintStatement(out Stmt statement)
+		{
+			Expr expression = null;
+
+			let cleanup = (Action)scope [&]() => {
+				if (expression != null)
+					delete expression;
+
+				expression = null;
+				statement = null;
+			};
+
+			Guard!(
+				Expression(out expression),
+				cleanup);
+
+			Guard!(
+				Consume(.SEMICOLON, "Expected ';' after value."),
+				cleanup);
+
+			statement = new Print(expression);
+			return .Ok;
+		}
+
+		private Result<void, ParseError> ExpressionStatement(out Stmt statement)
+		{
+			Expr expression = null;
+
+			let cleanup = (Action)scope [&]() => {
+				if (expression != null)
+					delete expression;
+
+				expression = null;
+				statement = null;
+			};
+
+			Guard!(
+				Expression(out expression),
+				cleanup);
+			Guard!(
+				Consume(.SEMICOLON, "Expected ';' after value."),
+				cleanup);
+
+			statement = new Expression(expression);
+			return .Ok;
+		}
+
+		private Result<void, ParseError> Expression(out Expr expr)
 		{
 			return Equality(out expr);
 		}

@@ -5,7 +5,7 @@ namespace BLox
 	public class Scanner
 	{
 		private String source = new .() ~ delete _;
-		private List<Token> tokens = new .() ~ DeleteContainerAndItems!(_);
+		private List<Token> tokens;
 		private int start = 0;
 		private int current = 0;
 		private int line = 1;
@@ -34,8 +34,11 @@ namespace BLox
 			this.source.Set(source);
 		}
 
-		public List<Token> ScanTokens()
+		public void ScanTokens(out List<Token> outTokens)
 		{
+			outTokens = new .();
+			tokens = outTokens;
+
 			while (!IsAtEnd())
 			{
 				start = current;
@@ -43,8 +46,6 @@ namespace BLox
 			}
 
 			tokens.Add(new Token(.EOF, "", (Object)null, line));
-
-			return tokens;
 		}
 
 		private void ScanToken()

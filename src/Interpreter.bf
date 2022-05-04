@@ -1,24 +1,88 @@
 using System;
+using System.Collections;
+
 namespace BLox
 {
-	public class Interpreter: Visitor<Variant>
+	public class Interpreter
 	{
+		public bool _canConsumeResult = false;
 		public Variant Result { get; private set; } ~ Result.Dispose();
 
 		public bool HasError => Error != null;
 		public RuntimeError Error { get; private set; } = null ~ HandledError();
 
-		public void Interpret(Expr expr)
+		public void Interpret(List<Stmt> statements)
 		{
-			expr.Accept(this);
+			for (let statement in statements)
+			{
+				Execute(statement);
+				HandledError();
+			}
 		}
 
 		public void HandledError()
 		{
 			if (HasError)
+			{
+				Lox.PrintRuntimeError(Error);
 				DeleteAndNullify!(Error);
+			}
 		}
 
+		public void HandleResult()
+		{
+			if (_canConsumeResult)
+			{
+				Lox.PrintResult(Result);
+				_canConsumeResult = false;
+			}
+		}
+
+		private void Execute(Stmt statement)
+		{
+			statement.Accept(this);
+		}
+
+		private void Evaluate(Expr expr)
+		{
+			expr.Accept(this);
+		}
+
+		private Result<void> ValidNumberOperand(Token token, Variant operand)
+		{
+			if (operand.VariantType == typeof(double)) return .Ok;
+
+			Error = new RuntimeError(token, "Operand must be a number.");
+			return .Err;
+		}
+
+		private Result<void> ValidNumberOperands(Token token, Variant left, Variant right)
+		{
+			if (left.VariantType == typeof(double) && right.VariantType == typeof(double)) return .Ok;
+
+			Error = new RuntimeError(token, "Operands must be numbers.");
+			return .Err;
+		}
+
+		private bool IsTruthy(Variant variant)
+		{
+			if (!variant.HasValue) return false;
+			if (variant.VariantType == typeof(bool)) return variant.Get<bool>();
+
+			return true;
+		}
+
+		private bool IsEqual(Variant left, Variant right)
+		{
+			if (!left.HasValue && !right.HasValue) return true;
+			if (!left.HasValue) return false;
+
+			return left == right;
+		}
+	}
+
+	extension Interpreter: Expr.Visitor<Variant>
+	{
 		public void VisitUnaryExpr(Unary expr)
 		{
 			Evaluate(expr.right);
@@ -98,42 +162,21 @@ namespace BLox
 		{
 			Result = Variant.CreateFromVariant(expr.value);
 		}
+	}
 
-		private void Evaluate(Expr expr)
+	extension Interpreter: Stmt.Visitor
+	{
+		public void VisitExpressionStmt(Expression stmt)
 		{
-			expr.Accept(this);
+			Evaluate(stmt.expression);
+			_canConsumeResult = true;
 		}
 
-		private Result<void> ValidNumberOperand(Token token, Variant operand)
+		public void VisitPrintStmt(Print stmt)
 		{
-			if (operand.VariantType == typeof(double)) return .Ok;
-
-			Error = new RuntimeError(token, "Operand must be a number.");
-			return .Err;
-		}
-
-		private Result<void> ValidNumberOperands(Token token, Variant left, Variant right)
-		{
-			if (left.VariantType == typeof(double) && right.VariantType == typeof(double)) return .Ok;
-
-			Error = new RuntimeError(token, "Operands must be numbers.");
-			return .Err;
-		}
-
-		private bool IsTruthy(Variant variant)
-		{
-			if (!variant.HasValue) return false;
-			if (variant.VariantType == typeof(bool)) return variant.Get<bool>();
-
-			return true;
-		}
-
-		private bool IsEqual(Variant left, Variant right)
-		{
-			if (!left.HasValue && !right.HasValue) return true;
-			if (!left.HasValue) return false;
-
-			return left == right;
+			Evaluate(stmt.expression);
+			Lox.PrintResult(Result);
+			_canConsumeResult = false;
 		}
 	}
 }

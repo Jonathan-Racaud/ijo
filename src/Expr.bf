@@ -4,22 +4,22 @@ namespace BLox
 {
     public abstract class Expr
     {
+        public interface Visitor
+        {
+            void VisitUnaryExpr(Unary expr);
+            void VisitBinaryExpr(Binary expr);
+            void VisitGroupingExpr(Grouping expr);
+            void VisitLiteralExpr(Literal expr);
+        }
+
+        public interface Visitor<T>: Visitor
+        {
+            public T Result { get; };
+        }
         // Virtual/Abstract generic are not yet supported
         public abstract void Accept(Visitor visitor);
     }
 
-    public interface Visitor
-    {
-        void VisitUnaryExpr(Unary expr);
-        void VisitBinaryExpr(Binary expr);
-        void VisitGroupingExpr(Grouping expr);
-        void VisitLiteralExpr(Literal expr);
-    }
-
-    public interface Visitor<T>: Visitor
-    {
-        public T Result { get; };
-    }
 
     public class Unary: Expr
     {
@@ -77,7 +77,7 @@ namespace BLox
 
     public class Literal: Expr
     {
-        public Variant value;
+        public Variant value ~ value.Dispose();
 
         public this(Variant value)
         {
