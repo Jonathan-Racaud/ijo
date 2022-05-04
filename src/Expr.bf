@@ -77,7 +77,7 @@ namespace BLox
 
     public class Literal: Expr
     {
-        public Variant value ~ value.Dispose();
+        public Variant value;
 
         public this(Variant value)
         {

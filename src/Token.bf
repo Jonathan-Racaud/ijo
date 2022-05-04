@@ -5,15 +5,36 @@ namespace BLox
 	{
 		public TokenType type;
 		public String lexeme = new .() ~ delete _;
-		public Variant literal ~ literal.Dispose();
+		public String stringLiteral = new .() ~ delete _;
+		public Variant literal;
 		public int line;
 
-		public this(TokenType type, String lexeme, Variant literal, int line)
+		public this(TokenType type, String lexeme, double literal, int line)
 		{
 			this.type = type;
 			this.lexeme.Set(lexeme);
-			this.literal = literal;
 			this.line = line;
+
+			this.literal = Variant.Create(literal);
+		}
+
+		public this(TokenType type, String lexeme, String literal, int line)
+		{
+			this.type = type;
+			this.lexeme.Set(lexeme);
+			this.line = line;
+
+			stringLiteral.Set(literal);
+			this.literal = Variant.Create(stringLiteral);
+		}
+
+		public this(TokenType type, String lexeme, Object literal, int line)
+		{
+			this.type = type;
+			this.lexeme.Set(lexeme);
+			this.line = line;
+
+			this.literal = Variant.Create(literal);
 		}
 
 		public override void ToString(String outStr)

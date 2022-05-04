@@ -13,7 +13,8 @@ namespace BLox
 			case .Ok(let val):
 				ok = val;
 			case .Err(let err):
-				((Action)action)();
+				if (action != null)
+					action();
 				return .Err(err);
 			}
 

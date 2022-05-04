@@ -97,7 +97,7 @@ namespace BLox
 			{
 				let op = Previous();
 				Expr right;
-				Guard!(UnaryRule(out right), Otherwise!({ expr = null }));
+				Guard!(UnaryRule(out right), (Action)scope [&]() => {expr = null;});
 				expr = new Unary(op, right);
 				return .Ok;
 			}
@@ -115,7 +115,7 @@ namespace BLox
 			}
 
 			if (Match(.FALSE)) {
-				expr = new Literal(Variant.Create(true));
+				expr = new Literal(Variant.Create(false));
 				return .Ok;
 			}
 

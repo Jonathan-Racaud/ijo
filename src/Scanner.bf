@@ -42,7 +42,7 @@ namespace BLox
 				ScanToken();
 			}
 
-			tokens.Add(new .(.EOF, "", Variant.Create<Object>(null), line));
+			tokens.Add(new Token(.EOF, "", (Object)null, line));
 
 			return tokens;
 		}
@@ -97,11 +97,23 @@ namespace BLox
 			}
 		}
 
-		private void AddToken(TokenType type) => AddToken(type, Variant.Create<Object>(null));
-		private void AddToken(TokenType type, Variant literal)
+		private void AddToken(TokenType type) => AddToken(type, (Object)null);
+		private void AddToken(TokenType type, String literal)
 		{
 			let text = scope String(source.Substring(start, current - start));
-			tokens.Add(new .(type, text, literal, line));
+			tokens.Add(new Token(type, text, literal, line));
+		}
+
+		private void AddToken(TokenType type, double literal)
+		{
+			let text = scope String(source.Substring(start, current - start));
+			tokens.Add(new Token(type, text, literal, line));
+		}
+
+		private void AddToken(TokenType type, Object literal)
+		{
+			let text = scope String(source.Substring(start, current - start));
+			tokens.Add(new Token(type, text, literal, line));
 		}
 
 		private char8 Advance() => source[current++];
@@ -154,8 +166,8 @@ namespace BLox
 			// The closing "
 			Advance();
 
-			let value = new String(source.Substring(start + 1, current - start - 2));
-			AddToken(.STRING, Variant.Create(value, true));
+			let value = scope String(source.Substring(start + 1, current - start - 2));
+			AddToken(.STRING, value);
 		}
 
 		private void ParseNumber()
@@ -172,7 +184,7 @@ namespace BLox
 			}
 
 			if (Double.Parse(source.Substring(start, current - start)) case .Ok(let number))
-				AddToken(.NUMBER, Variant.Create(number));
+				AddToken(.NUMBER, number);
 			else
 				Lox.Error(line, "Couldn't parse number");
 		}

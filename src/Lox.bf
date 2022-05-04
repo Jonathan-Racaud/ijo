@@ -6,6 +6,8 @@ namespace BLox
 	public static class Lox
 	{
 		private static bool _hadError;
+		private static bool _hadRuntimeError;
+		private static Interpreter _interpreter = new .() ~ delete _;
 
 		/// Returns code according to UNIX's sysexit.h:
 		/// https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
@@ -43,6 +45,7 @@ namespace BLox
 			Run(data);
 
 			if (_hadError) return 65;
+			if (_hadRuntimeError) return 70;
 
 			return 0;
 		}
@@ -76,13 +79,50 @@ namespace BLox
 
 			if (parser.Parse(out expr) case .Ok)
 			{
+#if DEBUG_AST
 				let astPrinter = scope AstPrinter();
 				astPrinter.Build(expr);
+				Console.WriteLine(expr);
+#endif
+				_interpreter.Interpret(expr);
 
-				Console.WriteLine(astPrinter.Result);
+				if (_interpreter.HasError)
+				{
+					PrintRuntimeError(_interpreter.Error);
+					_interpreter.HandledError();
+				}
+				else
+				{
+					PrintResult(_interpreter.Result);
+				}
 
 				delete expr;
 			}
+		}
+
+		static void PrintResult(Variant result)
+		{
+			switch (result.VariantType)
+			{
+			case typeof(String):
+				Console.WriteLine(scope $"\"{result.Get<String>()}\"");
+			case typeof(double):
+				Console.WriteLine(result.Get<double>());
+			case typeof(Object):
+				let obj = result.Get<Object>();
+				let res = obj == null ? "nil" : obj.ToString(.. scope .());
+				Console.WriteLine(res);
+			case typeof(bool):
+				Console.WriteLine(result.Get<bool>());
+			default:
+				Console.WriteLine("nil");
+			}
+		}
+
+		static void PrintRuntimeError(RuntimeError error)
+		{
+			Console.Error.WriteLine(scope $"[Error]: {error.Message} at line {error.Token.line}");
+			_hadRuntimeError = true;
 		}
 
 		static bool ShouldExit(StringView line)
