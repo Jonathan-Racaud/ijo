@@ -14,12 +14,12 @@ namespace BLox
 		/// https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
 		public static int Main(String[] args)
 		{
-			int exit;
+			SysExit exit = .Ok;
 
 			if (args.Count > 1)
 			{
 				Console.Error.WriteLine("Usage: blox [script]");
-				exit = 64;
+				exit = .Usage;
 			}
 			else if (args.Count == 1)
 			{
@@ -30,28 +30,28 @@ namespace BLox
 				exit = RunPrompt();
 			}
 
-			return exit;
+			return exit.Underlying;
 		}
 
-		static int RunFile(String file)
+		static SysExit RunFile(String file)
 		{
 			var data = new String();
 			defer delete data;
 
 			if (File.ReadAllText(file, data) case .Err)
 			{
-				return 74;
+				return .IOErr;
 			}
 
 			Run(data);
 
-			if (_hadError) return 65;
-			if (_hadRuntimeError) return 70;
+			if (_hadError) return .DataErr;
+			if (_hadRuntimeError) return .Software;
 
-			return 0;
+			return .Ok;
 		}
 
-		static int RunPrompt()
+		static SysExit RunPrompt()
 		{
 			for(;;)
 			{
@@ -59,7 +59,7 @@ namespace BLox
 				String line = scope String();
 
 				if (Console.ReadLine(line) case .Err)
-					return 75;
+					return .TempFail;
 
 				if (ShouldExit(line)) break;
 
@@ -68,7 +68,7 @@ namespace BLox
 				_hadError = false;
 			}
 
-			return 0;
+			return .Ok;
 		}
 
 		static void Run(String source)
