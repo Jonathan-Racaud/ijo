@@ -97,14 +97,17 @@ if __name__ == "__main__":
     output_dir = sys.argv[1]
     
     define_ast(output_dir, "Expr", [
-        "Unary		: Token op, Expr right",
         "Binary		: Expr left, Token op, Expr right",
         "Grouping	: Expr expression",
         "Literal	: Variant value",
+        "Unary		: Token op, Expr right",
+        "Variable   : Token name",
+        "Assign     : Token name, Expr value"
     ])
 
     define_ast(output_dir, "Stmt", [
         "Expression : Expr expression",
-        "Print      : Expr expression"
+        "Print      : Expr expression",
+        "Var        : Token name, Expr initializer"
     ])
 

@@ -4,6 +4,7 @@ namespace BLox
 	{
 		NoError,
 		MissingExpectedToken,
-		ExpectedExpression
+		ExpectedExpression,
+		InvalidAssignmentTarget
 	}
 }

@@ -8,6 +8,7 @@ namespace BLox
         {
             void VisitExpressionStmt(Expression stmt);
             void VisitPrintStmt(Print stmt);
+            void VisitVarStmt(Var stmt);
         }
 
         public interface Visitor<T>: Visitor
@@ -48,6 +49,24 @@ namespace BLox
         public override void Accept(Visitor visitor)
         {
             visitor.VisitPrintStmt(this);
+        }
+    }
+
+    public class Var: Stmt
+    {
+        public Token name ;
+        public Expr initializer ~ delete _;
+
+        public this(Token name, Expr initializer)
+        {
+            this.name = name;
+            this.initializer = initializer;
+        }
+
+        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
+        public override void Accept(Visitor visitor)
+        {
+            visitor.VisitVarStmt(this);
         }
     }
 }

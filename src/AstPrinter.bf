@@ -56,5 +56,15 @@ namespace BLox
 
 			Result.Append(")");
 		}
+
+		public void VisitVariableExpr(Variable expr)
+		{
+			Parenthesize("var", expr);
+		}
+
+		public void VisitAssignExpr(Assign expr)
+		{
+			Parenthesize("assign", expr);
+		}
 	}
 }

@@ -22,7 +22,7 @@ namespace BLox
 				Stmt statement;
 
 				Guard!(
-					Statement(out statement),
+					Declaration(out statement),
 					(Action)scope [&]() => {
 						delete statement;
 						statement = null;
@@ -31,6 +31,50 @@ namespace BLox
 				statements.Add(statement);
 			}
 
+			return .Ok;
+		}
+
+		private Result<void, ParseError> Declaration(out Stmt statement)
+		{
+			if (Match(.VAR))
+			{
+				Guard!(
+					VarDeclaration(out statement),
+					(Action) scope () => Synchronize());
+
+				return .Ok;
+			}
+
+			return Statement(out statement);
+		}
+
+		private Result<void, ParseError> VarDeclaration(out Stmt statement)
+		{
+			Expr initializer = null;
+
+			let cleanup = (Action) scope [&]() => {
+				if (initializer != null)
+					delete initializer;
+
+				statement = null;
+				initializer = null;
+			};
+
+			let name = Guard!(
+				Consume(.IDENTIFIER, "Expected a variable name."),
+				cleanup);
+
+			
+			if (Match(.EQUAL))
+			{
+				Expression(out initializer);
+			}
+
+			Guard!(
+				Consume(.SEMICOLON, "Expected ';' after variable declaration"),
+				cleanup);
+
+			statement = new Var(name, initializer);
 			return .Ok;
 		}
 
@@ -93,7 +137,42 @@ namespace BLox
 
 		private Result<void, ParseError> Expression(out Expr expr)
 		{
-			return Equality(out expr);
+			return Assignment(out expr);
+		}
+
+		private Result<void, ParseError> Assignment(out Expr expr)
+		{
+			Expr expression;
+
+			Guard!(Equality(out expression),
+				(Action)scope [&]() => {
+					if (expression != null)
+						delete expression;
+					expr = default;
+				});
+
+			if (Match(.EQUAL))
+			{
+				let equals = Previous();
+				Expr value;
+
+				Assignment(out value);
+
+				if (expression is Variable)
+				{
+					let name = ((Variable)expression).name;
+					expr = new Assign(name, value);
+
+					// The expression has been consumed so we can safely delete it.
+					delete expression;
+					return .Ok;
+				}
+
+				Error(equals, .InvalidAssignmentTarget, "Invalid assignment target.");
+			}
+
+			expr = expression;
+			return .Ok;
 		}
 
 		private Result<void, ParseError>  Equality(out Expr expr)
@@ -199,6 +278,12 @@ namespace BLox
 				Guard!(Expression(out expr));
 				Guard!(Consume(.RIGHT_PAREN, "Expect ')' after expression"));
 				expr = new Grouping(expr);
+				return .Ok;
+			}
+
+			if (Match(.IDENTIFIER))
+			{
+				expr = new Variable(Previous());
 				return .Ok;
 			}
 

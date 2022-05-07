@@ -9,7 +9,9 @@ namespace BLox
 		public Variant Result { get; private set; } ~ Result.Dispose();
 
 		public bool HasError => Error != null;
-		public RuntimeError Error { get; private set; } = null ~ HandledError();
+		public Error Error { get; private set; } = null ~ HandledError();
+
+		private BLox.Environment environment = new .() ~ delete _;
 
 		public void Interpret(List<Stmt> statements)
 		{
@@ -24,7 +26,8 @@ namespace BLox
 		{
 			if (HasError)
 			{
-				Lox.PrintRuntimeError(Error);
+				if (Error is RuntimeError)
+					Lox.PrintRuntimeError((RuntimeError)Error);
 				DeleteAndNullify!(Error);
 			}
 		}
@@ -162,6 +165,24 @@ namespace BLox
 		{
 			Result = Variant.CreateFromVariant(expr.value);
 		}
+
+		public void VisitVariableExpr(Variable expr)
+		{
+			Variant result;
+			if (environment.Get(expr.name, out result) case .Err(let err))
+			{
+				Error = err;
+				HandledError();
+			}
+
+			Result = Variant.CreateFromVariant(result);
+		}
+
+		public void VisitAssignExpr(Assign expr)
+		{
+			Evaluate(expr.value);
+			environment.Assign(expr.name, Result);
+		}
 	}
 
 	extension Interpreter: Stmt.Visitor
@@ -177,6 +198,17 @@ namespace BLox
 			Evaluate(stmt.expression);
 			Lox.PrintResult(Result);
 			_canConsumeResult = false;
+		}
+
+		public void VisitVarStmt(Var stmt)
+		{
+			Result = Variant.Create<Object>(null);
+			if (stmt.initializer != null)
+			{
+				Evaluate(stmt.initializer);
+			}
+
+			environment.Define(stmt.name.lexeme, Result);
 		}
 	}
 }
