@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {BLox = {Path = "."}}
+Projects = {ijo = {Path = "."}}
 
 [Workspace]
-StartupProject = "BLox"
+StartupProject = "ijo"

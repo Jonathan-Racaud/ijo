@@ -1,56 +1,132 @@
 using System;
-namespace BLox
+namespace ijo
 {
-	public class Token
+	class Token
 	{
-		public TokenType type;
-		public String lexeme = new .() ~ delete _;
-		public String stringLiteral = new .() ~ delete _;
-		public Variant literal;
-		public int line;
+		public TokenType Type;
+		public String Lexeme = new .() ~ delete _;
+		public Variant Literal { get; private set; }
+		public int Line;
+		public int Column;
 
-		public this(TokenType type, String lexeme, double literal, int line)
+		public this(TokenType type, StringView lexeme, int line, int column)
 		{
-			this.type = type;
-			this.lexeme.Set(lexeme);
-			this.line = line;
-
-			this.literal = Variant.Create(literal);
+			Type = type;
+			Lexeme.Set(lexeme);
+			Line = line;
+			Column = column;
 		}
 
-		public this(TokenType type, String lexeme, String literal, int line)
+		public this(Token token)
 		{
-			this.type = type;
-			this.lexeme.Set(lexeme);
-			this.line = line;
-
-			stringLiteral.Set(literal);
-			this.literal = Variant.Create(stringLiteral);
+			Type = token.Type;
+			Lexeme.Set(token.Lexeme);
+			Line = token.Line;
+			Column = token.Column;
 		}
 
-		public this(TokenType type, String lexeme, Object literal, int line)
+		public ~this()
 		{
-			this.type = type;
-			this.lexeme.Set(lexeme);
-			this.line = line;
-
-			this.literal = Variant.Create(literal);
+			if (Literal.OwnsMemory)
+				Literal.Dispose();
 		}
 
-		public override void ToString(String outStr)
+		public void SetLiteralValue(double value)
 		{
-			String lit = scope String();
+			Literal = Variant.Create(value);
+		}
 
-			switch (literal.VariantType)
+		public void SetLiteralValue(int value)
+		{
+			Literal = Variant.Create(value);
+		}
+
+		public void SetLiteralValue(StringView value)
+		{
+			Literal = Variant.Create(new String(value), true);
+		}
+
+		public void SetLiteralValue(Object obj)
+		{
+			if (Variant.CreateFromBoxed(obj) case .Ok(let val))
+				Literal = val;
+		}
+	}
+
+	enum TokenType
+	{
+		// Single character tokens
+		case LeftParen, RightParen, LeftBrace, RightBrace,
+		Comma, Colon, Dot, Minus, Plus, Semicolon, Slash, Star,
+		Pound,
+
+		// One or two character tokens
+		Bang, BangEqual,
+		Equal, EqualEqual,
+		Greater, GreaterEqual,
+		Less, LessEqual,
+
+		// Literals
+		Identifier, String, Double, Integer,
+
+		// Keywords
+		Type, Functions, Interface, Operators,
+		Func, Var, Let, Base, This,
+		True, False, While, For,
+		Nil, If, Else, And, Or, Assume,
+		Return, Of, Import,
+
+		EOF;
+
+		public static operator StringView(Self value)
+		{
+			switch (value)
 			{
-			case typeof(String):
-				lit.Set(literal.Get<String>());
-			case typeof(Double):
-				lit.Set(scope $"{literal.Get<Double>()}");
+			case .LeftParen: return "(";
+			case .RightParen: return "";
+			case .LeftBrace: return "(";
+			case .RightBrace: return "(";
+			case .Comma: return ",";
+			case .Dot: return ".";
+			case .Minus: return "-";
+			case .Plus: return "+";
+			case .Semicolon: return ";";
+			case .Colon: return ":";
+			case .Slash: return "/";
+			case .Pound: return "#";
+			case .Star: return "*";
+			case .Bang: return "!";
+			case .BangEqual: return "!=";
+			case .Equal: return "=";
+			case .EqualEqual: return "==";
+			case .Greater: return ">";
+			case .GreaterEqual: return ">=";
+			case .Less: return "<";
+			case .LessEqual: return "<=";
+			case .Type: return "type";
+			case .Functions: return "functions";
+			case .Interface: return "interface";
+			case .Operators: return "operators";
+			case .Func: return "func";
+			case .Var: return "var";
+			case .Let: return "let";
+			case .Base: return "base";
+			case .This: return "this";
+			case .True: return "true";
+			case .False: return "false";
+			case .While: return "while";
+			case .For: return "for";
+			case .If: return "if";
+			case .Else: return "else";
+			case .Assume: return "assume";
+			case .And: return "and";
+			case .Or: return "or";
+			case .Return: return "return";
+			case .Of: return "of";
+			case .Import: return "import";
+			case .EOF: return "\0";
+			default: return "";
 			}
-
-			outStr.Clear();
-			outStr.Set(scope $"{type} {lexeme} {lit}");
 		}
 	}
 }

@@ -1,0 +1,3 @@
+var start = elapsedMilliseconds();
+var end = elapsedMilliseconds();
+write(end - start);

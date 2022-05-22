@@ -1,0 +1,11 @@
+if (true) {
+    write("Hello World");
+}
+
+var start = elapsedMilliseconds();
+var name = "Jonathan";
+write(name);
+var end = elapsedMilliseconds();
+
+write("Time taken:");
+write(end - start);

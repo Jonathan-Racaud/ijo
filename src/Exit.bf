@@ -1,11 +1,11 @@
-namespace BLox
+namespace ijo
 {
-	public enum SysExit: int
+	public enum Exit: int
 	{
 		/**
 		The successful exit is always indicated by a status of 0.
 		*/
-		Ok = 0,
+		case Ok = 0,
 
 		/**
 		The command was used incorrectly, e.g., with the
@@ -109,6 +109,9 @@ namespace BLox
 		Something was found in an unconfigured or miscon­
 		figured state.
 		*/
-		Config = 78
+		Config = 78;
+
+		/* Conversion operator from float[2] */
+		public static operator int(Exit value) => value.Underlying;
 	}
 }

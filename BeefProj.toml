@@ -1,5 +1,8 @@
 FileVersion = 1
 
 [Project]
-Name = "BLox"
-StartupObject = "BLox.Lox"
+Name = "ijo"
+StartupObject = "ijo.Program"
+
+[Configs.Debug.Win64]
+DebugCommandArguments = "run $(ProjectDir)/example/elapsed.ijo"
