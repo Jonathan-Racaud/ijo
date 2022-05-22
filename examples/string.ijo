@@ -1,6 +1,8 @@
-#var hello = "hello";
-#var world = " world";
-#var bang = "!";
+var hello = "hello";
+var world = " world";
+var bang = "!";
 
-#var message = hello + world + bang;
-write("coucou" + " mon chou");
+# Currently creates a leaked String alloc
+# for hello + world
+var message = hello + world + bang;
+write(message);
