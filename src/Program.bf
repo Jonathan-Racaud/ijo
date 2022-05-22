@@ -44,27 +44,17 @@ namespace ijo
 		{
 			let scanner = scope Scanner(source);
 
-			List<Token> tokens = scope .();
-			/*defer { DeleteContainerAndItems!(tokens); }*/
-
-			switch (scanner.ScanTokens())
+			if (scanner.ScanTokens() case .Ok(let tokens))
 			{
-			case .Err: return Exit.Software;
-			case .Ok(let val): tokens = val;
+				let parser = scope Parser(tokens);
+
+				if (parser.Parse() case .Ok(let stmts))
+				{
+					interpreter.Interpret(stmts);
+					DeleteContainerAndItems!(stmts);
+				}
 			}
 
-			let parser = scope Parser(tokens);
-
-			List<Stmt> statements = default;
-			defer { DeleteContainerAndItems!(statements); }
-
-			switch (parser.Parse())
-			{
-			case .Err: return Exit.Software;
-			case .Ok(let val): statements = val;
-			}
-
-			interpreter.Interpret(statements);
 			return Exit.Ok;
 		}
 	}

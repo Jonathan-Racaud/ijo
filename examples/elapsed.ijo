@@ -7,5 +7,5 @@ var name = "Jonathan";
 write(name);
 var end = elapsedMilliseconds();
 
-write("Time taken:");
-write(end - start);
+var message = "Time taken: " + (end - start) + " ms" + " in total"
+write(message);

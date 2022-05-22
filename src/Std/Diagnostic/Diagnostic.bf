@@ -19,8 +19,8 @@ namespace ijo.Std.Diagnostic
 
 		public override Variant call(Scope env, List<Variant> arguments)
 		{
-			let random = scope Random();
-			return Variant.Create<int>(random.Next(10));
+			let time = DateTime.Now;
+			return Variant.Create<int>(time.Millisecond);
 		}
 	}
 }

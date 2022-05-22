@@ -11,6 +11,7 @@ namespace ijo.Interpreter
 		case VariableError(ScopeError);
 		case CallNonFunction(String);
 		case InvalidArgumentCount;
+		case InvalidOperation;
 
 		public static operator StringView(Self value)
 		{
@@ -23,6 +24,7 @@ namespace ijo.Interpreter
 			case .VariableError(let e): return scope $"Error with variable: {e}";
 			case .CallNonFunction(let func): return scope $"Trying to call a non function: {func}";
 			case .InvalidArgumentCount: return "Invalid argument count";
+			case .InvalidOperation: return "Invalid operation";
 			}
 		}
 	}

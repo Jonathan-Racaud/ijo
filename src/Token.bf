@@ -1,11 +1,11 @@
 using System;
 namespace ijo
 {
-	class Token
+	struct Token: IDisposable
 	{
 		public TokenType Type;
-		public String Lexeme = new .() ~ delete _;
-		public Variant Literal { get; private set; }
+		public String Lexeme = new .();
+		public Variant Literal { get; private set mut; } = default;
 		public int Line;
 		public int Column;
 
@@ -25,31 +25,29 @@ namespace ijo
 			Column = token.Column;
 		}
 
-		public ~this()
+		public void SetLiteralValue(double value) mut
+		{
+			Literal = Variant.Create(value);
+		}
+
+		public void SetLiteralValue(int value) mut
+		{
+			Literal = Variant.Create(value);
+		}
+
+		public void SetLiteralValue(Object obj) mut
+		{
+			if (obj is String || obj is StringView)
+				Literal = Variant.Create(new String(scope $"{obj}"), true);
+			else
+				Literal = Variant.Create(obj);
+		}
+
+		public void Dispose() mut
 		{
 			if (Literal.OwnsMemory)
 				Literal.Dispose();
-		}
-
-		public void SetLiteralValue(double value)
-		{
-			Literal = Variant.Create(value);
-		}
-
-		public void SetLiteralValue(int value)
-		{
-			Literal = Variant.Create(value);
-		}
-
-		public void SetLiteralValue(StringView value)
-		{
-			Literal = Variant.Create(new String(value), true);
-		}
-
-		public void SetLiteralValue(Object obj)
-		{
-			if (Variant.CreateFromBoxed(obj) case .Ok(let val))
-				Literal = val;
+			delete Lexeme;
 		}
 	}
 

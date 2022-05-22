@@ -44,9 +44,9 @@ namespace ijo.Stmt
 
     public class IfStmt: Stmt
     {
-        public Expr condition ~ delete _;
-        public Stmt thenBranch ~ delete _;
-        public Stmt elseBranch ~ delete _;
+        public Expr condition;// ~ delete _;
+        public Stmt thenBranch;// ~ delete _;
+        public Stmt elseBranch;// ~ delete _;
 
         public this(Expr condition, Stmt thenBranch, Stmt elseBranch)
         {
@@ -54,6 +54,13 @@ namespace ijo.Stmt
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
         }
+
+		public ~this()
+		{
+			delete condition;
+			delete thenBranch;
+			delete elseBranch;
+		}
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
@@ -82,14 +89,14 @@ namespace ijo.Stmt
 
     public class VarStmt: Stmt
     {
-        public Token mutability ~ delete _;
-        public Token name ~ delete _;
+        public Token mutability ;
+        public Token name ;
         public Expr initializer ~ delete _;
 
         public this(Token mutability, Token name, Expr initializer)
         {
-            this.mutability = new Token(mutability);
-            this.name = new Token(name);
+            this.mutability = mutability;
+            this.name = name;
             this.initializer = initializer;
         }
 

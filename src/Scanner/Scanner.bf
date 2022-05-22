@@ -9,7 +9,7 @@ namespace ijo.Scanner
 	class Scanner
 	{
 		private StreamReader sr ~ delete _;
-		private List<Token> tokens = new .() ~ DeleteContainerAndItems!(_);
+		private List<Token> tokens = new .() ~ DeleteContainerAndDisposeItems!(_);
 		private int tokenStart = 0;
 		private int currentChar = 0;
 		private int line = 1;
@@ -97,12 +97,12 @@ namespace ijo.Scanner
 
 		void AddToken(TokenType type)
 		{
-			tokens.Add(new Token(type, type, line, currentChar));
+			tokens.Add(Token(type, type, line, currentChar));
 		}
 
 		void AddToken<T>(TokenType type, T value)
 		{
-			let token = new Token(type, scope $"{value}", line, currentChar);
+			var token = Token(type, scope $"{value}", line, currentChar);
 			token.SetLiteralValue(value);
 
 			tokens.Add(token);
@@ -112,7 +112,6 @@ namespace ijo.Scanner
 		{
 			char8 char;
 			let str = scope String();
-			str.Append("\"");
 
 			repeat
 			{
@@ -123,6 +122,7 @@ namespace ijo.Scanner
 
 				str.Append(char);
 			} while (char != '"' && !sr.EndOfStream);
+			str.RemoveFromEnd(1);
 
 			if (sr.EndOfStream)
 				return .Err(.NonTerminatedString);
@@ -134,27 +134,28 @@ namespace ijo.Scanner
 
 		Result<void, ScanError> ScanNumber(char8 c)
 		{
-			var isDouble = false;
 			let str = scope String();
 			str.Append(c);
 
 			while (Peek().IsDigit)
 				str.Append(Read());
 
-			if (Peek() != '.' || !PeekNext().IsDigit)
+			if (!Peek().IsWhiteSpace && Peek() != '.' && Peek() != ';')
 				return .Err(.NumberParsingError);
-			else
-				isDouble = true;
 
-			str.Append(Read());
-
-			while (Peek().IsDigit)
+			if (Peek().IsWhiteSpace || Peek() == ';')
+			{
+				AddToken(.Integer, Unwrap!(int.Parse(str)));
+			}
+			else if (Peek() == '.' && PeekNext().IsDigit)
+			{
 				str.Append(Read());
 
-			if (isDouble)
+				while (Peek().IsDigit)
+					str.Append(Read());
+
 				AddToken(.Double, Unwrap!(double.Parse(str)));
-			else
-				AddToken(.Integer, Unwrap!(int.Parse(str)));
+			}
 
 			return .Ok;
 		}

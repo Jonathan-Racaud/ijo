@@ -13,13 +13,13 @@ namespace ijo.Expr
     public class BinaryExpr: Expr
     {
         public Expr left ~ delete _;
-        public Token op ~ delete _;
+        public Token op ;
         public Expr right ~ delete _;
 
         public this(Expr left, Token op, Expr right)
         {
             this.left = left;
-            this.op = new Token(op);
+            this.op = op;
             this.right = right;
         }
 
@@ -33,13 +33,13 @@ namespace ijo.Expr
     public class CallExpr: Expr
     {
         public Expr callee ~ delete _;
-        public Token paren ~ delete _;
+        public Token paren ;
         public List<Expr> arguments ~ DeleteContainerAndItems!(_);
 
         public this(Expr callee, Token paren, List<Expr> arguments)
         {
             this.callee = callee;
-            this.paren = new Token(paren);
+            this.paren = paren;
             this.arguments = arguments;
         }
 
@@ -90,12 +90,12 @@ namespace ijo.Expr
 
     public class UnaryExpr: Expr
     {
-        public Token op ~ delete _;
+        public Token op ;
         public Expr right ~ delete _;
 
         public this(Token op, Expr right)
         {
-            this.op = new Token(op);
+            this.op = op;
             this.right = right;
         }
 
@@ -109,13 +109,13 @@ namespace ijo.Expr
     public class LogicalExpr: Expr
     {
         public Expr left ~ delete _;
-        public Token op ~ delete _;
+        public Token op ;
         public Expr right ~ delete _;
 
         public this(Expr left, Token op, Expr right)
         {
             this.left = left;
-            this.op = new Token(op);
+            this.op = op;
             this.right = right;
         }
 
@@ -128,11 +128,11 @@ namespace ijo.Expr
 
     public class VariableExpr: Expr
     {
-        public Token name ~ delete _;
+        public Token name ;
 
         public this(Token name)
         {
-            this.name = new Token(name);
+            this.name = name;
         }
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
@@ -144,12 +144,12 @@ namespace ijo.Expr
 
     public class AssignmentExpr: Expr
     {
-        public Token name ~ delete _;
+        public Token name ;
         public Expr value ~ delete _;
 
         public this(Token name, Expr value)
         {
-            this.name = new Token(name);
+            this.name = name;
             this.value = value;
         }
 

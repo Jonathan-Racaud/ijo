@@ -1,0 +1,6 @@
+#var hello = "hello";
+#var world = " world";
+#var bang = "!";
+
+#var message = hello + world + bang;
+write("coucou" + " mon chou");
