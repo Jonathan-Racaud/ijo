@@ -21,14 +21,16 @@ namespace ijo.Parser
 			this.tokens = tokens;
 		}
 
-		public Result<void, ParseError> Parse(out List<Stmt> statements)
+		public Result<void, ParseError> Parse(List<Stmt>[2] statements)
 		{
-			statements = new .();
-
 			while (!IsAtEnd())
 			{
 				let stmt = Unwrap!(ParseDeclaration());
-				statements.Add(stmt);
+
+				if (stmt is FunctionStmt)
+					statements[FuncDeclStmt].Add(stmt);
+				else
+					statements[OtherStmt].Add(stmt);
 			}
 
 			return .Ok;

@@ -1,5 +1,5 @@
-func sayHi(name) {
-    write("Hello my name is: " + name);
-}
+sayHi("Antoine");
 
-sayHi("Yuyu MaoMao");
+func sayHi(name) {
+    write("Hello my name is: " + name + " And I am super good!!!");
+}

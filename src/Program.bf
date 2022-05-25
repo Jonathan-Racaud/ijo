@@ -9,6 +9,13 @@ using ijo.Stmt;
 
 namespace ijo
 {
+	static
+	{
+		public static let FuncDeclStmt = 0;
+		public static let OtherStmt = 1;
+	}
+	
+
 	class Program
 	{
 		private static Interpreter interpreter = new .() ~ delete _;
@@ -49,13 +56,19 @@ namespace ijo
 				return Exit.Software;
 
 			let parser = scope Parser(tokens);
-			List<Stmt> stmts = default;
+			List<Stmt>[2] stmts = .(
+				new List<Stmt>(),
+				new List<Stmt>()
+			);
 
-			if (parser.Parse(out stmts) case .Err)
+			if (parser.Parse(stmts) case .Err)
 				return Exit.Software;
 
-			interpreter.Interpret(stmts);
-			DeleteContainerAndItems!(stmts);
+			interpreter.Interpret(stmts[FuncDeclStmt]);
+			interpreter.Interpret(stmts[OtherStmt]);
+
+			DeleteContainerAndItems!(stmts[FuncDeclStmt]);
+			DeleteContainerAndItems!(stmts[OtherStmt]);
 			DeleteContainerAndDisposeItems!(tokens);
 
 			return Exit.Ok;
