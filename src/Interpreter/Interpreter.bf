@@ -3,14 +3,14 @@ using System.Collections;
 using ijo.Expr;
 using ijo.Mixins;
 using ijo.Stmt;
-using ijo.Scope;
 using ijo.Std;
 
 namespace ijo.Interpreter
 {
 	class Interpreter
 	{
-		private Scope environment = new .() ~ delete _;
+		public ijoEnvironment Globals { get; } = new .() ~ delete _;
+		private ijoEnvironment environment = Globals;
 
 		public void RegisterFunctions(params IFunctionRegistrer[] registrers)
 		{
@@ -28,12 +28,12 @@ namespace ijo.Interpreter
 			}
 		}
 
-		void Execute(Stmt stmt)
+		public void Execute(Stmt stmt)
 		{
 			stmt.Accept(this).IgnoreError();
 		}
 
-		void ExecuteBlock(List<Stmt> stmts, Scope env)
+		public void ExecuteBlock(List<Stmt> stmts, ijoEnvironment env)
 		{
 			let prevEnv = environment;
 			environment = env;

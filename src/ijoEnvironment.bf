@@ -3,38 +3,49 @@ using System.Collections;
 using ijo.Stmt;
 using ijo.Mixins;
 
-namespace ijo.Scope
+namespace ijo
 {
-	class Scope
+	class ijoEnvironment
 	{
-		private Scope parent;
+		private ijoEnvironment parent;
 
-		private Dictionary<String, Variant> mutableVariables = new .();
-		private Dictionary<String, Variant> constVariables = new .();
+		private Dictionary<String, Variant> mutableVariables = new .() ~ DeleteDictionaryAndKeys!(_);
+		private Dictionary<String, Variant> constVariables = new .() ~ DeleteDictionaryAndKeys!(_);
+		private Dictionary<String, Variant> funcVariables = new .();
 
-		public this(Scope parent = null)
+		public this(ijoEnvironment parent = null)
 		{
 			this.parent = parent;
 		}
 
 		public ~this()
 		{
-			for (var value in mutableVariables)
+			for (var dictVal in funcVariables)
 			{
-				value.value.Dispose();
-				delete value.key;
-			}
-			delete mutableVariables;
+				var variant = dictVal.value;
+				variant.Dispose();
 
-			for (var value in constVariables)
-			{
-				value.value.Dispose();
-				delete value.key;
+				delete dictVal.key;
 			}
-			delete constVariables;
+			delete funcVariables;
 		}
 
-		public Result<void, ScopeError> Define(StringView name, Variant value, bool constant = false)
+		public Result<void, EnvError> DefineFunction(StringView name, Variant value)
+		{
+			let key = new String(name);
+
+			if (constVariables.ContainsKey(key))
+			{
+				delete key;
+				return .Err(.VariableAlreadyDeclared(name));
+			}
+
+			funcVariables.Add(key, value);
+
+			return .Ok;
+		}
+
+		public Result<void, EnvError> Define(StringView name, Variant value, bool constant = false)
 		{
 			let key = new String(name);
 
@@ -52,7 +63,7 @@ namespace ijo.Scope
 			return .Ok;
 		}
 
-		public Result<void, ScopeError> Assign(Token name, Variant value)
+		public Result<void, EnvError> Assign(Token name, Variant value)
 		{
 			let key = scope String(name.Lexeme);
 
@@ -84,7 +95,7 @@ namespace ijo.Scope
 			return .Ok;
 		}
 
-		public Result<Variant, ScopeError> Get(Token name)
+		public Result<Variant, EnvError> Get(Token name)
 		{
 			let key = scope String(name.Lexeme);
 
@@ -93,6 +104,9 @@ namespace ijo.Scope
 
 			if (constVariables.ContainsKey(key))
 				return Unwrap!(constVariables.GetValue(key));
+
+			if (funcVariables.ContainsKey(key))
+				return Unwrap!(funcVariables.GetValue(key));
 
 			if (parent != null)
 				return parent.Get(name);

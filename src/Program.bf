@@ -43,17 +43,20 @@ namespace ijo
 		static int Execute(Stream source)
 		{
 			let scanner = scope Scanner(source);
+			List<Token> tokens = default;
 
-			if (scanner.ScanTokens() case .Ok(let tokens))
-			{
-				let parser = scope Parser(tokens);
+			if (scanner.ScanTokens(out tokens) case .Err)
+				return Exit.Software;
 
-				if (parser.Parse() case .Ok(let stmts))
-				{
-					interpreter.Interpret(stmts);
-					DeleteContainerAndItems!(stmts);
-				}
-			}
+			let parser = scope Parser(tokens);
+			List<Stmt> stmts = default;
+
+			if (parser.Parse(out stmts) case .Err)
+				return Exit.Software;
+
+			interpreter.Interpret(stmts);
+			DeleteContainerAndItems!(stmts);
+			DeleteContainerAndDisposeItems!(tokens);
 
 			return Exit.Ok;
 		}

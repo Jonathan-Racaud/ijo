@@ -10,13 +10,14 @@ namespace ijo.Stmt
         public abstract Result<Variant> Accept(Visitor visitor);
     }
 
+
     public class BlockStmt: Stmt
     {
-        public List<Stmt> statements ~ DeleteContainerAndItems!(_);
+        public List<Stmt> Statements ~ DeleteContainerAndItems!(_);
 
         public this(List<Stmt> statements)
         {
-            this.statements = statements;
+            Statements = statements;
         }
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
@@ -44,9 +45,9 @@ namespace ijo.Stmt
 
     public class IfStmt: Stmt
     {
-        public Expr condition;// ~ delete _;
-        public Stmt thenBranch;// ~ delete _;
-        public Stmt elseBranch;// ~ delete _;
+        public Expr condition ~ delete _;
+        public Stmt thenBranch ~ delete _;
+        public Stmt elseBranch ~ delete _;
 
         public this(Expr condition, Stmt thenBranch, Stmt elseBranch)
         {
@@ -54,13 +55,6 @@ namespace ijo.Stmt
             this.thenBranch = thenBranch;
             this.elseBranch = elseBranch;
         }
-
-		public ~this()
-		{
-			delete condition;
-			delete thenBranch;
-			delete elseBranch;
-		}
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
@@ -84,6 +78,26 @@ namespace ijo.Stmt
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitWhileStmt(this);
+        }
+    }
+
+    public class FunctionStmt: Stmt
+    {
+        public Token name ;
+        public List<Token> parameters ~ delete _;
+        public Stmt body ~ delete _;
+
+        public this(Token name, List<Token> parameters, Stmt body)
+        {
+            this.name = name;
+            this.parameters = parameters;
+            this.body = body;
+        }
+
+        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
+        public override Result<Variant> Accept(Visitor visitor)
+        {
+            return visitor.VisitFunctionStmt(this);
         }
     }
 

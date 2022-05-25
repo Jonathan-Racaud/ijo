@@ -35,13 +35,20 @@ namespace ijo
 			Literal = Variant.Create(value);
 		}
 
-		public void SetLiteralValue(Object obj) mut
+		public void SetLiteralValue(String obj) mut
 		{
-			if (obj is String || obj is StringView)
-				Literal = Variant.Create(new String(scope $"{obj}"), true);
-			else
-				Literal = Variant.Create(obj);
+			Literal = Variant.Create(new String(obj), true);
 		}
+
+		public void SetLiteralValue(StringView obj) mut
+		{
+			Literal = Variant.Create(new String(obj), true);
+		}
+
+		/*public void SetLiteralValue(Object obj) mut
+		{
+			Literal = Variant.Create(obj);
+		}*/
 
 		public void Dispose() mut
 		{

@@ -21,9 +21,9 @@ namespace ijo.Parser
 			this.tokens = tokens;
 		}
 
-		public StmtListResult Parse()
+		public Result<void, ParseError> Parse(out List<Stmt> statements)
 		{
-			let statements = new List<Stmt>();
+			statements = new .();
 
 			while (!IsAtEnd())
 			{
@@ -31,11 +31,16 @@ namespace ijo.Parser
 				statements.Add(stmt);
 			}
 
-			return .Ok(statements);
+			return .Ok;
 		}
 
 		StmtResult ParseDeclaration()
 		{
+			if (Match(.Func))
+			{
+				return ParseFunctionStatement();
+			}
+
 			if (Match(.Var, .Let))
 			{
 				// Do we want to return here when we synchronize or not?
@@ -48,9 +53,40 @@ namespace ijo.Parser
 			return ParseStatement();
 		}
 
+		StmtResult ParseFunctionStatement()
+		{
+			let name = Guard!(Consume(.Identifier));
+
+			Guard!(Consume(.LeftParen));
+
+			let parameters = new List<Token>();
+			if (!IsTokenMatching(.RightParen))
+			{
+				repeat
+				{
+					if (parameters.Count > 255)
+						ijoRuntime.PrintError("Can't have more than 255 parameters.");
+
+					let param = Guard!(Consume(.Identifier));
+					parameters.Add(param);
+				} while (Match(.Comma));
+			}
+
+			Guard!(Consume(.RightParen));
+			Guard!(Consume(.LeftBrace));
+
+			// Note that we consume the { at the beginning of the body here before calling block().
+			// That’s because block() assumes the brace token has already been matched.
+			// Consuming it here lets us report a more precise error message
+			// if the { isn’t found since we know it’s in the context of a function declaration.
+			let body = Guard!(ParseBlockStatement());
+
+			return new FunctionStmt(name, parameters, body);
+		}
+
 		StmtResult ParseVarDeclaration()
 		{
-			// We keep wether we declare a var or a let variable
+			// We keep whether we declare a var or a let variable
 			let mutability = Previous();
 			let name = Guard!(Consume(.Identifier));
 

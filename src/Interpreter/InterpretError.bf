@@ -1,5 +1,4 @@
 using System;
-using ijo.Scope;
 namespace ijo.Interpreter
 {
 	enum InterpretError
@@ -8,7 +7,7 @@ namespace ijo.Interpreter
 		case CouldNotEvaluate;
 		case OperandMustBeANumber(Token);
 		case OperandsMustBeNumbers(Token);
-		case VariableError(ScopeError);
+		case VariableError(EnvError);
 		case CallNonFunction(String);
 		case InvalidArgumentCount;
 		case InvalidOperation;

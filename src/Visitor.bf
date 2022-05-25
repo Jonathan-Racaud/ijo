@@ -18,6 +18,7 @@ namespace ijo
         public Result<Variant> VisitExpressionStmt(ExpressionStmt val);
         public Result<Variant> VisitIfStmt(IfStmt val);
         public Result<Variant> VisitWhileStmt(WhileStmt val);
+        public Result<Variant> VisitFunctionStmt(FunctionStmt val);
         public Result<Variant> VisitVarStmt(VarStmt val);
     }
 }

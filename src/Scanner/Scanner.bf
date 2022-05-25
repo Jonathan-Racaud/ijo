@@ -9,7 +9,7 @@ namespace ijo.Scanner
 	class Scanner
 	{
 		private StreamReader sr ~ delete _;
-		private List<Token> tokens = new .() ~ DeleteContainerAndDisposeItems!(_);
+		private List<Token> tokens;
 		private int tokenStart = 0;
 		private int currentChar = 0;
 		private int line = 1;
@@ -43,8 +43,11 @@ namespace ijo.Scanner
 			sr = new StreamReader(stream);
 		}
 
-		public Result<List<Token>, ScanError> ScanTokens()
+		public Result<void, ScanError> ScanTokens(out List<Token> outTokens)
 		{
+			outTokens = new .();
+
+			tokens = outTokens;
 			while (!sr.EndOfStream)
 			{
 				tokenStart = currentChar;
@@ -54,7 +57,7 @@ namespace ijo.Scanner
 					});
 			}
 
-			return .Ok(tokens);
+			return .Ok;
 		}
 
 		Result<void, ScanError> ScanToken()
@@ -100,13 +103,37 @@ namespace ijo.Scanner
 			tokens.Add(Token(type, type, line, currentChar));
 		}
 
-		void AddToken<T>(TokenType type, T value)
+		void AddToken(TokenType type, String value)
+		{
+			var token = Token(type, value, line, currentChar);
+			token.SetLiteralValue(value);
+
+			tokens.Add(token);
+		}
+
+		void AddToken(TokenType type, int value)
 		{
 			var token = Token(type, scope $"{value}", line, currentChar);
 			token.SetLiteralValue(value);
 
 			tokens.Add(token);
 		}
+
+		void AddToken(TokenType type, double value)
+		{
+			var token = Token(type, scope $"{value}", line, currentChar);
+			token.SetLiteralValue(value);
+
+			tokens.Add(token);
+		}
+
+		/*void AddToken(TokenType type, Object value)
+		{
+			var token = Token(type, scope $"{value}", line, currentChar);
+			token.SetLiteralValue(value);
+
+			tokens.Add(token);
+		}*/
 
 		Result<void, ScanError> ScanString()
 		{

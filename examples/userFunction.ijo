@@ -1,0 +1,5 @@
+func sayHi(name) {
+    write("Hello my name is: " + name);
+}
+
+sayHi("Yuyu MaoMao");

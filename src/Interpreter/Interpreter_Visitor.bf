@@ -3,7 +3,6 @@ using System.Collections;
 using ijo.Expr;
 using ijo.Mixins;
 using ijo.Stmt;
-using ijo.Scope;
 using ijo.Std;
 
 namespace ijo.Interpreter
@@ -87,17 +86,20 @@ namespace ijo.Interpreter
 				return .Err(InterpretError.InvalidArgumentCount);
 
 			let prevEnv = environment;
-			environment = scope Scope(environment);
+			environment = scope ijoEnvironment(environment);
 
 			let args = scope List<Variant>();
 			for (let arg in val.arguments)
 			{
-				let a = Guard!(Evaluate(arg));
+				let a = Variant.CreateFromVariant(Guard!(Evaluate(arg)));
 				args.Add(a);
 			}
 
-			let result = func.call(environment, args);
+			let result = func.call(this, args);
 			environment = prevEnv;
+
+			for (var arg in args)
+				arg.Dispose();
 
 			return result;
 		}
@@ -161,9 +163,9 @@ namespace ijo.Interpreter
 
 		public Result<Variant> VisitBlockStmt(BlockStmt val)
 		{
-			let env = scope Scope(environment);
+			let env = scope ijoEnvironment(environment);
 
-			ExecuteBlock(val.statements, env);
+			ExecuteBlock(val.Statements, env);
 
 			return default;
 		}
@@ -206,6 +208,14 @@ namespace ijo.Interpreter
 				variable = Guard!(Evaluate(val.initializer));
 
 			environment.Define(val.name.Lexeme, variable, val.mutability.Type == .Let);
+			return default;
+		}
+
+		public Result<Variant> VisitFunctionStmt(FunctionStmt val)
+		{
+			let func = new ijoFunction(val);
+
+			environment.DefineFunction(val.name.Lexeme, Variant.Create(func, true));
 			return default;
 		}
 	}

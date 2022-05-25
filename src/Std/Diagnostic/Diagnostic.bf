@@ -1,15 +1,15 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using ijo.Scope;
+using ijo.Interpreter;
 
 namespace ijo.Std.Diagnostic
 {
 	class Diagnostic: IFunctionRegistrer
 	{
-		public void RegisterFunctions(Scope env)
+		public void RegisterFunctions(ijoEnvironment env)
 		{
-			env.Define("elapsedMilliseconds", Variant.Create<ijoCallable>(new ElapsedMillisecondsFunc(), true), true);
+			env.DefineFunction("elapsedMilliseconds", Variant.Create<ijoCallable>(new ElapsedMillisecondsFunc(), true));
 		}
 	}
 
@@ -17,7 +17,7 @@ namespace ijo.Std.Diagnostic
 	{
 		public override int Arity { get => 0; }
 
-		public override Variant call(Scope env, List<Variant> arguments)
+		public override Variant call(Interpreter interpreter, List<Variant> arguments)
 		{
 			let time = DateTime.Now;
 			return Variant.Create<int>(time.Millisecond);

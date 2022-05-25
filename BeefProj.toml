@@ -5,4 +5,4 @@ Name = "ijo"
 StartupObject = "ijo.Program"
 
 [Configs.Debug.Win64]
-DebugCommandArguments = "run $(ProjectDir)/examples/string.ijo"
+DebugCommandArguments = "run $(ProjectDir)/examples/userFunction.ijo"

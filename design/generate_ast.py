@@ -42,7 +42,7 @@ def define_types(file, basename, classname, fieldList):
     fields = fieldList.split(', ')
     for field in fields:
         field_name = field.split(' ')[0]
-        delete_str = "~ delete _"
+        delete_str = "~ delete _" if field_name != "Token" else ""
         delete_str = "~ value.Dispose()" if field_name == "Variant" else delete_str
         file.write(f"        public {field} {delete_str};\n")
     
@@ -122,6 +122,7 @@ if __name__ == "__main__":
         "Expression : Expr expression",
         "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
         "While      : Expr condition, Stmt body",
+        "Function   : Token name, List<Token> parameters, Stmt body",
         "Var        : Token mutability, Token name, Expr initializer",
     ]
     define_ast(output_dir, "Stmt", statements, "Expr")

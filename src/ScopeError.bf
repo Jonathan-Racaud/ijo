@@ -1,8 +1,8 @@
 using System;
 
-namespace ijo.Scope
+namespace ijo
 {
-	enum ScopeError
+	enum EnvError
 	{
 		case AssignToConstVariable(StringView);
 		case VariableAlreadyDeclared(StringView);

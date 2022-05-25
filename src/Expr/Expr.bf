@@ -72,14 +72,8 @@ namespace ijo.Expr
 
         public this(Variant value)
         {
-            this.value = Variant.CreateFromVariant(value);
+            this.value = value;
         }
-
-		public ~this()
-		{
-			if (value.OwnsMemory)
-				value.Dispose();
-		}
 
         // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
