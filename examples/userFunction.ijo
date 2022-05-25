@@ -1,5 +1,5 @@
 sayHi("Antoine");
 
 func sayHi(name) {
-    write("Hello my name is: " + name + " And I am super good!!!");
+    write("Hello my name is: " + name + " And I am super gay!!!");
 }
