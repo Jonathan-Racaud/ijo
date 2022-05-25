@@ -4,14 +4,16 @@ namespace ijo.Interpreter
 {
 	extension Interpreter
 	{
-		mixin AddValues(Variant left, Variant right)
+		mixin AddValues(Variant left, Variant right, String str)
 		{
 			if (left.VariantType == typeof(String) || right.VariantType == typeof(String))
 			{
 				let l = GetStringViewFromVariant(left);
 				let r = GetStringViewFromVariant(right);
 
-				let v = Variant.Create(new $"{l}{r}", true);
+				str.Set(scope $"{l}{r}");
+				let v = Variant.Create(str, true);
+
 				delete l;
 				delete r;
 

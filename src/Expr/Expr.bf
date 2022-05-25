@@ -16,6 +16,15 @@ namespace ijo.Expr
         public Token op ;
         public Expr right ~ delete _;
 
+		// This is used for when interpreting a BinaryExpr.
+		// For the moment the implementation would leak a String
+		// if we don't use the same string throughout the full binaries expr
+		// addition of strings.
+		//
+		// Maybe this fix is not the correct one to use, but for now it will do.
+		// To be changed when/if we find a better one.
+		public String CurrentStr = new .() ~ delete _;
+
         public this(Expr left, Token op, Expr right)
         {
             this.left = left;

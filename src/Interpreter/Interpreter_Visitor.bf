@@ -37,7 +37,7 @@ namespace ijo.Interpreter
 				else if (left.VariantType == typeof(int) && right.VariantType == typeof(int))
 					return Variant.Create(left.Get<int>() * right.Get<int>());
 			case .Plus:
-				AddValues!(left, right);
+				AddValues!(left, right, val.CurrentStr);
 			case .Greater:
 				if (ValidNumberOperands(val.op, left, right) case .Err) return default;
 				if (left.VariantType == typeof(double) && right.VariantType == typeof(double))
