@@ -1,5 +1,6 @@
-sayHi("Antoine");
-
-func sayHi(name) {
-    write("Hello my name is: " + name + " And I am super gay!!!");
+func fib(n) {
+  if (n <= 1) { return n; }
+  return fib(n - 2) + fib(n - 1);
 }
+
+write(fib(3));

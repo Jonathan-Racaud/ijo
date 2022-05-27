@@ -42,15 +42,19 @@ def define_types(file, basename, classname, fieldList):
     fields = fieldList.split(', ')
     for field in fields:
         field_name = field.split(' ')[0]
+        new_str = "= new .()" if field_name == "String" else ""
         delete_str = "~ delete _" if field_name != "Token" else ""
         delete_str = "~ value.Dispose()" if field_name == "Variant" else delete_str
-        file.write(f"        public {field} {delete_str};\n")
+        file.write(f"        public {field} {new_str} {delete_str};\n")
+
+        if field_name == "String":
+            fields.remove(field)
     
     file.write("\n")
 
     # Init function
     file.writelines([
-        f"        public this({fieldList})\n",
+        f"        public this({', '.join(fields)})\n",
          "        {\n"
     ])
 
@@ -62,7 +66,6 @@ def define_types(file, basename, classname, fieldList):
 
     # Visitor pattern
     file.writelines([
-         "        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.\n"
         f"        public override Result<Variant> Accept(Visitor visitor)\n",
          "        {\n",
         f"            return visitor.Visit{classname}{basename}(this);\n",
@@ -106,7 +109,7 @@ if __name__ == "__main__":
     output_dir = sys.argv[1]
     
     expressions = [
-        "Binary		: Expr left, Token op, Expr right",
+        "Binary		: Expr left, Token op, Expr right, String CurrentStr",
         "Call       : Expr callee, Token paren, List<Expr> arguments",
         "Grouping	: Expr expression",
         "Literal	: Variant value",
@@ -124,6 +127,7 @@ if __name__ == "__main__":
         "While      : Expr condition, Stmt body",
         "Function   : Token name, List<Token> parameters, Stmt body",
         "Var        : Token mutability, Token name, Expr initializer",
+        "Return     : Token keyword, Expr value"
     ]
     define_ast(output_dir, "Stmt", statements, "Expr")
 

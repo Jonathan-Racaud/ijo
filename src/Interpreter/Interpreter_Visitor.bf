@@ -163,11 +163,9 @@ namespace ijo.Interpreter
 
 		public Result<Variant> VisitBlockStmt(BlockStmt val)
 		{
-			let env = scope ijoEnvironment(environment);
+			let env = new ijoEnvironment(environment);
 
-			ExecuteBlock(val.Statements, env);
-
-			return default;
+			return ExecuteBlock(val.statements, env);
 		}
 
 		public Result<Variant> VisitExpressionStmt(ExpressionStmt val)
@@ -180,11 +178,9 @@ namespace ijo.Interpreter
 			let condition = Guard!(Evaluate(val.condition));
 
 			if (IsTruthy(condition))
-				Execute(val.thenBranch);
+				return Execute(val.thenBranch);
 			else
-				Execute(val.elseBranch);
-
-			return default;
+				return Execute(val.elseBranch);
 		}
 
 		public Result<Variant> VisitWhileStmt(WhileStmt val)
@@ -213,10 +209,18 @@ namespace ijo.Interpreter
 
 		public Result<Variant> VisitFunctionStmt(FunctionStmt val)
 		{
-			let func = new ijoFunction(val);
+			let func = new ijoFunction(val, environment);
 
 			environment.DefineFunction(val.name.Lexeme, Variant.Create(func, true));
 			return default;
+		}
+
+		public Result<Variant> VisitReturnStmt(ReturnStmt val)
+		{
+			var value = Variant.Create<Object>(null);
+			if (val.value != null) value = Evaluate(val.value);
+
+			return Variant.Create(InterpreterFlow.Return(value));
 		}
 	}
 }

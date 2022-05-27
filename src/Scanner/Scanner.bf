@@ -8,11 +8,11 @@ namespace ijo.Scanner
 {
 	class Scanner
 	{
-		private StreamReader sr ~ delete _;
+		private StringView source;
 		private List<Token> tokens;
 		private int tokenStart = 0;
 		private int currentChar = 0;
-		private int line = 1;
+		private int lineNumber = 1;
 
 		private Dictionary<StringView, TokenType> keywords = new .() {
 			("and", .And),
@@ -38,9 +38,9 @@ namespace ijo.Scanner
 			("assume", .Assume)
 		} ~ delete _;
 
-		public this(Stream stream)
+		public this(String string)
 		{
-			sr = new StreamReader(stream);
+			source = string;
 		}
 
 		public Result<void, ScanError> ScanTokens(out List<Token> outTokens)
@@ -48,64 +48,63 @@ namespace ijo.Scanner
 			outTokens = new .();
 
 			tokens = outTokens;
-			while (!sr.EndOfStream)
-			{
-				tokenStart = currentChar;
-				Guard!(ScanToken(),
-					(Otherwise) scope () => {
-						ijoRuntime.PrintError(line, currentChar, ScanError.Unknown);
-					});
-			}
+			Guard!(
+				ScanTokens(),
+				(Otherwise) scope () => {
+					ijoRuntime.PrintError(lineNumber, currentChar, ScanError.Unknown);
+				});
 
 			return .Ok;
 		}
 
-		Result<void, ScanError> ScanToken()
+		Result<void, ScanError> ScanTokens()
 		{
-			let c = Unwrap!(sr.Read());
-
-			switch (c)
+			while (!IsAtEnd())
 			{
-			case '(': AddToken(.LeftParen);
-			case ')': AddToken(.RightParen);
-			case '{': AddToken(.LeftBrace);
-			case '}': AddToken(.RightBrace);
-			case ',': AddToken(.Comma);
-			case '.': AddToken(.Dot);
-			case '-': AddToken(.Minus);
-			case '+': AddToken(.Plus);
-			case ';': AddToken(.Semicolon);
-			case '*': AddToken(.Star);
-			case ':': AddToken(.Colon);
-			case '!': AddToken(Match('=') ? .BangEqual : .Bang);
-			case '=': AddToken(Match('=') ? .EqualEqual: .Equal);
-			case '<': AddToken(Match('=') ? .LessEqual : .Less);
-			case '>': AddToken(Match('=') ? .GreaterEqual: .GreaterEqual);
-			case '/': AddToken(.Slash);
-			case '#': repeat { sr.Read(); } while (sr.Peek() != '\n' && !sr.EndOfStream);
-			case ' ', '\r', '\t': break;
-			case '\n': line++;
-			case '"': ScanString();
-			default:
-				if (c.IsDigit)
-					ScanNumber(c);
-				else if (c.IsLetter || c == '_')
-					ScanIdentifier(c);
-				else
-					return .Err(.UnexpectedCharacter);
-			}
+				let c = Read();
 
+				switch (c)
+				{
+				case '(': AddToken(.LeftParen);
+				case ')': AddToken(.RightParen);
+				case '{': AddToken(.LeftBrace);
+				case '}': AddToken(.RightBrace);
+				case ',': AddToken(.Comma);
+				case '.': AddToken(.Dot);
+				case '-': AddToken(.Minus);
+				case '+': AddToken(.Plus);
+				case ';': AddToken(.Semicolon);
+				case '*': AddToken(.Star);
+				case ':': AddToken(.Colon);
+				case '!': AddToken(Match('=') ? .BangEqual : .Bang);
+				case '=': AddToken(Match('=') ? .EqualEqual: .Equal);
+				case '<': AddToken(Match('=') ? .LessEqual : .Less);
+				case '>': AddToken(Match('=') ? .GreaterEqual: .GreaterEqual);
+				case '/': AddToken(.Slash);
+				case '#': repeat { Read(); } while (Peek() != '\n');
+				case ' ', '\r', '\t': break;
+				case '\n': lineNumber++;
+				case '"': ScanString();
+				default:
+					if (c.IsDigit)
+						ScanNumber();
+					else if (c.IsLetter || c == '_')
+						ScanIdentifier();
+					else
+						return .Err(.UnexpectedCharacter);
+				}
+			}
 			return .Ok;
 		}
 
 		void AddToken(TokenType type)
 		{
-			tokens.Add(Token(type, type, line, currentChar));
+			tokens.Add(Token(type, type, lineNumber, currentChar));
 		}
 
 		void AddToken(TokenType type, String value)
 		{
-			var token = Token(type, value, line, currentChar);
+			var token = Token(type, value, lineNumber, currentChar);
 			token.SetLiteralValue(value);
 
 			tokens.Add(token);
@@ -113,7 +112,7 @@ namespace ijo.Scanner
 
 		void AddToken(TokenType type, int value)
 		{
-			var token = Token(type, scope $"{value}", line, currentChar);
+			var token = Token(type, scope $"{value}", lineNumber, currentChar);
 			token.SetLiteralValue(value);
 
 			tokens.Add(token);
@@ -121,19 +120,11 @@ namespace ijo.Scanner
 
 		void AddToken(TokenType type, double value)
 		{
-			var token = Token(type, scope $"{value}", line, currentChar);
+			var token = Token(type, scope $"{value}", lineNumber, currentChar);
 			token.SetLiteralValue(value);
 
 			tokens.Add(token);
 		}
-
-		/*void AddToken(TokenType type, Object value)
-		{
-			var token = Token(type, scope $"{value}", line, currentChar);
-			token.SetLiteralValue(value);
-
-			tokens.Add(token);
-		}*/
 
 		Result<void, ScanError> ScanString()
 		{
@@ -142,16 +133,16 @@ namespace ijo.Scanner
 
 			repeat
 			{
-				char = Unwrap!(sr.Read());
+				char = Read();
 
 				if (char == '\n')
-					line++;
+					return .Err(.NonTerminatedString);
 
 				str.Append(char);
-			} while (char != '"' && !sr.EndOfStream);
+			} while (char != '"' && !IsAtEnd());
 			str.RemoveFromEnd(1);
 
-			if (sr.EndOfStream)
+			if (IsAtEnd())
 				return .Err(.NonTerminatedString);
 
 			AddToken(.String, str);
@@ -159,22 +150,24 @@ namespace ijo.Scanner
 			return .Ok;
 		}	
 
-		Result<void, ScanError> ScanNumber(char8 c)
+		Result<void, ScanError> ScanNumber()
 		{
 			let str = scope String();
-			str.Append(c);
+			str.Append(PeekPrevious());
 
 			while (Peek().IsDigit)
 				str.Append(Read());
 
-			if (!Peek().IsWhiteSpace && Peek() != '.' && Peek() != ';')
+			if (!Peek().IsWhiteSpace &&
+				Peek() != '.' &&
+				Peek() != ';' &&
+				Peek() != ')' &&
+				Peek() != ',' &&
+				Peek() != '}' &&
+				Peek() != ']')
 				return .Err(.NumberParsingError);
 
-			if (Peek().IsWhiteSpace || Peek() == ';')
-			{
-				AddToken(.Integer, Unwrap!(int.Parse(str)));
-			}
-			else if (Peek() == '.' && PeekNext().IsDigit)
+			if (Peek() == '.' && PeekNext().IsDigit)
 			{
 				str.Append(Read());
 
@@ -182,15 +175,19 @@ namespace ijo.Scanner
 					str.Append(Read());
 
 				AddToken(.Double, Unwrap!(double.Parse(str)));
+				return .Ok;
 			}
+
+			AddToken(.Integer, Unwrap!(int.Parse(str)));
+			
 
 			return .Ok;
 		}
 
-		Result<void, ScanError> ScanIdentifier(char8 c)
+		Result<void, ScanError> ScanIdentifier()
 		{
 			let str = scope String();
-			str.Append(c);
+			str.Append(PeekPrevious());
 
 			while (Peek().IsLetterOrDigit)
 				str.Append(Read());
@@ -205,50 +202,30 @@ namespace ijo.Scanner
 		}
 
 		bool IsAtEnd()
-			=> sr.EndOfStream;
+			=> currentChar == source.Length;
 
 		char8 Read()
-			=> Unwrap!(sr.Read());
+			=> source[currentChar++];
 
 		char8 Peek()
-			=> Unwrap!(sr.Peek());
+			=> source[currentChar];
 
 		char8 PeekPrevious()
-		{
-			sr.BaseStream.Seek(sr.BaseStream.Position - 1);
-
-			if (sr.EndOfStream)
-				return '\0';
-
-			let char = sr.Peek();
-
-			sr.BaseStream.Seek(sr.BaseStream.Position + 1);
-
-			return char;
-		}
+			=> source[currentChar - 1];
 
 		char8 PeekNext()
 		{
-			sr.BaseStream.Seek(sr.BaseStream.Position + 1);
-
-			if (sr.EndOfStream)
+			if (currentChar >= source.Length)
 				return '\0';
 
-			let char = sr.Peek();
-
-			sr.BaseStream.Seek(sr.BaseStream.Position - 1);
-
-			return char;
+			return source[currentChar + 1];
 		}
 
 		bool Match(char8 char)
 		{
-			if (sr.EndOfStream)
-				return false;
-
-			if (sr.Peek() == char)
+			if (Peek() == char)
 			{
-				sr.BaseStream.Position += 1;
+				Read();
 				return true;
 			}
 

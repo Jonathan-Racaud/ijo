@@ -52,6 +52,11 @@ namespace ijo.Parser
 				return stmt;
 			}
 
+			if (Match(.Return))
+			{
+				return ParseReturnStatement();
+			}
+
 			return ParseStatement();
 		}
 
@@ -102,6 +107,20 @@ namespace ijo.Parser
 			Guard!(Consume(.Semicolon));
 
 			return new VarStmt(mutability, name, initializer);
+		}
+
+		StmtResult ParseReturnStatement()
+		{
+			let keyword = Previous();
+
+			Expr value = null;
+			if (!IsTokenMatching(.Semicolon))
+			{
+				value = Guard!(ParseExpression());
+			}
+
+			Guard!(Consume(.Semicolon));
+			return new ReturnStmt(keyword, value);
 		}
 
 		StmtResult ParseStatement()

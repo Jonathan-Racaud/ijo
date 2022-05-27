@@ -12,18 +12,10 @@ namespace ijo.Expr
 
     public class BinaryExpr: Expr
     {
-        public Expr left ~ delete _;
-        public Token op ;
-        public Expr right ~ delete _;
-
-		// This is used for when interpreting a BinaryExpr.
-		// For the moment the implementation would leak a String
-		// if we don't use the same string throughout the full binaries expr
-		// addition of strings.
-		//
-		// Maybe this fix is not the correct one to use, but for now it will do.
-		// To be changed when/if we find a better one.
-		public String CurrentStr = new .() ~ delete _;
+        public Expr left  ~ delete _;
+        public Token op  ;
+        public Expr right  ~ delete _;
+        public String CurrentStr = new .() ~ delete _;
 
         public this(Expr left, Token op, Expr right)
         {
@@ -32,7 +24,6 @@ namespace ijo.Expr
             this.right = right;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitBinaryExpr(this);
@@ -41,9 +32,9 @@ namespace ijo.Expr
 
     public class CallExpr: Expr
     {
-        public Expr callee ~ delete _;
-        public Token paren ;
-        public List<Expr> arguments ~ DeleteContainerAndItems!(_);
+        public Expr callee  ~ delete _;
+        public Token paren  ;
+        public List<Expr> arguments  ~ delete _;
 
         public this(Expr callee, Token paren, List<Expr> arguments)
         {
@@ -52,7 +43,6 @@ namespace ijo.Expr
             this.arguments = arguments;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitCallExpr(this);
@@ -61,14 +51,13 @@ namespace ijo.Expr
 
     public class GroupingExpr: Expr
     {
-        public Expr expression ~ delete _;
+        public Expr expression  ~ delete _;
 
         public this(Expr expression)
         {
             this.expression = expression;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitGroupingExpr(this);
@@ -77,14 +66,13 @@ namespace ijo.Expr
 
     public class LiteralExpr: Expr
     {
-        public Variant value;
+        public Variant value  ~ value.Dispose();
 
         public this(Variant value)
         {
             this.value = value;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitLiteralExpr(this);
@@ -93,8 +81,8 @@ namespace ijo.Expr
 
     public class UnaryExpr: Expr
     {
-        public Token op ;
-        public Expr right ~ delete _;
+        public Token op  ;
+        public Expr right  ~ delete _;
 
         public this(Token op, Expr right)
         {
@@ -102,7 +90,6 @@ namespace ijo.Expr
             this.right = right;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitUnaryExpr(this);
@@ -111,9 +98,9 @@ namespace ijo.Expr
 
     public class LogicalExpr: Expr
     {
-        public Expr left ~ delete _;
-        public Token op ;
-        public Expr right ~ delete _;
+        public Expr left  ~ delete _;
+        public Token op  ;
+        public Expr right  ~ delete _;
 
         public this(Expr left, Token op, Expr right)
         {
@@ -122,7 +109,6 @@ namespace ijo.Expr
             this.right = right;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitLogicalExpr(this);
@@ -131,14 +117,13 @@ namespace ijo.Expr
 
     public class VariableExpr: Expr
     {
-        public Token name ;
+        public Token name  ;
 
         public this(Token name)
         {
             this.name = name;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitVariableExpr(this);
@@ -147,8 +132,8 @@ namespace ijo.Expr
 
     public class AssignmentExpr: Expr
     {
-        public Token name ;
-        public Expr value ~ delete _;
+        public Token name  ;
+        public Expr value  ~ delete _;
 
         public this(Token name, Expr value)
         {
@@ -156,7 +141,6 @@ namespace ijo.Expr
             this.value = value;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitAssignmentExpr(this);

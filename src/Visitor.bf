@@ -20,5 +20,6 @@ namespace ijo
         public Result<Variant> VisitWhileStmt(WhileStmt val);
         public Result<Variant> VisitFunctionStmt(FunctionStmt val);
         public Result<Variant> VisitVarStmt(VarStmt val);
+        public Result<Variant> VisitReturnStmt(ReturnStmt val);
     }
 }

@@ -2,7 +2,5 @@ var hello = "hello";
 var world = " world";
 var bang = "!";
 
-# Currently creates a leaked String alloc
-# for hello + world
 var message = hello + world + bang;
 write(message);

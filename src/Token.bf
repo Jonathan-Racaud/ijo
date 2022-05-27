@@ -88,9 +88,9 @@ namespace ijo
 			switch (value)
 			{
 			case .LeftParen: return "(";
-			case .RightParen: return "";
-			case .LeftBrace: return "(";
-			case .RightBrace: return "(";
+			case .RightParen: return ")";
+			case .LeftBrace: return "{";
+			case .RightBrace: return "}";
 			case .Comma: return ",";
 			case .Dot: return ".";
 			case .Minus: return "-";

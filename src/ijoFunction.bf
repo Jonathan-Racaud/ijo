@@ -7,27 +7,33 @@ namespace ijo
 	class ijoFunction: ijoCallable
 	{
 		private FunctionStmt declaration;
+		private ijoEnvironment closure ~ delete _;
 
 		public BlockStmt Body => declaration.body as BlockStmt;
 
 		public override int Arity { get => declaration.parameters.Count; }
 
-		public this(FunctionStmt declaration)
+		public this(FunctionStmt declaration, ijoEnvironment env)
 		{
 			this.declaration = declaration;
+			this.closure = env;
 		}
 
 		public override Variant call(Interpreter interpreter, List<Variant> arguments)
 		{
-			let environment = scope ijoEnvironment(interpreter.Globals);
+			let environment = scope ijoEnvironment(closure);
 
 			for (var i = 0; i < declaration.parameters.Count; i++)
 			{
 				environment.Define(declaration.parameters[i].Lexeme, Variant.CreateFromVariant(arguments[i]));
 			}
 
-			interpreter.ExecuteBlock((declaration.body as BlockStmt).Statements, environment);
-			return default;
+			let result = interpreter.ExecuteBlock((declaration.body as BlockStmt).statements, environment);
+
+			switch (result) {
+			case .Ok(let val): return val;
+			case .Err: return default;
+			}
 		}
 	}
 }

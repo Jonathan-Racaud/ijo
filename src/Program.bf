@@ -14,7 +14,6 @@ namespace ijo
 		public static let FuncDeclStmt = 0;
 		public static let OtherStmt = 1;
 	}
-	
 
 	class Program
 	{
@@ -47,8 +46,12 @@ namespace ijo
 			return Execute(fs);
 		}
 
-		static int Execute(Stream source)
+		static int Execute(Stream stream)
 		{
+			let sr = scope StreamReader(stream);
+			let source = sr.ReadToEnd(..new .());
+			defer delete source;
+
 			let scanner = scope Scanner(source);
 			List<Token> tokens = default;
 

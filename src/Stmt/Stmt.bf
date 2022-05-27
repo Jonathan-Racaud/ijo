@@ -13,14 +13,13 @@ namespace ijo.Stmt
 
     public class BlockStmt: Stmt
     {
-        public List<Stmt> Statements ~ DeleteContainerAndItems!(_);
+        public List<Stmt> statements  ~ delete _;
 
         public this(List<Stmt> statements)
         {
-            Statements = statements;
+            this.statements = statements;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitBlockStmt(this);
@@ -29,14 +28,13 @@ namespace ijo.Stmt
 
     public class ExpressionStmt: Stmt
     {
-        public Expr expression ~ delete _;
+        public Expr expression  ~ delete _;
 
         public this(Expr expression)
         {
             this.expression = expression;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitExpressionStmt(this);
@@ -45,9 +43,9 @@ namespace ijo.Stmt
 
     public class IfStmt: Stmt
     {
-        public Expr condition ~ delete _;
-        public Stmt thenBranch ~ delete _;
-        public Stmt elseBranch ~ delete _;
+        public Expr condition  ~ delete _;
+        public Stmt thenBranch  ~ delete _;
+        public Stmt elseBranch  ~ delete _;
 
         public this(Expr condition, Stmt thenBranch, Stmt elseBranch)
         {
@@ -56,7 +54,6 @@ namespace ijo.Stmt
             this.elseBranch = elseBranch;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitIfStmt(this);
@@ -65,8 +62,8 @@ namespace ijo.Stmt
 
     public class WhileStmt: Stmt
     {
-        public Expr condition ~ delete _;
-        public Stmt body ~ delete _;
+        public Expr condition  ~ delete _;
+        public Stmt body  ~ delete _;
 
         public this(Expr condition, Stmt body)
         {
@@ -74,7 +71,6 @@ namespace ijo.Stmt
             this.body = body;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitWhileStmt(this);
@@ -83,9 +79,9 @@ namespace ijo.Stmt
 
     public class FunctionStmt: Stmt
     {
-        public Token name ;
-        public List<Token> parameters ~ delete _;
-        public Stmt body ~ delete _;
+        public Token name  ;
+        public List<Token> parameters  ~ delete _;
+        public Stmt body  ~ delete _;
 
         public this(Token name, List<Token> parameters, Stmt body)
         {
@@ -94,7 +90,6 @@ namespace ijo.Stmt
             this.body = body;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitFunctionStmt(this);
@@ -103,9 +98,9 @@ namespace ijo.Stmt
 
     public class VarStmt: Stmt
     {
-        public Token mutability ;
-        public Token name ;
-        public Expr initializer ~ delete _;
+        public Token mutability  ;
+        public Token name  ;
+        public Expr initializer  ~ delete _;
 
         public this(Token mutability, Token name, Expr initializer)
         {
@@ -114,10 +109,26 @@ namespace ijo.Stmt
             this.initializer = initializer;
         }
 
-        // Virtual/Abstract generic are not yet supported, so we have to rely on 'new' keyword here.
         public override Result<Variant> Accept(Visitor visitor)
         {
             return visitor.VisitVarStmt(this);
+        }
+    }
+
+    public class ReturnStmt: Stmt
+    {
+        public Token keyword  ;
+        public Expr value  ~ delete _;
+
+        public this(Token keyword, Expr value)
+        {
+            this.keyword = keyword;
+            this.value = value;
+        }
+
+        public override Result<Variant> Accept(Visitor visitor)
+        {
+            return visitor.VisitReturnStmt(this);
         }
     }
 }

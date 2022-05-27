@@ -24,26 +24,50 @@ namespace ijo.Interpreter
 		{
 			for (let statement in statements)
 			{
-				Execute(statement);
+				Execute(statement).IgnoreError();
 			}
 		}
 
-		public void Execute(Stmt stmt)
+		public Result<Variant> Execute(Stmt stmt)
 		{
-			stmt.Accept(this).IgnoreError();
+			if (stmt == null)
+				return default;
+
+			switch (stmt.Accept(this))
+			{
+			case .Ok(let val):
+				if (val.HasValue && val.VariantType == typeof(InterpreterFlow))
+				{
+					switch (val.Get<InterpreterFlow>())
+					{
+					case .Normal: return default;
+					case .Return(let p0): return p0;
+					}
+
+				}
+			case .Err: return .Err;
+			}
+
+			return default;
 		}
 
-		public void ExecuteBlock(List<Stmt> stmts, ijoEnvironment env)
+		public Result<Variant> ExecuteBlock(List<Stmt> stmts, ijoEnvironment env)
 		{
 			let prevEnv = environment;
 			environment = env;
 
 			for (let stmt in stmts)
 			{
-				Execute(stmt);
+				switch (Execute(stmt))
+				{
+				case .Ok(let val):
+					if (val.HasValue) return val;
+				case .Err: return .Err;
+				}
 			}
 
 			environment = prevEnv;
+			return default;
 		}
 
 		Result<Variant, InterpretError> Evaluate(Expr expr)
