@@ -2,3 +2,4 @@ build/
 recovery/
 BeefSpace_User.toml
 *.exe
+src_previous_impl
