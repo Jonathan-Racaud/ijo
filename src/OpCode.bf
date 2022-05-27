@@ -4,6 +4,7 @@ namespace ijo
 {
 	enum OpCode: uint8
 	{
+		case Constant;
 		case Exit; // Exit a function from anywhere
 
 		public static operator uint8(Self code) => (uint8)code;
@@ -13,8 +14,9 @@ namespace ijo
 		{
 			switch (code)
 			{
-				case .Exit: return "OP_EXIT";
-				default: return "OP_UNKNOWN";
+			case .Constant: return "OP_CONSTANT";
+			case .Exit: return "OP_EXIT";
+			default: return "OP_UNKNOWN";
 			}
 		}
 	}

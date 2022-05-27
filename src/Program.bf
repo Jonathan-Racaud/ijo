@@ -9,7 +9,11 @@ namespace ijo
 			var chunk = Chunk();
 			defer chunk.Dispose();
 
-			chunk.Write(OpCode.Exit);
+			let constant = chunk.AddConstant(1.2);
+			chunk.Write(OpCode.Constant, 123);
+			chunk.Write((uint8)constant, 123);
+
+			chunk.Write(OpCode.Exit, 123);
 
 			let disassembler = scope Disassembler();
 			disassembler.DisassembleChunk(ref chunk, "Test chunk");
