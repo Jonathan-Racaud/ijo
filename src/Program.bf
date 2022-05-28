@@ -6,6 +6,8 @@ namespace ijo
 	{
 		public static int Main(String[] args)
 		{
+			let vm = scope ijoVM();
+
 			var chunk = Chunk();
 			defer chunk.Dispose();
 
