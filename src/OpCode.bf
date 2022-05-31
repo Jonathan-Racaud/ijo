@@ -6,6 +6,11 @@ namespace ijo
 	{
 		case Constant;
 		case ConstantLong;
+		case Negate;
+		case Add;
+		case Subtract;
+		case Multiply;
+		case Divide;
 		case Exit; // Exit a function from anywhere
 
 		public static operator uint8(Self code) => (uint8)code;
@@ -17,6 +22,11 @@ namespace ijo
 			{
 			case .Constant: return "OP_CONSTANT";
 			case .ConstantLong: return "OP_CONSTANT_LONG";
+			case .Negate: return "OP_NEGATE";
+			case .Add: return "OP_ADD";
+			case .Subtract: return "OP_SUBTRACT";
+			case .Multiply: return "OP_MULTIPLY";
+			case .Divide: return "OP_DIVIDE";
 			case .Exit: return "OP_EXIT";
 			default: return "OP_UNKNOWN";
 			}

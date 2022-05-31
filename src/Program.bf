@@ -1,26 +1,73 @@
 using System;
+using System.IO;
 
 namespace ijo
 {
-	class Program
-	{
-		public static int Main(String[] args)
-		{
-			let vm = scope ijoVM();
+    class Program
+    {
+        static ijoVM vm = new .() ~ delete _;
 
-			var chunk = Chunk();
-			defer chunk.Dispose();
+        public static int Main(String[] args)
+        {
+            return Run(args);
+        }
 
-			for (var i = 0; i < 255; i++) {
-				chunk.WriteConstant(i, i);
-			}
+        static int Run(String[] args)
+        {
+            if (args.IsEmpty)
+                return RunRepl();
 
-			chunk.WriteConstant(42.69, 256);
-			chunk.Write(OpCode.Exit, 256);
+            if (args[0].Equals("run"))
+                return RunFile(args);
 
-			vm.Interpret(chunk);
+            return Usage();
+        }
 
-			return 0;
-		}
-	}
+        static int RunRepl()
+        {
+            while (true)
+            {
+                Console.Write("> ");
+                let line = Console.ReadLine(.. scope .());
+
+                if (line.Equals("exit"))
+                    break;
+
+                vm.Interpret(line);
+            }
+
+            return Exit.Ok;
+        }
+
+        static int RunFile(String[] args)
+        {
+            if (args[1].IsEmpty)
+                return Exit.Usage;
+
+            let path = args[1];
+            if (!File.Exists(path))
+            {
+                Console.Error.WriteLine(scope $"File doesn't exists: {path}");
+                return Exit.IOErr;
+            }
+
+            let source = File.ReadAllText(path, .. new .());
+            defer delete source;
+
+            switch (vm.Interpret(source))
+            {
+            case .CompileError: return Exit.DataErr;
+            case .RuntimeError: return Exit.Software;
+            case .Ok: return Exit.Ok;
+            }
+        }
+
+        static int Usage()
+        {
+            Console.WriteLine("Usage:  ijo [run <path>]\n");
+            Console.WriteLine("    run    Interpret the file given at path.");
+
+            return Exit.Usage;
+        }
+    }
 }

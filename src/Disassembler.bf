@@ -2,11 +2,9 @@ using System;
 
 namespace ijo
 {
-	class Disassembler
+	static class Disassembler
 	{
-		let padding = "    ";
-
-		public void DisassembleChunk(ref Chunk chunk, StringView name)
+		public static void DisassembleChunk(ref Chunk chunk, StringView name)
 		{
 			Console.WriteLine(scope $"== {name} ==");
 			Console.WriteLine(scope $"[offset] [line]\t[op code]\t[byte]\t[value]");
@@ -17,7 +15,8 @@ namespace ijo
 			}
 		}
 
-		int DisassembleInstruction(ref Chunk chunk, int offset)
+		/// Print the disassembled instruction from chunk at offset
+		public static int DisassembleInstruction(ref Chunk chunk, int offset)
 		{
 			Console.Write(scope $"{offset:D4} N/A");
 
@@ -26,12 +25,17 @@ namespace ijo
 			switch (instruction)
 			{
 			case .Constant, .ConstantLong: return ConstantInstruction(ref chunk, instruction, offset);
+			case .Negate: return SimpleInstruction(instruction, offset);
+			case .Add: return SimpleInstruction(instruction, offset);
+			case .Subtract: return SimpleInstruction(instruction, offset);
+			case .Multiply: return SimpleInstruction(instruction, offset);
+			case .Divide: return SimpleInstruction(instruction, offset);
 			case .Exit: return SimpleInstruction(instruction, offset);
 			default: return ErrorInstruction(instruction, offset);
 			}
 		}
 
-		int ConstantInstruction(ref Chunk chunk, OpCode code, int offset)
+		static int ConstantInstruction(ref Chunk chunk, OpCode code, int offset)
 		{
 			var byteNumber = 2;
 
@@ -65,13 +69,19 @@ namespace ijo
 			return offset + byteNumber;
 		}
 
-		int SimpleInstruction(OpCode code, int offset)
+		static int SimpleInstruction(OpCode code, int offset)
 		{
 			Console.WriteLine(scope $"\t{code}");
 			return offset + 1;
 		}
 
-		int ErrorInstruction(OpCode code, int offset)
+		static int BinaryInstruction(ref Chunk chunk, OpCode code, int offset)
+		{
+			Console.WriteLine(scope $"\t{code} {chunk.Code[offset]}, {chunk.Code[offset]}");
+			return offset + 2;
+		}
+
+		static int ErrorInstruction(OpCode code, int offset)
 		{
 			Console.Error.WriteLine(scope $"Unknown op code: {offset:D4} {code:D4}");
 			return offset + 1;

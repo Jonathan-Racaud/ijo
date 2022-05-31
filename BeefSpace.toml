@@ -3,3 +3,9 @@ Projects = {ijo = {Path = "."}}
 
 [Workspace]
 StartupProject = "ijo"
+
+[Configs."Debug - REPL".Win64]
+ConfigSelections = {corlib = {Config = "Debug"}}
+
+[Configs."Debug - REPL".Win32]
+ConfigSelections = {ijo = {Config = "Debug"}, corlib = {Config = "Debug"}}
