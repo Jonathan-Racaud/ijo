@@ -33,7 +33,7 @@ namespace ijo
         case Slash;
         case Star;
         case Percent;
-        case Dollar;
+        case Var;
         case Question;
         case Underscore;
         case Tilde;
@@ -49,11 +49,20 @@ namespace ijo
         case Less;
         case LessEqual;
 
+        // Controls
+        case If;
+        case Switch;
+        case While;
+        case Return;
+        case Break;
+        case Function;
+        case Type;
+
         // Literals
         case Identifier;
         case String;
+        case Symbol;
         case Number;
-        case Return;
         case Error;
         case EOF;
 
@@ -68,17 +77,14 @@ namespace ijo
             case .RightBrace: return "}";
             case .Comma: return ",";
             case .Dot: return ".";
-            case .Minus: return "-";
             case .Plus: return "+";
             case .Semicolon: return ";";
             case .Colon: return ":";
             case .Slash: return "/";
             case .Percent: return "%";
             case .Star: return "*";
-            case .Dollar: return "$";
-            case .Question: return "?";
+            case .Var: return "$";
             case .Underscore: return "_";
-            case .Tilde: return "~";
             case .Pipe: return "|";
 
             // One or two character tokens
@@ -90,6 +96,17 @@ namespace ijo
             case .GreaterEqual: return ">=";
             case .Less: return "<";
             case .LessEqual: return "<=";
+            case .Question: return "?";
+            case .Tilde: return "~";
+            case .Minus: return "-";
+
+            case .If: return "?(";
+            case .While: return "~(";
+            case .Break: return "<-";
+            case .Return: return "->";
+            case .Function: return "(){}";
+            case .Type: return "<>";
+            case .Symbol: return ":";
 
             // Others
             case .Error: return "error";

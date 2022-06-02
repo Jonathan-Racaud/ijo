@@ -44,21 +44,41 @@ namespace ijo
             case ',': return MakeToken(.Comma);
             case '.': return MakeToken(.Dot);
             case '+': return MakeToken(.Plus);
-            case '-': return MakeToken(.Minus);
             case '*': return MakeToken(.Star);
             case '/': return MakeToken(.Slash);
             case '%': return MakeToken(.Percent);
-            case '~': return MakeToken(.Tilde);
-            case '?': return MakeToken(.Question);
             case '_': return MakeToken(.Underscore);
-            case '|': return MakeToken(.Pipe);
-            case '$': return MakeToken(.Dollar);
-            case ':': return MakeToken(.Colon);
+            case '$': return MakeToken(.Var);
 
+            case '-': return MakeToken(Match('>') ? .Return : .Minus);
             case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
-            case '<': return MakeToken(Match('=') ? .LessEqual : .Less);
             case '>': return MakeToken(Match('=') ? .GreaterEqual : .Greater);
             case '=': return MakeToken(Match('=') ? .EqualEqual : .Equal);
+            case '<':
+                // <-
+                if (Match('-')) return MakeToken(.Break);
+                // <=
+                if (Match('=')) return MakeToken(.LessEqual);
+                // <SomeType>
+                if (PeekNext().IsLetterOrDigit) return MakeTypeDef();
+                return MakeToken(.Less);
+
+            case '?':
+                // ?(condition) { then; }
+                if (Match('(')) return MakeToken(.If);
+                // ?|identifier| { case1: ; case2: ; }
+                if (Match('|')) return MakeToken(.Switch);
+                return MakeErrorToken("Unexpected character");
+
+            case '~':
+                // ~(condition) { do; }
+                if (Match('(')) return MakeToken(.While);
+                return MakeErrorToken("Unexpected character");
+
+            case ':':
+                // :north, :south, :apple, :some-symbol, :other_symbol
+                if (PeekNext().IsLetterOrDigit) return MakeSymbol();
+                return MakeToken(.Colon);
 
             case '"': return MakeString();
             }
@@ -153,6 +173,31 @@ namespace ijo
             return MakeToken(.String);
         }
 
+        Token MakeSymbol() mut
+        {
+            while (IsValidSymbolChar() && !IsAtEnd())
+            {
+                Advance();
+            }
+
+            return MakeToken(.Symbol);
+        }
+
+        Token MakeTypeDef() mut
+        {
+            while (Peek().IsLetterOrDigit && Peek() != '>' && IsAtEnd())
+            {
+                Advance();
+            }
+
+            if (IsAtEnd()) return MakeErrorToken("Unterminated type definition");
+
+            // The closing '>'
+            Advance();
+
+            return MakeToken(.Type);
+        }
+
         Token MakeNumber() mut
         {
             while (Peek().IsDigit)
@@ -173,6 +218,7 @@ namespace ijo
             return MakeToken(.Identifier);
         }
 
+        bool IsValidSymbolChar() => (Peek().IsLetterOrDigit || Peek() == '_' || Peek() == '-');
         bool IsAtEnd() => *current == '\0';
         int GetLength() => (int)(current - start);
     }
