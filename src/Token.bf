@@ -32,6 +32,12 @@ namespace ijo
         case Semicolon;
         case Slash;
         case Star;
+        case Percent;
+        case Dollar;
+        case Question;
+        case Underscore;
+        case Tilde;
+        case Pipe;
 
         // One or two character tokens
         case Bang;
@@ -47,16 +53,6 @@ namespace ijo
         case Identifier;
         case String;
         case Number;
-        case Base;
-        case This;
-        case True;
-        case False;
-        case While;
-        case For;
-        case If;
-        case Else;
-        case And;
-        case Or;
         case Return;
         case Error;
         case EOF;
@@ -77,7 +73,13 @@ namespace ijo
             case .Semicolon: return ";";
             case .Colon: return ":";
             case .Slash: return "/";
+            case .Percent: return "%";
             case .Star: return "*";
+            case .Dollar: return "$";
+            case .Question: return "?";
+            case .Underscore: return "_";
+            case .Tilde: return "~";
+            case .Pipe: return "|";
 
             // One or two character tokens
             case .Bang: return "!";
@@ -89,28 +91,7 @@ namespace ijo
             case .Less: return "<";
             case .LessEqual: return "<=";
 
-            // Literals
-            case .Base: return "base";
-            case .This: return "this";
-            case .True: return "true";
-            case .False: return "false";
-            case .While: return "while";
-            case .For: return "for";
-            case .If: return "if";
-            case .Else: return "else";
-            case .And: return "and";
-            case .Or: return "or";
-            case .Return: return "return";
-            /*case .Type: return "type";
-            case .Functions: return "functions";
-            case .Interface: return "interface";
-            case .Operators: return "operators";
-            case .Func: return "func";
-            case .Var: return "var";
-            case .Let: return "let";
-            case .Assume: return "assume";
-            case .Of: return "of";
-            case .Import: return "import";*/
+            // Others
             case .Error: return "error";
             case .EOF: return "\0";
             default: return "";

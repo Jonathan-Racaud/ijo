@@ -15,13 +15,17 @@ namespace ijo
 
         public InterpretResult Interpret(StringView source)
         {
-            switch (compiler.Compile(source))
+            var compiledChunk = Chunk();
+            switch (compiler.Compile(source, out compiledChunk))
             {
             case .Ok: break;
             case .Error: return .CompileError;
             }
 
-            return .Ok;
+            chunk = compiledChunk;
+            ip = chunk.Code.Ptr;
+
+            return Run();
         }
 
         InterpretResult Run()

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 namespace ijo
 {
-    class ijoScanner
+    struct ijoScanner
     {
         /// The start of the current lexeme being scanned
         char8* start;
@@ -22,7 +22,7 @@ namespace ijo
             line = 1;
         }
 
-        public Token ScanToken()
+        public Token ScanToken() mut
         {
             SkipWhitespaceAndComments();
             start = current;
@@ -47,6 +47,13 @@ namespace ijo
             case '-': return MakeToken(.Minus);
             case '*': return MakeToken(.Star);
             case '/': return MakeToken(.Slash);
+            case '%': return MakeToken(.Percent);
+            case '~': return MakeToken(.Tilde);
+            case '?': return MakeToken(.Question);
+            case '_': return MakeToken(.Underscore);
+            case '|': return MakeToken(.Pipe);
+            case '$': return MakeToken(.Dollar);
+            case ':': return MakeToken(.Colon);
 
             case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
             case '<': return MakeToken(Match('=') ? .LessEqual : .Less);
@@ -59,7 +66,7 @@ namespace ijo
             return MakeErrorToken("Unexpected character");
         }
 
-        char8 Advance()
+        char8 Advance() mut
         {
             current++;
 
@@ -77,7 +84,7 @@ namespace ijo
             return current[1];
         }
 
-        bool Match(char8 char)
+        bool Match(char8 char) mut
         {
             if (IsAtEnd()) return false;
             if (*current != char) return false;
@@ -86,7 +93,7 @@ namespace ijo
             return true;
         }
 
-        void SkipWhitespaceAndComments()
+        void SkipWhitespaceAndComments() mut
         {
             while (true)
             {
@@ -130,7 +137,7 @@ namespace ijo
                 line);
         }
 
-        Token MakeString()
+        Token MakeString() mut
         {
             while (Peek() != '"' && !IsAtEnd())
             {
@@ -146,7 +153,7 @@ namespace ijo
             return MakeToken(.String);
         }
 
-        Token MakeNumber()
+        Token MakeNumber() mut
         {
             while (Peek().IsDigit)
                 Advance();
@@ -159,53 +166,11 @@ namespace ijo
             return MakeToken(.Number);
         }
 
-        Token MakeIdentifier()
+        Token MakeIdentifier() mut
         {
             while (Peek().IsLetterOrDigit) Advance();
 
-            return MakeToken(GetIdentifierType());
-        }
-
-        TokenType GetIdentifierType()
-        {
-            switch (start[0])
-            {
-            case 'a': return CheckKeyword(1, 2, "nd", .And);
-            case 'b': return CheckKeyword(1, 3, "ase", .Base);
-            case 'i': return CheckKeyword(1, 1, "f", .If);
-            case 'o': return CheckKeyword(1, 1, "r", .Or);
-            case 'r': return CheckKeyword(1, 6, "eturn", .Return);
-            case 'w': return CheckKeyword(1, 5, "hile", .And);
-            case 'f':
-                if (GetLength() > 1)
-                {
-                    switch (start[1])
-                    {
-                    case 'a': return CheckKeyword(2, 3, "lse", .False);
-                    case 'o': return CheckKeyword(2, 1, "r", .Or);
-                    }
-                }
-            case 't':
-                if (GetLength() > 1)
-                {
-                    switch (start[1])
-                    {
-                    case 'h': return CheckKeyword(2, 2, "is", .This);
-                    case 'r': return CheckKeyword(2, 3, "rue", .True);
-                    }
-                }
-            default: break;
-            }
-
-            return .Identifier;
-        }
-
-        TokenType CheckKeyword(int begin, int length, StringView rest, TokenType type)
-        {
-            if (GetLength() == (begin + length) && rest.Equals((StringView(start + begin))))
-                return type;
-
-            return .Identifier;
+            return MakeToken(.Identifier);
         }
 
         bool IsAtEnd() => *current == '\0';

@@ -3,28 +3,71 @@ namespace ijo
 {
     class ijoCompiler
     {
-        ijoScanner scanner = new .() ~ delete _;
+        ijoScanner scanner;
+        ijoParser parser = .();
 
-        public CompileResult Compile(StringView source)
+        public CompileResult Compile(StringView source, out Chunk chunk)
         {
-            var line = -1;
+            chunk = Chunk();
+
+            scanner = ijoScanner(source);
+
+            Advance();
+            ParseExpression();
+            Consume(.EOF, "Expected end of expression.");
+
+            return parser.HadError ? .Error : .Ok;
+        }
+
+        void Consume(TokenType type, StringView message)
+        {
+            if (parser.Current.Type == type)
+            {
+                Advance();
+                return;
+            }
+
+            ErrorAtCurrent(message);
+        }
+
+        void Advance()
+        {
+            parser.Previous = parser.Current;
 
             while (true)
             {
-                let token = scanner.ScanToken();
+                parser.Current = scanner.ScanToken();
 
-                if (token.Line != line)
-                {
-                    Console.Write(scope $"{token.Line:4D}");
-                    line = token.Line;
-                }
-                else
-                {
-                    Console.Write("   | ");
-                }
+                if (parser.Current.Type != .Error) break;
 
-                Console.WriteLine(scope $"{token.Type} '{token.Start:token.Length}'");
+                ErrorAtCurrent(parser.Current.Start);
             }
+        }
+
+        void ErrorAtCurrent(StringView message)
+        {
+            ErrorAt(parser.Current, message);
+        }
+
+        void ErrorAt(Token token, StringView message)
+        {
+            if (parser.PanicMode) return;
+
+            parser.PanicMode = true;
+            Console.Error.Write(scope $"At line {token.Line} [Error]:");
+
+            if (token.Type == .EOF)
+            {
+                Console.Error.Write(" at end");
+            }
+            else if (token.Type == .Error) { }
+            else
+            {
+                Console.Error.Write(scope $" at {token.Start:token.Length}");
+            }
+
+            Console.Error.WriteLine(scope $": {message}");
+            parser.HadError = true;
         }
     }
 
