@@ -1,22 +1,115 @@
 using System;
+
 namespace ijo
 {
     class ijoCompiler
     {
         ijoScanner scanner;
         ijoParser parser = .();
+        Chunk* compilingChunk;
+        ParseRule[?] rules = ParseRule[TokenType.__Total]();
 
-        public CompileResult Compile(StringView source, out Chunk chunk)
+        public this()
         {
-            chunk = Chunk();
+            InitParseRules();
+        }
+
+        public ~this()
+        {
+            for (let rule in rules)
+            {
+                rule.Dispose();
+            }
+        }
+
+        public CompileResult Compile(StringView source, out Chunk outChunk)
+        {
+            outChunk = Chunk();
+            compilingChunk = &outChunk;
 
             scanner = ijoScanner(source);
 
             Advance();
             ParseExpression();
             Consume(.EOF, "Expected end of expression.");
+            EndCompiler();
 
             return parser.HadError ? .Error : .Ok;
+        }
+
+        void ParseExpression()
+        {
+            ParsePrecedence(.Assignment);
+        }
+
+        void ParseNumber()
+        {
+            let value = Double.Parse(StringView(parser.Previous.Start, parser.Previous.Length));
+            EmitConstant(value);
+        }
+
+        void ParseGrouping()
+        {
+            ParseExpression();
+            Consume(.RightParen, "Expect ')' after expression.");
+        }
+
+        void ParseUnary()
+        {
+            let operatorType = parser.Previous.Type;
+
+            ParsePrecedence(.Unary);
+
+            switch (operatorType)
+            {
+            case .Minus: EmitByte(OpCode.Negate);
+            default: return; // Unreachable
+            }
+        }
+
+        void ParseBinary()
+        {
+            let operatorType = parser.Previous.Type;
+
+            let rule = rules[operatorType];
+            ParsePrecedence(rule.Precedence + 1);
+
+            switch (operatorType)
+            {
+            case .Plus: EmitByte(OpCode.Add);
+            case .Minus: EmitByte(OpCode.Subtract);
+            case .Star: EmitByte(OpCode.Multiply);
+            case .Slash: EmitByte(OpCode.Divide);
+            default: return;
+            }
+        }
+
+        void ParsePrecedence(Precedence precedence)
+        {
+            Advance();
+            let prefixRule = rules[parser.Previous.Type].Prefix;
+
+            if (prefixRule == null)
+            {
+                Console.Error.WriteLine("Expected expression");
+                return;
+            }
+
+            prefixRule();
+
+            while (precedence <= rules[parser.Current.Type].Precedence)
+            {
+                Advance();
+                let infixRule = rules[parser.Previous.Type].Infix;
+
+                if (infixRule == null)
+                {
+                    Console.Error.WriteLine("Unexpected error with infix rule");
+                    return;
+                }
+
+                infixRule();
+            }
         }
 
         void Consume(TokenType type, StringView message)
@@ -28,6 +121,44 @@ namespace ijo
             }
 
             ErrorAtCurrent(message);
+        }
+
+        void EmitByte(uint8 byte)
+        {
+            CurrentChunk().Write(byte, parser.Previous.Line);
+        }
+
+        void EmitBytes(uint8 byte1, uint8 byte2)
+        {
+            EmitByte(byte1);
+            EmitByte(byte2);
+        }
+
+        void EmitConstant(ijoValue value)
+        {
+            CurrentChunk().WriteConstant(value, parser.Previous.Line);
+        }
+
+        void EmitReturn()
+        {
+            EmitByte(OpCode.Return);
+        }
+
+        void EndCompiler()
+        {
+            EmitReturn();
+
+#if DEBUG_PRINT_CODE
+            if (!parser.HadError)
+            {
+                Disassembler.DisassembleChunk(CurrentChunk(), "Code");
+            }
+#endif
+        }
+
+        Chunk* CurrentChunk()
+        {
+            return compilingChunk;
         }
 
         void Advance()
@@ -68,6 +199,60 @@ namespace ijo
 
             Console.Error.WriteLine(scope $": {message}");
             parser.HadError = true;
+        }
+
+        void InitParseRules()
+        {
+            rules[TokenType.LeftParen]    = .(new () => ParseGrouping(), null, Precedence.None);
+            rules[TokenType.RightParen]   = .(null, null, Precedence.None);
+            rules[TokenType.LeftBrace]    = .(null, null, Precedence.None);
+            rules[TokenType.RightBrace]   = .(null, null, Precedence.None);
+            rules[TokenType.Comma]        = .(null, null, Precedence.None);
+            rules[TokenType.Colon]        = .(null, null, Precedence.None);
+            rules[TokenType.Dot]          = .(null, null, Precedence.None);
+            rules[TokenType.Minus]        = .(new () => ParseUnary(), new () => ParseBinary(), Precedence.Term);
+            rules[TokenType.Plus]         = .(null, new () => ParseBinary(), Precedence.Term);
+            rules[TokenType.Semicolon]    = .(null, null, Precedence.None);
+            rules[TokenType.Slash]        = .(null, new () => ParseBinary(), Precedence.Factor);
+            rules[TokenType.Star]         = .(null, new () => ParseBinary(), Precedence.Factor);
+            rules[TokenType.Percent]      = .(null, null, Precedence.None);
+            rules[TokenType.Var]          = .(null, null, Precedence.None);
+            rules[TokenType.Question]     = .(null, null, Precedence.None);
+            rules[TokenType.Underscore]   = .(null, null, Precedence.None);
+            rules[TokenType.Tilde]        = .(null, null, Precedence.None);
+            rules[TokenType.Pipe]         = .(null, null, Precedence.None);
+
+            rules[TokenType.And]          = .(null, null, Precedence.None);
+            rules[TokenType.Bang]         = .(null, null, Precedence.None);
+            rules[TokenType.BangEqual]    = .(null, null, Precedence.None);
+            rules[TokenType.Equal]        = .(null, null, Precedence.None);
+            rules[TokenType.EqualEqual]   = .(null, null, Precedence.None);
+            rules[TokenType.Greater]      = .(null, null, Precedence.None);
+            rules[TokenType.GreaterEqual] = .(null, null, Precedence.None);
+            rules[TokenType.Less]         = .(null, null, Precedence.None);
+            rules[TokenType.LessEqual]    = .(null, null, Precedence.None);
+            rules[TokenType.Or]           = .(null, null, Precedence.None);
+
+            rules[TokenType.If]           = .(null, null, Precedence.None);
+            rules[TokenType.Else]         = .(null, null, Precedence.None);
+            rules[TokenType.Switch]       = .(null, null, Precedence.None);
+            rules[TokenType.While]        = .(null, null, Precedence.None);
+            rules[TokenType.Return]       = .(null, null, Precedence.None);
+            rules[TokenType.Break]        = .(null, null, Precedence.None);
+            rules[TokenType.Function]     = .(null, null, Precedence.None);
+            rules[TokenType.Type]         = .(null, null, Precedence.None);
+
+            rules[TokenType.Identifier]   = .(null, null, Precedence.None);
+            rules[TokenType.String]       = .(null, null, Precedence.None);
+            rules[TokenType.Symbol]       = .(null, null, Precedence.None);
+            rules[TokenType.Number]       = .(new () => ParseNumber(), null, Precedence.None);
+            rules[TokenType.This]         = .(null, null, Precedence.None);
+            rules[TokenType.Base]         = .(null, null, Precedence.None);
+            rules[TokenType.Nil]          = .(null, null, Precedence.None);
+            rules[TokenType.True]         = .(null, null, Precedence.None);
+            rules[TokenType.False]        = .(null, null, Precedence.None);
+            rules[TokenType.Error]        = .(null, null, Precedence.None);
+            rules[TokenType.EOF]          = .(null, null, Precedence.None);
         }
     }
 

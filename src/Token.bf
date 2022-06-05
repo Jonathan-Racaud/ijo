@@ -17,7 +17,7 @@ namespace ijo
         }
     }
 
-    enum TokenType
+    enum TokenType : int
     {
         // Single character tokens
         case LeftParen;
@@ -40,6 +40,7 @@ namespace ijo
         case Pipe;
 
         // One or two character tokens
+        case And;
         case Bang;
         case BangEqual;
         case Equal;
@@ -48,9 +49,11 @@ namespace ijo
         case GreaterEqual;
         case Less;
         case LessEqual;
+        case Or;
 
         // Controls
         case If;
+        case Else;
         case Switch;
         case While;
         case Return;
@@ -63,8 +66,15 @@ namespace ijo
         case String;
         case Symbol;
         case Number;
+        case This;
+        case Base;
+        case Nil;
+        case True;
+        case False;
         case Error;
         case EOF;
+
+        case __Total;
 
         public static operator StringView(Self value)
         {
@@ -101,12 +111,19 @@ namespace ijo
             case .Minus: return "-";
 
             case .If: return "?(";
+            case .Else: return "?()";
             case .While: return "~(";
             case .Break: return "<-";
             case .Return: return "->";
-            case .Function: return "(){}";
             case .Type: return "<>";
             case .Symbol: return ":";
+
+            case .Function: return "(){}";
+            case .This: return "this";
+            case .Base: return "base";
+            case .Nil: return "nil";
+            case .True: return "true";
+            case .False: return "false";
 
             // Others
             case .Error: return "error";
@@ -114,5 +131,7 @@ namespace ijo
             default: return "";
             }
         }
+
+        public static operator int(Self value) => value.Underlying;
     }
 }

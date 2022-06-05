@@ -28,7 +28,10 @@ namespace ijo
             while (true)
             {
                 Console.Write("> ");
-                let line = Console.ReadLine(.. scope .());
+
+                let line = scope String();
+                if (Console.ReadLine(line) case .Err)
+                    Console.Error.WriteLine("[Error]: IO Error");
 
                 if (line.Equals("exit"))
                     break;

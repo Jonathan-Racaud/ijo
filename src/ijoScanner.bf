@@ -54,6 +54,11 @@ namespace ijo
             case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
             case '>': return MakeToken(Match('=') ? .GreaterEqual : .Greater);
             case '=': return MakeToken(Match('=') ? .EqualEqual : .Equal);
+            case '|': return MakeToken(Match('|') ? .Or : .Pipe);
+            case '&':
+                if (Match('&')) return MakeToken(.And);
+                return MakeErrorToken("Unexpected character.");
+
             case '<':
                 // <-
                 if (Match('-')) return MakeToken(.Break);

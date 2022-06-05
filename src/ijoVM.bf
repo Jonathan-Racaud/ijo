@@ -6,7 +6,7 @@ namespace ijo
     {
         private ijoCompiler compiler = new .() ~ delete _;
 
-        private Chunk chunk;
+        private Chunk* chunk;
         private uint8* ip;
 
         private List<ijoValue> stak = new .() ~ delete _;
@@ -15,14 +15,18 @@ namespace ijo
 
         public InterpretResult Interpret(StringView source)
         {
-            var compiledChunk = Chunk();
-            switch (compiler.Compile(source, out compiledChunk))
+            Chunk compiledChunk;
+
+            let compileResult = compiler.Compile(source, out compiledChunk);
+            defer compiledChunk.Dispose();
+
+            switch (compileResult)
             {
             case .Ok: break;
             case .Error: return .CompileError;
             }
 
-            chunk = compiledChunk;
+            chunk = &compiledChunk;
             ip = chunk.Code.Ptr;
 
             return Run();
@@ -30,6 +34,10 @@ namespace ijo
 
         InterpretResult Run()
         {
+#if DEBUG_TRACE_EXECUTION
+            Console.Write("== Trace Execution ==");
+            defer Console.WriteLine("== /Trace Execution ==");
+#endif
             while (true)
             {
 #if DEBUG_TRACE_EXECUTION
@@ -41,7 +49,7 @@ namespace ijo
                     Console.Write("]");
                 }
                 Console.WriteLine();
-                Disassembler.DisassembleInstruction(ref chunk, (int)(ip - chunk.Code.Ptr));
+                Disassembler.DisassembleInstruction(chunk, (int)(ip - chunk.Code.Ptr));
 #endif
                 let instruction = ReadByte();
 
@@ -59,10 +67,11 @@ namespace ijo
                     HandleBinaryOp((a, b) => a * b);
                 case .Divide:
                     HandleBinaryOp((a, b) => a / b);
-                case .Exit:
+                case .Return:
                     if (!stak.IsEmpty)
                         PrintLineValue(stak.PopFront());
                     return .Ok;
+                default: return .Ok;
                 }
             }
         }
