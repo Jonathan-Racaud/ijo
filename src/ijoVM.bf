@@ -45,7 +45,7 @@ namespace ijo
                 for (let slot in stak)
                 {
                     Console.Write("[");
-                    PrintValue(slot);
+                    slot.Print();
                     Console.Write("]");
                 }
                 Console.WriteLine();
@@ -58,24 +58,61 @@ namespace ijo
                 case .Constant,.ConstantLong:
                     HandleConstant!(instruction);
                 case .Negate:
-                    var x = stak.PopFront();
-                    x = -x;
-                    stak.AddFront(x);
+                    if (!Peek(0).IsNumber())
+                    {
+                        Console.Error.WriteLine("Expected a number");
+                        return .RuntimeError;
+                    }
+
+                    let value = stak.PopFront().Double();
+                    stak.AddFront(-value);
                 case .Add:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Expected a number");
+                        return .RuntimeError;
+                    }
                     HandleBinaryOp((a, b) => a + b);
                 case .Subtract:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Expected a number");
+                        return .RuntimeError;
+                    }
                     HandleBinaryOp((a, b) => a - b);
                 case .Multiply:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Expected a number");
+                        return .RuntimeError;
+                    }
                     HandleBinaryOp((a, b) => a * b);
                 case .Divide:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Expected a number");
+                        return .RuntimeError;
+                    }
                     HandleBinaryOp((a, b) => a / b);
+                case .Modulo:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Expected a number");
+                        return .RuntimeError;
+                    }
+                    HandleBinaryOp((a, b) => a % b);
                 case .Return:
                     if (!stak.IsEmpty)
-                        PrintLineValue(stak.PopFront());
+                        stak.PopFront().PrintLine();
                     return .Ok;
                 default: return .Ok;
                 }
             }
+        }
+
+        ijoValue Peek(int distance)
+        {
+            return *(stak.Ptr + distance);
         }
 
         mixin HandleConstant(OpCode type)
@@ -123,17 +160,6 @@ namespace ijo
             {
                 return .Err(.CompileError);
             }
-        }
-
-        void PrintValue(ijoValue value)
-        {
-            Console.Write(scope $"{value}");
-        }
-
-        void PrintLineValue(ijoValue value)
-        {
-            PrintValue(value);
-            Console.WriteLine();
         }
     }
 

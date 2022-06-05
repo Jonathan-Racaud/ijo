@@ -31,6 +31,7 @@ namespace ijo
             compilingChunk = &outChunk;
 
             scanner.Init(source);
+            defer scanner.Dispose();
 
             Advance();
             ParseExpression();
@@ -47,8 +48,13 @@ namespace ijo
 
         void ParseNumber()
         {
-            let value = Double.Parse(StringView(parser.Previous.Start, parser.Previous.Length));
-            EmitConstant(value);
+            if (Double.Parse(StringView(parser.Previous.Start, parser.Previous.Length)) case .Ok(let val))
+            {
+                EmitConstant(val);
+                return;
+            }
+
+            ErrorAtCurrent("is not a number");
         }
 
         void ParseGrouping()

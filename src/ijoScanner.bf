@@ -12,10 +12,13 @@ namespace ijo
 
         int line;
 
-        String source = new .();
+        String source = null;
 
         public void Init(String src) mut
         {
+            if (source == null)
+                source = new .();
+
             source.Set(src);
             start = source.Ptr;
             current = start;
@@ -25,6 +28,7 @@ namespace ijo
         public void Dispose() mut
         {
             delete source;
+            source = null;
             start = null;
             current = null;
             line = 0;
