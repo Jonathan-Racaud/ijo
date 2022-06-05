@@ -26,6 +26,7 @@ namespace ijo
 
         public CompileResult Compile(String source, out Chunk outChunk)
         {
+            parser.HadError = false;
             outChunk = Chunk();
             compilingChunk = &outChunk;
 
