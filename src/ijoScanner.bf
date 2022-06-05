@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 namespace ijo
 {
-    struct ijoScanner
+    struct ijoScanner : IDisposable
     {
         /// The start of the current lexeme being scanned
         char8* start;
@@ -12,14 +12,22 @@ namespace ijo
 
         int line;
 
-        StringView source;
+        String source = new .();
 
-        public this(StringView source = "")
+        public void Init(String src) mut
         {
-            this.source = source;
+            source.Set(src);
             start = source.Ptr;
             current = start;
             line = 1;
+        }
+
+        public void Dispose() mut
+        {
+            delete source;
+            start = null;
+            current = null;
+            line = 0;
         }
 
         public Token ScanToken() mut
@@ -60,28 +68,28 @@ namespace ijo
                 return MakeErrorToken("Unexpected character.");
 
             case '<':
-                // <-
+                    // <-
                 if (Match('-')) return MakeToken(.Break);
-                // <=
+                    // <=
                 if (Match('=')) return MakeToken(.LessEqual);
-                // <SomeType>
+                    // <SomeType>
                 if (PeekNext().IsLetterOrDigit) return MakeTypeDef();
                 return MakeToken(.Less);
 
             case '?':
-                // ?(condition) { then; }
+                    // ?(condition) { then; }
                 if (Match('(')) return MakeToken(.If);
-                // ?|identifier| { case1: ; case2: ; }
+                    // ?|identifier| { case1: ; case2: ; }
                 if (Match('|')) return MakeToken(.Switch);
                 return MakeErrorToken("Unexpected character");
 
             case '~':
-                // ~(condition) { do; }
+                    // ~(condition) { do; }
                 if (Match('(')) return MakeToken(.While);
                 return MakeErrorToken("Unexpected character");
 
             case ':':
-                // :north, :south, :apple, :some-symbol, :other_symbol
+                    // :north, :south, :apple, :some-symbol, :other_symbol
                 if (PeekNext().IsLetterOrDigit) return MakeSymbol();
                 return MakeToken(.Colon);
 

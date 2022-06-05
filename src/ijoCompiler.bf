@@ -4,7 +4,7 @@ namespace ijo
 {
     class ijoCompiler
     {
-        ijoScanner scanner;
+        ijoScanner scanner = .();
         ijoParser parser = .();
         Chunk* compilingChunk;
         ParseRule[?] rules = ParseRule[TokenType.__Total]();
@@ -20,14 +20,16 @@ namespace ijo
             {
                 rule.Dispose();
             }
+
+            scanner.Dispose();
         }
 
-        public CompileResult Compile(StringView source, out Chunk outChunk)
+        public CompileResult Compile(String source, out Chunk outChunk)
         {
             outChunk = Chunk();
             compilingChunk = &outChunk;
 
-            scanner = ijoScanner(source);
+            scanner.Init(source);
 
             Advance();
             ParseExpression();

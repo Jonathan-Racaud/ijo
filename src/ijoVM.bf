@@ -13,7 +13,7 @@ namespace ijo
 
         typealias BinaryOpDelegate = function ijoValue(ijoValue, ijoValue);
 
-        public InterpretResult Interpret(StringView source)
+        public InterpretResult Interpret(String source)
         {
             Chunk compiledChunk;
 
@@ -58,7 +58,9 @@ namespace ijo
                 case .Constant,.ConstantLong:
                     HandleConstant!(instruction);
                 case .Negate:
-                    stak.Add(-stak.PopFront());
+                    var x = stak.PopFront();
+                    x = -x;
+                    stak.AddFront(x);
                 case .Add:
                     HandleBinaryOp((a, b) => a + b);
                 case .Subtract:
