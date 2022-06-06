@@ -71,7 +71,7 @@ namespace ijo
 
             switch (operatorType)
             {
-            case .Base: EmitByte(OpCode.Not);
+            case .Bang: EmitByte(OpCode.Not);
             case .Minus: EmitByte(OpCode.Negate);
             default: return; // Unreachable
             }
@@ -86,6 +86,12 @@ namespace ijo
 
             switch (operatorType)
             {
+            case .BangEqual: EmitBytes(OpCode.Equal, OpCode.Not);
+            case .EqualEqual: EmitByte(OpCode.Equal);
+            case .Greater: EmitByte(OpCode.Greater);
+            case .GreaterEqual: EmitBytes(OpCode.Greater, OpCode.Not);
+            case .Less: EmitByte(OpCode.Less);
+            case .LessEqual: EmitBytes(OpCode.Less, OpCode.Not);
             case .Plus: EmitByte(OpCode.Add);
             case .Minus: EmitByte(OpCode.Subtract);
             case .Star: EmitByte(OpCode.Multiply);
@@ -245,13 +251,13 @@ namespace ijo
 
             rules[TokenType.And]          = .(null, null, Precedence.None);
             rules[TokenType.Bang]         = .(new () => ParseUnary(), null, Precedence.None);
-            rules[TokenType.BangEqual]    = .(null, null, Precedence.None);
+            rules[TokenType.BangEqual]    = .(null, new () => ParseBinary(), Precedence.Equality);
             rules[TokenType.Equal]        = .(null, null, Precedence.None);
-            rules[TokenType.EqualEqual]   = .(null, null, Precedence.None);
-            rules[TokenType.Greater]      = .(null, null, Precedence.None);
-            rules[TokenType.GreaterEqual] = .(null, null, Precedence.None);
-            rules[TokenType.Less]         = .(null, null, Precedence.None);
-            rules[TokenType.LessEqual]    = .(null, null, Precedence.None);
+            rules[TokenType.EqualEqual]   = .(null, new () => ParseBinary(), Precedence.Equality);
+            rules[TokenType.Greater]      = .(null, new () => ParseBinary(), Precedence.Comparison);
+            rules[TokenType.GreaterEqual] = .(null, new () => ParseBinary(), Precedence.Comparison);
+            rules[TokenType.Less]         = .(null, new () => ParseBinary(), Precedence.Comparison);
+            rules[TokenType.LessEqual]    = .(null, new () => ParseBinary(), Precedence.Comparison);
             rules[TokenType.Or]           = .(null, null, Precedence.None);
 
             rules[TokenType.If]           = .(null, null, Precedence.None);

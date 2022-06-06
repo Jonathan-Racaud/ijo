@@ -60,7 +60,10 @@ namespace ijo
             case '/': return MakeToken(.Slash);
             case '%': return MakeToken(.Percent);
             case '_': return MakeToken(.Underscore);
-            case '$': return MakeToken(.Var);
+
+            case '$':
+                if (Match('<')) return MakeTypeDef();
+                return MakeToken(.Var);
 
             case '-': return MakeToken(Match('>') ? .Return : .Minus);
             case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
@@ -76,8 +79,6 @@ namespace ijo
                 if (Match('-')) return MakeToken(.Break);
                     // <=
                 if (Match('=')) return MakeToken(.LessEqual);
-                    // <SomeType>
-                if (PeekNext().IsLetterOrDigit) return MakeTypeDef();
                 return MakeToken(.Less);
 
             case '?':
@@ -118,6 +119,7 @@ namespace ijo
         char8 PeekNext()
         {
             if (IsAtEnd()) return '\0';
+            let x = current[0];
             return current[1];
         }
 

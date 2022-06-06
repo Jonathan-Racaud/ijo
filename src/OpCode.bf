@@ -9,6 +9,9 @@ namespace ijo
         case Nil;
         case True;
         case False;
+        case Equal;
+        case Greater;
+        case Less;
         case Negate;
         case Not;
         case Add;
@@ -30,6 +33,9 @@ namespace ijo
             case .Nil: return "OP_NIL";
             case .True: return "OP_TRUE";
             case .False: return "OP_FALSE";
+            case .Equal: return "OP_EQUAL";
+            case .Greater: return "OP_GREATER";
+            case .Less: return "OP_LESS";
             case .Negate: return "OP_NEGATE";
             case .Not: return "OP_NOT";
             case .Add: return "OP_ADD";

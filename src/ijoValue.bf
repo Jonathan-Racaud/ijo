@@ -73,6 +73,30 @@ namespace ijo
             return .Nil;
         }
 
+        [Commutable]
+        public static ijoValue operator >(Self a, Self b)
+        {
+            if (a case .Number(let aVal) && b case .Number(let bVal))
+                return aVal > bVal;
+
+            return .Bool(false);
+        }
+
+        [Commutable]
+        public static ijoValue operator ==(Self a, Self b)
+        {
+            if (a case .Number(let aVal) && b case .Number(let bVal))
+                return aVal == bVal;
+
+            if (a case .Bool(let aVal) && b case .Bool(let bVal))
+                return aVal == bVal;
+
+            if (a case .Nil && b case .Nil)
+                return true;
+
+            return .Bool(false);
+        }
+
         public static ijoValue operator !(Self value)
         {
             switch (value)

@@ -33,7 +33,10 @@ namespace ijo
                 .False,
                 .Nil,
                 .Negate,
-                .Not: return SimpleInstruction(instruction, offset);
+                .Not,
+                .Equal,
+                .Greater,
+                .Less: return SimpleInstruction(instruction, offset);
             case .Add,
                 .Subtract,
                 .Multiply,
@@ -86,7 +89,7 @@ namespace ijo
 
         static int BinaryInstruction(ref Chunk chunk, OpCode code, int offset)
         {
-            Console.WriteLine(scope $"\t{code} {chunk.Code[offset]}, {chunk.Code[offset]}");
+            Console.WriteLine(scope $"\t{code} {chunk.Code[offset]}, {chunk.Code[offset + 1]}");
             return offset + 2;
         }
 

@@ -70,6 +70,8 @@ namespace ijo
                         return .RuntimeError;
                     }
                     stak.AddFront(!stak.PopFront());
+                case .Equal:
+                    HandleBinaryOp((a, b) => a == b);
                 case .Negate:
                     if (!Peek(0).IsNumber())
                     {
@@ -79,6 +81,20 @@ namespace ijo
 
                     let value = stak.PopFront().Double();
                     stak.AddFront(-value);
+                case .Greater:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Types cannot be compared");
+                        return .RuntimeError;
+                    }
+                    HandleBinaryOp((a, b) => a > b);
+                case .Less:
+                    if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
+                    {
+                        Console.Error.WriteLine("Types cannot be compared");
+                        return .RuntimeError;
+                    }
+                    HandleBinaryOp((a, b) => a < b);
                 case .Add:
                     if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
                     {
