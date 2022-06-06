@@ -28,6 +28,7 @@ namespace ijo
             switch (instruction)
             {
             case .Constant,.ConstantLong: return ConstantInstruction(ref chunk, instruction, offset);
+            case .True,.False,.Nil: return SimpleInstruction(instruction, offset);
             case .Negate: return SimpleInstruction(instruction, offset);
             case .Add: return SimpleInstruction(instruction, offset);
             case .Subtract: return SimpleInstruction(instruction, offset);

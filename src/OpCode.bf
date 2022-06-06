@@ -6,6 +6,9 @@ namespace ijo
     {
         case Constant;
         case ConstantLong;
+        case Nil;
+        case True;
+        case False;
         case Negate;
         case Add;
         case Subtract;
@@ -23,6 +26,9 @@ namespace ijo
             {
             case .Constant: return "OP_CONSTANT";
             case .ConstantLong: return "OP_CONSTANT_LONG";
+            case .Nil: return "OP_NIL";
+            case .True: return "OP_TRUE";
+            case .False: return "OP_FALSE";
             case .Negate: return "OP_NEGATE";
             case .Add: return "OP_ADD";
             case .Subtract: return "OP_SUBTRACT";

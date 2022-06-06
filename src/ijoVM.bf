@@ -57,6 +57,12 @@ namespace ijo
                 {
                 case .Constant,.ConstantLong:
                     HandleConstant!(instruction);
+                case .Nil:
+                    stak.AddFront(ijoValue.Nil);
+                case .True:
+                    stak.AddFront(ijoValue.Bool(true));
+                case .False:
+                    stak.AddFront(ijoValue.Bool(false));
                 case .Negate:
                     if (!Peek(0).IsNumber())
                     {

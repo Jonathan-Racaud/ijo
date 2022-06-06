@@ -197,6 +197,14 @@ namespace ijo
                 Advance();
             }
 
+            let str = StringView(start, GetLength());
+            switch (str)
+            {
+            case ":true": return MakeToken(.True);
+            case ":false": return MakeToken(.False);
+            case ":nil": return MakeToken(.Nil);
+            }
+
             return MakeToken(.Symbol);
         }
 
@@ -231,6 +239,16 @@ namespace ijo
         Token MakeIdentifier() mut
         {
             while (Peek().IsLetterOrDigit) Advance();
+
+            let str = StringView(start, GetLength());
+            switch (str)
+            {
+            case "this": return MakeToken(.This);
+            case "base": return MakeToken(.Base);
+            case "true": return MakeToken(.True);
+            case "false": return MakeToken(.False);
+            case "nil": return MakeToken(.Nil);
+            }
 
             return MakeToken(.Identifier);
         }

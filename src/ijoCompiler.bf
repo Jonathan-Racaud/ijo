@@ -93,6 +93,17 @@ namespace ijo
             }
         }
 
+        void ParseLiteral()
+        {
+            switch (parser.Previous.Type)
+            {
+            case .True: EmitByte(OpCode.True);
+            case .False: EmitByte(OpCode.False);
+            case .Nil: EmitByte(OpCode.Nil);
+            default: return;
+            }
+        }
+
         void ParsePrecedence(Precedence precedence)
         {
             Advance();
@@ -251,15 +262,16 @@ namespace ijo
             rules[TokenType.Function]     = .(null, null, Precedence.None);
             rules[TokenType.Type]         = .(null, null, Precedence.None);
 
+            rules[TokenType.True]         = .(new () => ParseLiteral(), null, Precedence.None);
+            rules[TokenType.False]        = .(new () => ParseLiteral(), null, Precedence.None);
+            rules[TokenType.Nil]          = .(new () => ParseLiteral(), null, Precedence.None);
+
             rules[TokenType.Identifier]   = .(null, null, Precedence.None);
             rules[TokenType.String]       = .(null, null, Precedence.None);
             rules[TokenType.Symbol]       = .(null, null, Precedence.None);
             rules[TokenType.Number]       = .(new () => ParseNumber(), null, Precedence.None);
             rules[TokenType.This]         = .(null, null, Precedence.None);
             rules[TokenType.Base]         = .(null, null, Precedence.None);
-            rules[TokenType.Nil]          = .(null, null, Precedence.None);
-            rules[TokenType.True]         = .(null, null, Precedence.None);
-            rules[TokenType.False]        = .(null, null, Precedence.None);
             rules[TokenType.Error]        = .(null, null, Precedence.None);
             rules[TokenType.EOF]          = .(null, null, Precedence.None);
         }
