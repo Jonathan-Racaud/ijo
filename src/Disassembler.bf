@@ -27,13 +27,18 @@ namespace ijo
 
             switch (instruction)
             {
-            case .Constant,.ConstantLong: return ConstantInstruction(ref chunk, instruction, offset);
-            case .True,.False,.Nil: return SimpleInstruction(instruction, offset);
-            case .Negate: return SimpleInstruction(instruction, offset);
-            case .Add: return SimpleInstruction(instruction, offset);
-            case .Subtract: return SimpleInstruction(instruction, offset);
-            case .Multiply: return SimpleInstruction(instruction, offset);
-            case .Divide: return SimpleInstruction(instruction, offset);
+            case .Constant,
+                .ConstantLong: return ConstantInstruction(ref chunk, instruction, offset);
+            case .True,
+                .False,
+                .Nil,
+                .Negate,
+                .Not: return SimpleInstruction(instruction, offset);
+            case .Add,
+                .Subtract,
+                .Multiply,
+                .Divide,
+                .Modulo: return BinaryInstruction(ref chunk, instruction, offset);
             case .Return: return SimpleInstruction(instruction, offset);
             default: return ErrorInstruction(instruction, offset);
             }

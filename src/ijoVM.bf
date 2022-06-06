@@ -63,6 +63,13 @@ namespace ijo
                     stak.AddFront(ijoValue.Bool(true));
                 case .False:
                     stak.AddFront(ijoValue.Bool(false));
+                case .Not:
+                    if (!Peek(0).IsBool())
+                    {
+                        Console.Error.WriteLine("Expected a boolean");
+                        return .RuntimeError;
+                    }
+                    stak.AddFront(!stak.PopFront());
                 case .Negate:
                     if (!Peek(0).IsNumber())
                     {

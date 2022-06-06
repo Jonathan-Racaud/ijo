@@ -71,6 +71,7 @@ namespace ijo
 
             switch (operatorType)
             {
+            case .Base: EmitByte(OpCode.Not);
             case .Minus: EmitByte(OpCode.Negate);
             default: return; // Unreachable
             }
@@ -243,7 +244,7 @@ namespace ijo
             rules[TokenType.Pipe]         = .(null, null, Precedence.None);
 
             rules[TokenType.And]          = .(null, null, Precedence.None);
-            rules[TokenType.Bang]         = .(null, null, Precedence.None);
+            rules[TokenType.Bang]         = .(new () => ParseUnary(), null, Precedence.None);
             rules[TokenType.BangEqual]    = .(null, null, Precedence.None);
             rules[TokenType.Equal]        = .(null, null, Precedence.None);
             rules[TokenType.EqualEqual]   = .(null, null, Precedence.None);

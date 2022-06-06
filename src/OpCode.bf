@@ -10,6 +10,7 @@ namespace ijo
         case True;
         case False;
         case Negate;
+        case Not;
         case Add;
         case Subtract;
         case Multiply;
@@ -30,6 +31,7 @@ namespace ijo
             case .True: return "OP_TRUE";
             case .False: return "OP_FALSE";
             case .Negate: return "OP_NEGATE";
+            case .Not: return "OP_NOT";
             case .Add: return "OP_ADD";
             case .Subtract: return "OP_SUBTRACT";
             case .Multiply: return "OP_MULTIPLY";

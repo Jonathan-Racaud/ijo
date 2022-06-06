@@ -72,5 +72,14 @@ namespace ijo
 
             return .Nil;
         }
+
+        public static ijoValue operator !(Self value)
+        {
+            switch (value)
+            {
+            case .Nil,Number: return value;
+            case .Bool(let val): return .Bool(!val);
+            }
+        }
     }
 }
