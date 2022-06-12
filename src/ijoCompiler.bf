@@ -139,6 +139,13 @@ namespace ijo
             }
         }
 
+        void ParseString()
+        {
+            // +1 to remove the first " and - 2 to remove the last "
+            let string = ijoString.Copy(parser.Previous.Start + 1, parser.Previous.Length - 2);
+            EmitConstant(ijoValue.Obj(string));
+        }
+
         void Consume(TokenType type, StringView message)
         {
             if (parser.Current.Type == type)
@@ -280,7 +287,7 @@ namespace ijo
             rules[TokenType.Nil]          = .(new () => ParseLiteral(), null, Precedence.None);
 
             rules[TokenType.Identifier]   = .(null, null, Precedence.None);
-            rules[TokenType.String]       = .(null, null, Precedence.None);
+            rules[TokenType.String]       = .(new () => ParseString(), null, Precedence.None);
             rules[TokenType.Symbol]       = .(null, null, Precedence.None);
             rules[TokenType.Number]       = .(new () => ParseNumber(), null, Precedence.None);
             rules[TokenType.Error]        = .(null, null, Precedence.None);
