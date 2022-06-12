@@ -234,6 +234,8 @@ namespace ijo
             rules[TokenType.RightParen]   = .(null, null, Precedence.None);
             rules[TokenType.LeftBrace]    = .(null, null, Precedence.None);
             rules[TokenType.RightBrace]   = .(null, null, Precedence.None);
+            rules[TokenType.LeftBracket]  = .(null, null, Precedence.None);
+            rules[TokenType.RightBracket] = .(null, null, Precedence.None);
             rules[TokenType.Comma]        = .(null, null, Precedence.None);
             rules[TokenType.Colon]        = .(null, null, Precedence.None);
             rules[TokenType.Dot]          = .(null, null, Precedence.None);
@@ -244,6 +246,7 @@ namespace ijo
             rules[TokenType.Star]         = .(null, new () => ParseBinary(), Precedence.Factor);
             rules[TokenType.Percent]      = .(null, null, Precedence.None);
             rules[TokenType.Var]          = .(null, null, Precedence.None);
+            rules[TokenType.Const]        = .(null, null, Precedence.None);
             rules[TokenType.Question]     = .(null, null, Precedence.None);
             rules[TokenType.Underscore]   = .(null, null, Precedence.None);
             rules[TokenType.Tilde]        = .(null, null, Precedence.None);
@@ -268,6 +271,9 @@ namespace ijo
             rules[TokenType.Break]        = .(null, null, Precedence.None);
             rules[TokenType.Function]     = .(null, null, Precedence.None);
             rules[TokenType.Type]         = .(null, null, Precedence.None);
+            rules[TokenType.Enum]         = .(null, null, Precedence.None);
+            rules[TokenType.Array]         = .(null, null, Precedence.None);
+            rules[TokenType.Map]         = .(null, null, Precedence.None);
 
             rules[TokenType.True]         = .(new () => ParseLiteral(), null, Precedence.None);
             rules[TokenType.False]        = .(new () => ParseLiteral(), null, Precedence.None);
@@ -277,8 +283,6 @@ namespace ijo
             rules[TokenType.String]       = .(null, null, Precedence.None);
             rules[TokenType.Symbol]       = .(null, null, Precedence.None);
             rules[TokenType.Number]       = .(new () => ParseNumber(), null, Precedence.None);
-            rules[TokenType.This]         = .(null, null, Precedence.None);
-            rules[TokenType.Base]         = .(null, null, Precedence.None);
             rules[TokenType.Error]        = .(null, null, Precedence.None);
             rules[TokenType.EOF]          = .(null, null, Precedence.None);
         }

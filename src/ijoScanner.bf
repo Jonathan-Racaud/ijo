@@ -48,9 +48,16 @@ namespace ijo
 
             switch (c)
             {
-            case '(': return MakeToken(.LeftParen);
+            case '(':
+                if (Match('$')) return MakeToken(.Function);
+                return MakeToken(.LeftParen);
+
             case ')': return MakeToken(.RightParen);
-            case '{': return MakeToken(.LeftBrace);
+
+            case '{':
+                if (Match('$')) return MakeToken(.Type);
+                return MakeToken(.LeftBrace);
+
             case '}': return MakeToken(.RightBrace);
             case ';': return MakeToken(.Semicolon);
             case ',': return MakeToken(.Comma);
@@ -58,18 +65,31 @@ namespace ijo
             case '+': return MakeToken(.Plus);
             case '*': return MakeToken(.Star);
             case '/': return MakeToken(.Slash);
-            case '%': return MakeToken(.Percent);
+            case '[': return MakeToken(.LeftBracket);
+            case ']': return MakeToken(.RightBracket);
+
+            case '%':
+                if (Match('[')) return MakeToken(.Map);
+                return MakeToken(.Percent);
+
             case '_': return MakeToken(.Underscore);
 
+            // Mutable variable
             case '$':
-                if (Match('<')) return MakeTypeDef();
                 return MakeToken(.Var);
+
+            // Immutable variables
+            case '#':
+                return MakeToken(.Const);
 
             case '-': return MakeToken(Match('>') ? .Return : .Minus);
             case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
             case '>': return MakeToken(Match('=') ? .GreaterEqual : .Greater);
             case '=': return MakeToken(Match('=') ? .EqualEqual : .Equal);
-            case '|': return MakeToken(Match('|') ? .Or : .Pipe);
+            case '|':
+                if (Match('$')) return MakeToken(.Enum);
+                return MakeToken(Match('|') ? .Or : .Pipe);
+
             case '&':
                 if (Match('&')) return MakeToken(.And);
                 return MakeErrorToken("Unexpected character.");
@@ -94,8 +114,8 @@ namespace ijo
                 return MakeErrorToken("Unexpected character");
 
             case ':':
-                    // :north, :south, :apple, :some-symbol, :other_symbol
-                if (PeekNext().IsLetterOrDigit) return MakeSymbol();
+                    // :north, :south, :apple, :some-symbol, :other_symbol, :3number
+                if (Peek().IsLetterOrDigit) return MakeSymbol();
                 return MakeToken(.Colon);
 
             case '"': return MakeString();
@@ -119,7 +139,6 @@ namespace ijo
         char8 PeekNext()
         {
             if (IsAtEnd()) return '\0';
-            let x = current[0];
             return current[1];
         }
 

@@ -24,6 +24,8 @@ namespace ijo
         case RightParen;
         case LeftBrace;
         case RightBrace;
+        case LeftBracket;
+        case RightBracket;
         case Comma;
         case Colon;
         case Dot;
@@ -34,6 +36,7 @@ namespace ijo
         case Star;
         case Percent;
         case Var;
+        case Const;
         case Question;
         case Underscore;
         case Tilde;
@@ -60,6 +63,9 @@ namespace ijo
         case Break;
         case Function;
         case Type;
+        case Enum;
+        case Map;
+        case Array;
 
         // Literals
         case Identifier;
@@ -85,6 +91,8 @@ namespace ijo
             case .RightParen: return ")";
             case .LeftBrace: return "{";
             case .RightBrace: return "}";
+            case .LeftBracket: return "[";
+            case .RightBracket: return "]";
             case .Comma: return ",";
             case .Dot: return ".";
             case .Plus: return "+";
@@ -94,6 +102,7 @@ namespace ijo
             case .Percent: return "%";
             case .Star: return "*";
             case .Var: return "$";
+            case .Const: return "#";
             case .Underscore: return "_";
             case .Pipe: return "|";
 
@@ -115,15 +124,16 @@ namespace ijo
             case .While: return "~(";
             case .Break: return "<-";
             case .Return: return "->";
-            case .Type: return "<>";
+            case .Type: return "{$";
+            case .Enum: return "$|";
+            case .Array: return "[]";
+            case .Map: return "%[";
             case .Symbol: return ":";
 
             case .Function: return "(){}";
-            case .This: return "this";
-            case .Base: return "base";
-            case .Nil: return "nil";
-            case .True: return "true";
-            case .False: return "false";
+            case .Nil: return ":nil";
+            case .True: return ":true";
+            case .False: return ":false";
 
             // Others
             case .Error: return "error";
