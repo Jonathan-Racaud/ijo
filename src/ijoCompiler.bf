@@ -142,8 +142,8 @@ namespace ijo
         void ParseString()
         {
             // +1 to remove the first " and - 2 to remove the last "
-            let string = ijoString.Copy(parser.Previous.Start + 1, parser.Previous.Length - 2);
-            EmitConstant(ijoValue.Obj(string));
+            /*let string = ijoString.Copy(parser.Previous.Start + 1, parser.Previous.Length - 2);
+            EmitConstant(ijoValue.Obj(string));*/
         }
 
         void Consume(TokenType type, StringView message)

@@ -9,7 +9,27 @@ namespace ijo
 
         public static int Main(String[] args)
         {
-            return Run(args);
+            var number = ijoInt(.Int(42));
+
+            var age = ijoInt(.Int(27));
+            var x10 = ijoVal.Int(270);
+
+            var clonedAge = age.Clone();
+            age.setSlot("x10", &x10);
+
+            Console.WriteLine(scope $"age: {age.getSlot("__value")}");
+            Console.WriteLine(scope $"age.x10: {age.getSlot("x10")}");
+            age.Dispose();
+
+            Console.WriteLine(scope $"Cloned age: {clonedAge.getSlot("__value")}");
+            Console.WriteLine(scope $"Cloned age.x10: {clonedAge.getSlot("x10")}");
+            clonedAge.Dispose();
+
+            Console.WriteLine(scope $"number: {number.getSlot("__value")}");
+            Console.WriteLine(scope $"number: {number.getSlot("x10")}");
+            number.Dispose();
+
+            return 0;
         }
 
         static int Run(String[] args)
