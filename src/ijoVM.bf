@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using ijo.Types;
+
 namespace ijo
 {
     class ijoVM
@@ -9,7 +11,7 @@ namespace ijo
         private Chunk* chunk;
         private uint8* ip;
 
-        private List<ijoValue> stak = new .() ~ delete _;
+        private List<ijoValue> stak = new .() ~ DeleteContainerAndDisposeItems!(_);
 
         typealias BinaryOpDelegate = function ijoValue(ijoValue, ijoValue);
 
@@ -58,13 +60,13 @@ namespace ijo
                 case .Constant,.ConstantLong:
                     HandleConstant!(instruction);
                 case .Nil:
-                    stak.AddFront(ijoValue.Nil);
+                    stak.AddFront(ijoValue.Nil());
                 case .True:
                     stak.AddFront(ijoValue.Bool(true));
                 case .False:
                     stak.AddFront(ijoValue.Bool(false));
                 case .Not:
-                    if (!Peek(0).IsBool())
+                    if (!(Peek(0).ValueType case .Bool))
                     {
                         Console.Error.WriteLine("Expected a boolean");
                         return .RuntimeError;
@@ -79,7 +81,7 @@ namespace ijo
                         return .RuntimeError;
                     }
 
-                    let value = stak.PopFront().Double();
+                    let value = stak.PopFront();
                     stak.AddFront(-value);
                 case .Greater:
                     if (!Peek(0).IsNumber() || !Peek(1).IsNumber())
@@ -132,7 +134,11 @@ namespace ijo
                     HandleBinaryOp((a, b) => a % b);
                 case .Return:
                     if (!stak.IsEmpty)
-                        stak.PopFront().PrintLine();
+                    {
+                        var val = stak.PopFront();
+                        val.PrintLine();
+                        val.Dispose();
+                    }
                     return .Ok;
                 default: return .Ok;
                 }
@@ -148,7 +154,7 @@ namespace ijo
         {
             switch (ReadConstant(type))
             {
-            case .Ok(let val):
+            case .Ok(var val):
                 stak.AddFront(val);
             case .Err(let err): return err;
             }

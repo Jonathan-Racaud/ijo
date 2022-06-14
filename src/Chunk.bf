@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using ijo.Types;
 
 namespace ijo
 {

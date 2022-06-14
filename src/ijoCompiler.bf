@@ -1,4 +1,5 @@
 using System;
+using ijo.Types;
 
 namespace ijo
 {
@@ -48,9 +49,15 @@ namespace ijo
 
         void ParseNumber()
         {
+            if (Int.Parse(StringView(parser.Previous.Start, parser.Previous.Length)) case .Ok(let val))
+            {
+                EmitConstant(ijoValue.Int(val));
+                return;
+            }
+
             if (Double.Parse(StringView(parser.Previous.Start, parser.Previous.Length)) case .Ok(let val))
             {
-                EmitConstant(val);
+                EmitConstant(ijoValue.Double(val));
                 return;
             }
 
