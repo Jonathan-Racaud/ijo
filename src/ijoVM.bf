@@ -13,6 +13,9 @@ namespace ijo
 
         private List<ijoValue> stak = new .() ~ DeleteContainerAndDisposeItems!(_);
 
+        private List<StringView> symbols = new .() ~ delete _;
+        private List<StringView> strings = new .() ~ delete _;
+
         typealias BinaryOpDelegate = function ijoValue(ijoValue, ijoValue);
 
         public InterpretResult Interpret(String source)

@@ -242,6 +242,7 @@ namespace ijo
             parser.HadError = true;
         }
 
+        // Prefix, Infix, Precedence
         void InitParseRules()
         {
             rules[TokenType.LeftParen]    = .(new () => ParseGrouping(), null, Precedence.None);
@@ -286,8 +287,8 @@ namespace ijo
             rules[TokenType.Function]     = .(null, null, Precedence.None);
             rules[TokenType.Type]         = .(null, null, Precedence.None);
             rules[TokenType.Enum]         = .(null, null, Precedence.None);
-            rules[TokenType.Array]         = .(null, null, Precedence.None);
-            rules[TokenType.Map]         = .(null, null, Precedence.None);
+            rules[TokenType.Array]        = .(null, null, Precedence.None);
+            rules[TokenType.Map]          = .(null, null, Precedence.None);
 
             rules[TokenType.True]         = .(new () => ParseLiteral(), null, Precedence.None);
             rules[TokenType.False]        = .(new () => ParseLiteral(), null, Precedence.None);
