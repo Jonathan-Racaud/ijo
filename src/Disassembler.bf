@@ -29,6 +29,10 @@ namespace ijo
             {
             case .Constant,
                 .ConstantLong: return ConstantInstruction(ref chunk, instruction, offset);
+            case .InternString,
+                .InternStringLong: return InternStringInstruction(ref chunk, instruction, offset);
+            case .Symbol,
+                .SymbolLong: return SymbolInstruction(ref chunk, instruction, offset);
             case .True,
                 .False,
                 .Nil,
@@ -74,6 +78,78 @@ namespace ijo
             {
                 let constant = chunk.Code[offset + 1];
                 chunk.Constants.Values[constant].Print();
+            }
+
+            Console.WriteLine("'");
+
+            return offset + byteNumber;
+        }
+
+        static int InternStringInstruction(ref Chunk chunk, OpCode code, int offset)
+        {
+            var byteNumber = 2;
+
+            Console.Write(scope $"\t{code}\t{(uint)code}\t'");
+
+            if (code == .InternStringLong)
+            {
+                // Stores as big-endian
+                uint8[2] bytes = .(
+                    chunk.Code[offset + 1],
+                    chunk.Code[offset + 2]
+                    );
+                let constant = ((int)bytes[0] << 24) + ((int)bytes[1]);
+
+                chunk.Strings[constant].Print();
+
+                // offset is OpCode + 2 bytes for the value
+                // so next OpCode is 3 bytes after current offset
+                byteNumber = 3;
+            }
+            else if (code == .InternString)
+            {
+                let constant = chunk.Code[offset + 1];
+                chunk.Strings[constant].Print();
+            }
+            else
+            {
+                ErrorInstruction(code, offset);
+            }
+
+            Console.WriteLine("'");
+
+            return offset + byteNumber;
+        }
+
+        static int SymbolInstruction(ref Chunk chunk, OpCode code, int offset)
+        {
+            var byteNumber = 2;
+
+            Console.Write(scope $"\t{code}\t{(uint)code}\t'");
+
+            if (code == .SymbolLong)
+            {
+                // Stores as big-endian
+                uint8[2] bytes = .(
+                    chunk.Code[offset + 1],
+                    chunk.Code[offset + 2]
+                    );
+                let constant = ((int)bytes[0] << 24) + ((int)bytes[1] << 16);
+
+                chunk.Symbols[constant].Print();
+
+                // offset is OpCode + 2 bytes for the value
+                // so next OpCode is 3 bytes after current offset
+                byteNumber = 3;
+            }
+            else if (code == .Symbol)
+            {
+                let constant = chunk.Code[offset + 1];
+                chunk.Symbols[constant].Print();
+            }
+            else
+            {
+                ErrorInstruction(code, offset);
             }
 
             Console.WriteLine("'");

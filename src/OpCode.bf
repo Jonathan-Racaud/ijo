@@ -6,6 +6,10 @@ namespace ijo
     {
         case Constant;
         case ConstantLong;
+        case InternString;
+        case InternStringLong;
+        case Symbol;
+        case SymbolLong;
         case Nil;
         case True;
         case False;
@@ -30,6 +34,10 @@ namespace ijo
             {
             case .Constant: return "OP_CONSTANT";
             case .ConstantLong: return "OP_CONSTANT_LONG";
+            case .InternString: return "OP_INTERN_STRING";
+            case .InternStringLong: return "OP_INTERN_STRING_LONG";
+            case .Symbol: return "OP_INTERN_STRING";
+            case .SymbolLong: return "OP_INTERN_STRING_LONG";
             case .Nil: return "OP_NIL";
             case .True: return "OP_TRUE";
             case .False: return "OP_FALSE";

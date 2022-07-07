@@ -6,5 +6,10 @@ namespace System
         {
             return .(str);
         }
+
+        public void Print()
+        {
+            Console.Write(this);
+        }
     }
 }

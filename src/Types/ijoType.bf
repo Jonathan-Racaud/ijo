@@ -5,6 +5,7 @@ namespace ijo.Types
         case Int;
         case Double;
         case Bool;
+        case String;
         case Symbol;
         case Function;
         case Enum;
@@ -17,6 +18,7 @@ namespace ijo.Types
             case .Int: return sizeof(int32);
             case .Double: return sizeof(double);
             case .Bool: return sizeof(bool);
+            case .String: return 0;
             case .Symbol: return 0;
             case .Function: return 0;
             case .Enum: return 0;

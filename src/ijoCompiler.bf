@@ -149,8 +149,14 @@ namespace ijo
         void ParseString()
         {
             // +1 to remove the first " and - 2 to remove the last "
-            /*let string = ijoString.Copy(parser.Previous.Start + 1, parser.Previous.Length - 2);
-            EmitConstant(ijoValue.Obj(string));*/
+            let string = StringView(parser.Previous.Start + 1, parser.Previous.Length - 2);
+            EmitInternString(string);
+        }
+
+        void ParseSymbol()
+        {
+            let symbol = StringView(parser.Previous.Start, parser.Previous.Length);
+            EmitSymbol(symbol);
         }
 
         void Consume(TokenType type, StringView message)
@@ -178,6 +184,16 @@ namespace ijo
         void EmitConstant(ijoValue value)
         {
             CurrentChunk().WriteConstant(value, parser.Previous.Line);
+        }
+
+        void EmitInternString(StringView string)
+        {
+            CurrentChunk().WriteInternString(string);
+        }
+
+        void EmitSymbol(StringView symbol)
+        {
+            CurrentChunk().WriteSymbol(symbol);
         }
 
         void EmitReturn()
@@ -296,7 +312,7 @@ namespace ijo
 
             rules[TokenType.Identifier]   = .(null, null, Precedence.None);
             rules[TokenType.String]       = .(new () => ParseString(), null, Precedence.None);
-            rules[TokenType.Symbol]       = .(null, null, Precedence.None);
+            rules[TokenType.Symbol]       = .(new () => ParseSymbol(), null, Precedence.None);
             rules[TokenType.Number]       = .(new () => ParseNumber(), null, Precedence.None);
             rules[TokenType.Error]        = .(null, null, Precedence.None);
             rules[TokenType.EOF]          = .(null, null, Precedence.None);

@@ -10,6 +10,8 @@ namespace ijo
         /// Current character being looked at
         char8* current;
 
+        int length;
+
         int line;
 
         String source = null;
@@ -19,7 +21,10 @@ namespace ijo
             if (source == null)
                 source = new .();
 
+            length = src.Length;
+
             source.Set(src);
+            source.EnsureNullTerminator();
             start = source.Ptr;
             current = start;
             line = 1;

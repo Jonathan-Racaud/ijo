@@ -13,9 +13,6 @@ namespace ijo
 
         private List<ijoValue> stak = new .() ~ DeleteContainerAndDisposeItems!(_);
 
-        private List<StringView> symbols = new .() ~ delete _;
-        private List<StringView> strings = new .() ~ delete _;
-
         typealias BinaryOpDelegate = function ijoValue(ijoValue, ijoValue);
 
         public InterpretResult Interpret(String source)
@@ -62,6 +59,10 @@ namespace ijo
                 {
                 case .Constant,.ConstantLong:
                     HandleConstant!(instruction);
+                case .InternString,.InternStringLong:
+                    HandleInternString!(instruction);
+                case .Symbol,.SymbolLong:
+                    HandleSymbol!(instruction);
                 case .Nil:
                     stak.AddFront(ijoValue.Nil());
                 case .True:
@@ -163,6 +164,26 @@ namespace ijo
             }
         }
 
+        mixin HandleInternString(OpCode type)
+        {
+            switch (ReadInternString(type))
+            {
+            case .Ok(var val):
+                stak.AddFront(val);
+            case .Err(let err): return err;
+            }
+        }
+
+        mixin HandleSymbol(OpCode type)
+        {
+            switch (ReadSymbol(type))
+            {
+            case .Ok(var val):
+                stak.AddFront(val);
+            case .Err(let err): return err;
+            }
+        }
+
         void HandleBinaryOp(BinaryOpDelegate op)
         {
             // Because we want to have left to right operations
@@ -193,6 +214,52 @@ namespace ijo
                 let constant = ((int)bytes[0] << 24) + ((int)bytes[1] << 16) + ((int)bytes[2] << 8) + ((int)bytes[3]);
 
                 return chunk.Constants.Values[constant];
+            }
+            else
+            {
+                return .Err(.CompileError);
+            }
+        }
+
+        Result<ijoValue, InterpretResult> ReadInternString(OpCode type)
+        {
+            if (type == .InternString)
+            {
+                let val = ijoValue(.String, &chunk.Strings[ReadByte()]);
+                return val;
+            }
+            else if (type == .InternStringLong)
+            {
+                uint8[2] bytes = .(
+                    ReadByte(),
+                    ReadByte()
+                    );
+                let index = ((int)bytes[0] << 24) + ((int)bytes[1]);
+                let val = ijoValue(.String, &chunk.Strings[index]);
+                return val;
+            }
+            else
+            {
+                return .Err(.CompileError);
+            }
+        }
+
+        Result<ijoValue, InterpretResult> ReadSymbol(OpCode type)
+        {
+            if (type == .Symbol)
+            {
+                let val = ijoValue(.Symbol, &chunk.Symbols[ReadByte()]);
+                return val;
+            }
+            else if (type == .SymbolLong)
+            {
+                uint8[2] bytes = .(
+                    ReadByte(),
+                    ReadByte()
+                    );
+                let index = ((int)bytes[0] << 24) + ((int)bytes[1]);
+                let val = ijoValue(.Symbol, &chunk.Symbols[index]);
+                return val;
             }
             else
             {

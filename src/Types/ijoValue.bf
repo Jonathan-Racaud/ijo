@@ -31,6 +31,8 @@ namespace ijo.Types
             case .Double:
                 data = new double();
                 *(double*)data = AsDouble(dataIn);
+            case .String:
+                data = dataIn;
             case .Symbol:
                 data = AsSymbol(dataIn);
             case .Function:
@@ -51,7 +53,8 @@ namespace ijo.Types
         public ijoFunction AsFunction => AsFunction(data);
         public ijoEnum AsEnum => AsEnum(data);
         public ijoObject AsObject => AsObject(data);
-        public char8* AsSymbol => AsSymbol(data);
+        public StringView AsSymbol => *(StringView*)data;
+        public StringView AsString => *(StringView*)data;
 
         int AsInt(void* ptr) => *(int*)(ptr);
         double AsDouble(void* ptr) => *(double*)(ptr);
@@ -60,6 +63,7 @@ namespace ijo.Types
         ijoEnum AsEnum(void* ptr) => *(ijoEnum*)(ptr);
         ijoObject AsObject(void* ptr) => *(ijoObject*)(ptr);
         char8* AsSymbol(void* ptr) => (char8*)ptr;
+        char8* AsString(void* ptr) => (char8*)ptr;
 
         public bool IsNumber() => type == .Int || type == .Double;
 
@@ -73,9 +77,10 @@ namespace ijo.Types
             case .Int: Console.Write(AsInt);
             case .Double: Console.Write(AsDouble);
             case .Symbol: Console.Write(AsSymbol);
-            case .Function: Console.Write(scope $"<Function({AsFunction.Name})");
-            case .Object: Console.Write(scope $"<Function({AsObject.Name})");
-            case .Enum: Console.Write(scope $"<Function({AsEnum.Name})");
+            case .Function: Console.Write(scope $"$(Function({AsFunction.Name})");
+            case .Object: Console.Write(scope $"${{Object({AsObject.Name})");
+            case .Enum: Console.Write(scope $"$|Enum({AsEnum.Name})");
+            case .String: Console.Write(scope $"${{String({AsString})");
             }
         }
 
@@ -87,7 +92,11 @@ namespace ijo.Types
 
         public void Dispose()
         {
-            delete data;
+            switch (type)
+            {
+            case .String,.Symbol: break;
+            default: delete data;
+            }
         }
     }
 
@@ -139,8 +148,13 @@ namespace ijo.Types
                 double newVal;
                 Internal.MemCpy(&newVal, other.Data, type.Size());
                 val = ijoValue(type, &newVal);
+            case .String:
+                let size = other.AsString.Length;
+                var newVal = new char8[size];
+                Internal.MemCpy(&newVal, other.Data, size);
+                val = ijoValue(type, &newVal);
             case .Symbol:
-                let size = String.StrLen(other.AsSymbol);
+                let size = other.AsSymbol.Length;
                 var newVal = new char8[size];
                 Internal.MemCpy(&newVal, other.Data, size);
                 val = ijoValue(type, &newVal);
@@ -295,24 +309,34 @@ namespace ijo.Types
         [Commutable]
         public static ijoValue operator ==(Self a, Self b)
         {
-            if (a.ValueType case .Int && b.ValueType case .Int)
+            if (a.type != b.type)
+                return Bool(false);
+
+            if (a.ValueType case .Int)
             {
                 return ijoValue.Bool(a.AsInt == b.AsInt);
             }
 
-            if (a.ValueType case .Double && b.ValueType case .Double)
+            if (a.ValueType case .Double)
             {
                 return ijoValue.Bool(a.AsDouble.CompareTo(b.AsDouble) == 0);
             }
 
-            if (a.ValueType case .Symbol && b.ValueType case .Symbol)
+            if (a.ValueType case .Symbol)
             {
                 let strA = StringView(a.AsSymbol);
                 let strB = StringView(b.AsSymbol);
                 return ijoValue.Bool(strA.Equals(strB));
             }
 
-            return ijoValue.Bool(false);
+            if (a.ValueType case .String)
+            {
+                let strA = StringView(a.AsString);
+                let strB = StringView(b.AsString);
+                return ijoValue.Bool(strA.Equals(strB));
+            }
+
+            return Bool(false);
         }
 
         public static ijoValue operator !(Self value)
