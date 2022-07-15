@@ -53,6 +53,7 @@ namespace ijo
         case Less;
         case LessEqual;
         case Or;
+        case Print;
 
         // Controls
         case If;
@@ -118,6 +119,7 @@ namespace ijo
             case .Question: return "?";
             case .Tilde: return "~";
             case .Minus: return "-";
+            case .Print: return ">>";
 
             case .If: return "?(";
             case .Else: return "?()";

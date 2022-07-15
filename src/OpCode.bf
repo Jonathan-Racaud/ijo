@@ -23,6 +23,8 @@ namespace ijo
         case Multiply;
         case Divide;
         case Modulo;
+        case Print;
+        case Pop;
         case Return; // Exit a function from anywhere
 
         public static operator uint8(Self code) => (uint8)code;
@@ -52,6 +54,8 @@ namespace ijo
             case .Divide: return "OP_DIVIDE";
             case .Modulo: return "OP_MODULO";
             case .Return: return "OP_RETURN";
+            case .Print: return "OP_PRINT";
+            case .Pop: return "OP_POP";
             default: return "OP_UNKNOWN";
             }
         }

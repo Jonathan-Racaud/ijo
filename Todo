@@ -1,2 +1,1 @@
-- Refine function declaration syntax: $(){}
-- Refine types declaration syntax: ${}
+Continue following implementation from: https://craftinginterpreters.com/global-variables.html#error-synchronization

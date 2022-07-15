@@ -7,8 +7,10 @@ namespace ijo
     {
         ijoScanner scanner = .();
         ijoParser parser = .();
-        Chunk* compilingChunk;
+        Chunk compilingChunk;
         ParseRule[?] rules = ParseRule[TokenType.__Total]();
+
+        public bool IsInRepl = false;
 
         public this()
         {
@@ -29,17 +31,63 @@ namespace ijo
         {
             parser.HadError = false;
             outChunk = Chunk();
-            compilingChunk = &outChunk;
+            compilingChunk = outChunk;
 
             scanner.Init(source);
             defer scanner.Dispose();
 
             Advance();
-            ParseExpression();
-            Consume(.EOF, "Expected end of expression.");
+
+            while (!Match(.EOF))
+            {
+                ParseDeclaration();
+            }
+
             EndCompiler();
 
             return parser.HadError ? .Error : .Ok;
+        }
+
+        void ParseDeclaration()
+        {
+            if (!ParseStatement())
+                ParseExpressionStatement();
+            else
+            {
+                if (IsInRepl)
+                {
+                    ParseExpression();
+                    EmitByte(OpCode.Print);
+                }
+            }
+        }
+
+        bool ParseStatement()
+        {
+            if (Match(.Print))
+            {
+                PrintStatement();
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        void ParseExpressionStatement()
+        {
+            ParseExpression();
+            Consume(.Semicolon, "Expected ';' after value");
+            EmitByte(OpCode.Pop);
+        }
+
+        void PrintStatement()
+        {
+            ParseExpression();
+            Consume(.Semicolon, "Expected ';' after value");
+            EmitByte(OpCode.Print);
         }
 
         void ParseExpression()
@@ -159,6 +207,20 @@ namespace ijo
             EmitSymbol(symbol);
         }
 
+        bool Match(TokenType tokenType)
+        {
+            if (!Check(tokenType))
+                return false;
+
+            Advance();
+            return true;
+        }
+
+        bool Check(TokenType tokenType)
+        {
+            return parser.Current.Type == tokenType;
+        }
+
         void Consume(TokenType type, StringView message)
         {
             if (parser.Current.Type == type)
@@ -213,7 +275,7 @@ namespace ijo
 #endif
         }
 
-        Chunk* CurrentChunk()
+        Chunk CurrentChunk()
         {
             return compilingChunk;
         }

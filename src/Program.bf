@@ -31,16 +31,17 @@ namespace ijo
         {
             while (true)
             {
-                Console.Write("> ");
+                Console.Write("$ ");
 
                 let line = scope String();
                 if (Console.ReadLine(line) case .Err)
-                    Console.Error.WriteLine("[Error]: IO Error");
+                    return Exit.IOErr;
 
                 if (line.Equals("exit"))
                     break;
 
-                vm.Interpret(line);
+                vm.Interpret(line, true);
+                Console.WriteLine();
             }
 
             return Exit.Ok;

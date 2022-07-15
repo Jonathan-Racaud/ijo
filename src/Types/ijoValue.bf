@@ -80,7 +80,7 @@ namespace ijo.Types
             case .Function: Console.Write(scope $"$(Function({AsFunction.Name})");
             case .Object: Console.Write(scope $"${{Object({AsObject.Name})");
             case .Enum: Console.Write(scope $"$|Enum({AsEnum.Name})");
-            case .String: Console.Write(scope $"${{String({AsString})");
+            case .String: Console.Write(AsString);
             }
         }
 

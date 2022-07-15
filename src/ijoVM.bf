@@ -15,10 +15,11 @@ namespace ijo
 
         typealias BinaryOpDelegate = function ijoValue(ijoValue, ijoValue);
 
-        public InterpretResult Interpret(String source)
+        public InterpretResult Interpret(String source, bool fromRepl = false)
         {
             Chunk compiledChunk;
 
+            compiler.IsInRepl = fromRepl;
             let compileResult = compiler.Compile(source, out compiledChunk);
             defer compiledChunk.Dispose();
 
@@ -136,13 +137,11 @@ namespace ijo
                         return .RuntimeError;
                     }
                     HandleBinaryOp((a, b) => a % b);
+                case .Print:
+                    PrintValue(stak.PopFront());
+                case .Pop:
+                    stak.PopFront();
                 case .Return:
-                    if (!stak.IsEmpty)
-                    {
-                        var val = stak.PopFront();
-                        val.PrintLine();
-                        val.Dispose();
-                    }
                     return .Ok;
                 default: return .Ok;
                 }
@@ -265,6 +264,11 @@ namespace ijo
             {
                 return .Err(.CompileError);
             }
+        }
+
+        void PrintValue(ijoValue value)
+        {
+            value.Print();
         }
     }
 

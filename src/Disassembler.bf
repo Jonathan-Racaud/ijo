@@ -40,7 +40,9 @@ namespace ijo
                 .Not,
                 .Equal,
                 .Greater,
-                .Less: return SimpleInstruction(instruction, offset);
+                .Less,
+                .Print,
+                .Pop: return SimpleInstruction(instruction, offset);
             case .Add,
                 .Subtract,
                 .Multiply,

@@ -19,11 +19,11 @@ namespace ijo
         public void Init(String src) mut
         {
             if (source == null)
-                source = new .();
+                source = new String(src);
+            else
+                source.Set(src);
 
             length = src.Length;
-
-            source.Set(src);
             source.EnsureNullTerminator();
             start = source.Ptr;
             current = start;
@@ -89,7 +89,6 @@ namespace ijo
 
             case '-': return MakeToken(Match('>') ? .Return : .Minus);
             case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
-            case '>': return MakeToken(Match('=') ? .GreaterEqual : .Greater);
             case '=': return MakeToken(Match('=') ? .EqualEqual : .Equal);
             case '|':
                 if (Match('$')) return MakeToken(.Enum);
@@ -98,6 +97,10 @@ namespace ijo
             case '&':
                 if (Match('&')) return MakeToken(.And);
                 return MakeErrorToken("Unexpected character.");
+
+            case '>':
+                if (Match('>')) return MakeToken(.Print);
+                return MakeToken(Match('=') ? .GreaterEqual : .Greater);
 
             case '<':
                     // <-
