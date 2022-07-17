@@ -3,7 +3,6 @@ FileVersion = 1
 [Project]
 Name = "ijo"
 StartupObject = "ijo.Program"
-ProcessorMacros = ["DEBUG_TRACE_EXECUTION"]
 
 [Configs.Debug.Win64]
 DebugCommandArguments = "run $(ProjectDir)/examples/userFunction.ijo"

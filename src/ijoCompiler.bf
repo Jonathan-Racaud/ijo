@@ -60,6 +60,11 @@ namespace ijo
                     EmitByte(OpCode.Print);
                 }
             }
+
+            if (parser.HadError)
+            {
+                Synchronize();
+            }
         }
 
         bool ParseStatement()
@@ -205,6 +210,33 @@ namespace ijo
         {
             let symbol = StringView(parser.Previous.Start, parser.Previous.Length);
             EmitSymbol(symbol);
+        }
+
+        void Synchronize()
+        {
+            parser.PanicMode = false;
+
+            while (parser.Current.Type != .EOF)
+            {
+                if (parser.Previous.Type == .Semicolon)
+                    return;
+
+                switch (parser.Current.Type)
+                {
+                case .Function,
+                    .Var,
+                    .Const,
+                    .Type,
+                    .While,
+                    .If,
+                    .Print,
+                    .Return:
+                    return;
+                default: continue;
+                }
+
+                Advance();
+            }
         }
 
         bool Match(TokenType tokenType)
