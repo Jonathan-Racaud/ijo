@@ -50,14 +50,24 @@ namespace ijo
 
         void ParseDeclaration()
         {
-            if (!ParseStatement())
-                ParseExpressionStatement();
+            if (Match(.Var))
+            {
+                ParseVarDeclaration();
+            }
+            else if (Match(.Const))
+            {
+            }
             else
             {
-                if (IsInRepl)
+                if (!ParseStatement())
+                    ParseExpressionStatement();
+                else
                 {
-                    ParseExpression();
-                    EmitByte(OpCode.Print);
+                    if (IsInRepl)
+                    {
+                        ParseExpression();
+                        EmitByte(OpCode.Print);
+                    }
                 }
             }
 
@@ -86,6 +96,23 @@ namespace ijo
             ParseExpression();
             Consume(.Semicolon, "Expected ';' after value");
             EmitByte(OpCode.Pop);
+        }
+
+        void ParseVarDeclaration()
+        {
+            uint8 global = ParseVariable("Expected a variable name.");
+
+            if (Match(.Equal))
+            {
+                ParseExpression();
+            }
+            else
+            {
+                EmitByte(OpCode.Nil);
+            }
+
+            Consume(.Semicolon, "Expected ';' after variable declaration");
+            DefineVariable(global);
         }
 
         void PrintStatement()
@@ -210,6 +237,12 @@ namespace ijo
         {
             let symbol = StringView(parser.Previous.Start, parser.Previous.Length);
             EmitSymbol(symbol);
+        }
+
+        uint8 ParseVariable(String errorMessage)
+        {
+            Consume(.Identifier, errorMessage);
+            return IdentifierConstant(parser.Previous);
         }
 
         void Synchronize()
@@ -410,6 +443,10 @@ namespace ijo
             rules[TokenType.Number]       = .(new () => ParseNumber(), null, Precedence.None);
             rules[TokenType.Error]        = .(null, null, Precedence.None);
             rules[TokenType.EOF]          = .(null, null, Precedence.None);
+        }
+
+        uint8 IdentifierConstant(Token token)
+        {
         }
     }
 
