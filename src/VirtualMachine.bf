@@ -7,8 +7,15 @@ class VirtualMachine
 {
     private Scanner Scanner = new .() ~ delete _;
     private Parser Parser = new .() ~ delete _;
-    private AstPrinter AstPrinter = new .() ~ delete _;
     private ByteCodeGenerator CodeGenerator = new .() ~ delete _;
+
+#if DEBUG_AST
+    private AstPrinter AstPrinter = new .() ~ delete _;
+#endif
+
+#if DEBUG_BYTE_CODE
+    private ByteCodePrinter BCodePrinter = new .() ~ delete _;
+#endif
 
     typealias TokenList = List<Token>;
     typealias ExpressionList = List<Expression>;
@@ -19,16 +26,27 @@ class VirtualMachine
         let tokens = CallOrReturn!(Scan(source));
         let expressions = CallOrReturn!(Parse(tokens));
 
-#if DEBUG
+#if DEBUG_AST
         AstPrinter.Print(expressions);
 #endif
 
         CallOrReturn!(StaticAnalysis(expressions));
 
-        let code = CallOrReturn!(GetByteCode());
+        let code = CallOrReturn!(GetByteCode(expressions));
 
-#if DEBUG
-        // Print ByteCode
+        defer
+        {
+            code.Clear();
+            ClearAndDeleteItems!(expressions);
+            tokens.Clear();
+
+            delete code;
+            delete expressions;
+            delete tokens;
+        }
+
+#if DEBUG_BYTE_CODE
+        BCodePrinter.Print(code);
 #endif
 
         return Execute(code);

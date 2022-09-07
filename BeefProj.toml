@@ -9,6 +9,7 @@ DebugCommandArguments = "run $(ProjectDir)/examples/userFunction.ijo"
 
 [Configs."Debug - REPL".Win64]
 BeefLibType = "Static"
+PreprocessorMacros = ["DEBUG", "DEBUG_BYTE_CODE"]
 
 [Configs."Debug - REPL".Win32]
 BeefLibType = "Static"

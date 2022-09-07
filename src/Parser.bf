@@ -133,7 +133,7 @@ class Parser
 
         if (Match(.Integer, .Float, .String, .Symbol))
         {
-            outExpr = new LiteralExpr(Previous().Literal);
+            outExpr = new LiteralExpr(Previous().Literal, Previous().Type);
             return .Ok;
         }
 

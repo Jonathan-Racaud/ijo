@@ -44,10 +44,12 @@ class UnaryExpr : Expression
 class LiteralExpr : Expression
 {
     public StringView Literal;
+    public TokenType Type;
 
-    public this(StringView literal)
+    public this(StringView literal, TokenType type)
     {
         Literal = literal;
+        Type = type;
     }
 }
 
