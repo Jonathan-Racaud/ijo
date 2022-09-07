@@ -5,7 +5,7 @@ namespace ijo
 {
     class Program
     {
-        static ijoVM vm = new .() ~ delete _;
+        private static VirtualMachine vm = new .() ~ delete _;
 
         public static int Main(String[] args)
         {
@@ -40,7 +40,8 @@ namespace ijo
                 if (line.Equals("exit"))
                     break;
 
-                vm.Interpret(line, true);
+                vm.Run(line);
+                line.Clear();
                 Console.WriteLine();
             }
 
@@ -62,12 +63,7 @@ namespace ijo
             let source = File.ReadAllText(path, .. new .());
             defer delete source;
 
-            switch (vm.Interpret(source))
-            {
-            case .CompileError: return Exit.DataErr;
-            case .RuntimeError: return Exit.Software;
-            case .Ok: return Exit.Ok;
-            }
+            return Exit.Software;
         }
 
         static int Usage()

@@ -1,149 +1,105 @@
 using System;
-namespace ijo
+namespace ijo;
+
+struct Token
 {
-    struct Token
-    {
-        public TokenType Type;
-        public char8* Start;
-        public int Length;
-        public int Line;
+    public TokenType Type;
+    public StringView Literal = .();
+    public int Line;
+    public int Column;
 
-        public this(TokenType type, char8* start, int length, int line)
-        {
-            Type = type;
-            Start = start;
-            Length = length;
-            Line = line;
-        }
+    public void PrettyPrint()
+    {
+        Type.PrettyPrint();
     }
+}
 
-    enum TokenType : int
+enum TokenType : int
+{
+    // Single character tokens
+    case LeftParen;
+    case RightParen;
+    case LeftBrace;
+    case RightBrace;
+    case LeftBracket;
+    case RightBracket;
+    case Comma;
+    case Colon;
+    case Dot;
+    case Minus;
+    case Plus;
+    case Semicolon;
+    case NewLine;
+    case Slash;
+    case BackSlash;
+    case Star;
+    case Percent;
+    case Var;
+    case Const;
+    case Question;
+    case Underscore;
+    case Tilde;
+    case Pipe;
+
+    // One or two character tokens
+    case And;
+    case Bang;
+    case BangEqual;
+    case Equal;
+    case EqualEqual;
+    case Greater;
+    case GreaterEqual;
+    case Less;
+    case LessEqual;
+    case Or;
+    case Print;
+
+    // Controls
+    case Condition;
+    case Switch;
+    case Loop;
+    case Return;
+    case Break;
+    case Function;
+    case Struct;
+    case Enum;
+    case Map;
+    case Array;
+
+    // Literals
+    case Identifier;
+    case String;
+    case Symbol;
+    case Integer;
+    case Float;
+    case This;
+    case Base;
+    case Undefined;
+    case True;
+    case False;
+    case Error;
+    case EOF;
+
+    case __Total;
+
+    public void PrettyPrint()
     {
-        // Single character tokens
-        case LeftParen;
-        case RightParen;
-        case LeftBrace;
-        case RightBrace;
-        case LeftBracket;
-        case RightBracket;
-        case Comma;
-        case Colon;
-        case Dot;
-        case Minus;
-        case Plus;
-        case Semicolon;
-        case Slash;
-        case Star;
-        case Percent;
-        case Var;
-        case Const;
-        case Question;
-        case Underscore;
-        case Tilde;
-        case Pipe;
-
-        // One or two character tokens
-        case And;
-        case Bang;
-        case BangEqual;
-        case Equal;
-        case EqualEqual;
-        case Greater;
-        case GreaterEqual;
-        case Less;
-        case LessEqual;
-        case Or;
-        case Print;
-
-        // Controls
-        case If;
-        case Else;
-        case Switch;
-        case While;
-        case Return;
-        case Break;
-        case Function;
-        case Type;
-        case Enum;
-        case Map;
-        case Array;
-
-        // Literals
-        case Identifier;
-        case String;
-        case Symbol;
-        case Number;
-        case This;
-        case Base;
-        case Nil;
-        case True;
-        case False;
-        case Error;
-        case EOF;
-
-        case __Total;
-
-        public static operator StringView(Self value)
+        switch (this)
         {
-            switch (value)
-            {
-            // Single character tokens
-            case .LeftParen: return "(";
-            case .RightParen: return ")";
-            case .LeftBrace: return "{";
-            case .RightBrace: return "}";
-            case .LeftBracket: return "[";
-            case .RightBracket: return "]";
-            case .Comma: return ",";
-            case .Dot: return ".";
-            case .Plus: return "+";
-            case .Semicolon: return ";";
-            case .Colon: return ":";
-            case .Slash: return "/";
-            case .Percent: return "%";
-            case .Star: return "*";
-            case .Var: return "$";
-            case .Const: return "#";
-            case .Underscore: return "_";
-            case .Pipe: return "|";
-
-            // One or two character tokens
-            case .Bang: return "!";
-            case .BangEqual: return "!=";
-            case .Equal: return "=";
-            case .EqualEqual: return "==";
-            case .Greater: return ">";
-            case .GreaterEqual: return ">=";
-            case .Less: return "<";
-            case .LessEqual: return "<=";
-            case .Question: return "?";
-            case .Tilde: return "~";
-            case .Minus: return "-";
-            case .Print: return ">>";
-
-            case .If: return "?(";
-            case .Else: return "?()";
-            case .While: return "~(";
-            case .Break: return "<-";
-            case .Return: return "->";
-            case .Type: return "{$";
-            case .Enum: return "$|";
-            case .Array: return "[]";
-            case .Map: return "%[";
-            case .Symbol: return ":";
-
-            case .Function: return "(){}";
-            case .Nil: return ":nil";
-            case .True: return ":true";
-            case .False: return ":false";
-
-            // Others
-            case .Error: return "error";
-            case .EOF: return "\0";
-            default: return "";
-            }
+        case .And: Console.Write("&&");
+        case .Equal: Console.Write("=");
+        case .EqualEqual: Console.Write("==");
+        case .BangEqual: Console.Write("!=");
+        case .Greater: Console.Write(">");
+        case .GreaterEqual: Console.Write(">=");
+        case .Less: Console.Write("<");
+        case .LessEqual: Console.Write("<=");
+        case .Minus: Console.Write("-");
+        case .Bang: Console.Write("!");
+        case .Slash: Console.Write("/");
+        case .Star: Console.Write("*");
+        case .Plus: Console.Write("+");
+        default: Console.Write("To be represented");
         }
-
-        public static operator int(Self value) => value.Underlying;
     }
 }
