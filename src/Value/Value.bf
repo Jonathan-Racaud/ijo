@@ -1,0 +1,62 @@
+using System;
+namespace ijo;
+
+enum Value
+{
+    case Integer(int);
+    case Double(double);
+    case Bool(bool);
+    case String(String);
+    case Symbol(StringView);
+    case Undefined;
+}
+
+extension Value : IDisposable
+{
+    public void Dispose()
+    {
+        if (this case .String(let p0)) delete p0;
+    }
+}
+
+extension Value : IFormattable
+{
+    public void ToString(String outString, String format, IFormatProvider formatProvider)
+    {
+        outString.Clear();
+
+        switch (this)
+        {
+        case .Integer(let val): ToString(val, format, formatProvider, outString);
+        case .Double(let val): ToString(val, format, formatProvider, outString);
+        case .Bool(let val): if (val) outString.Set(Default.True); else outString.Set(Default.False);
+        case .String(let val): outString.Set(val);
+        case .Symbol(let val): outString.Set(val);
+        case .Undefined: outString.Set(Default.Undefined);
+        }
+    }
+
+    void ToString(int val, String format, IFormatProvider formatProvider, String outString)
+    {
+        if (format == null || format.IsEmpty)
+        {
+            outString.Set(scope $"{val}");
+        }
+        else
+        {
+            NumberFormatter.NumberToString(format, val, formatProvider, outString);
+        }
+    }
+
+    void ToString(double val, String format, IFormatProvider formatProvider, String outString)
+    {
+        if (format == null || format.IsEmpty)
+        {
+            outString.Set(scope $"{val}");
+        }
+        else
+        {
+            NumberFormatter.NumberToString(format, val, formatProvider, outString);
+        }
+    }
+}
