@@ -8,6 +8,7 @@ class VirtualMachine
     private Scanner Scanner = new .() ~ delete _;
     private Parser Parser = new .() ~ delete _;
     private ByteCodeGenerator CodeGenerator = new .() ~ delete _;
+    private Scope Scope = new .() ~ delete _;
 
 #if DEBUG_AST
     private AstPrinter AstPrinter = new .() ~ delete _;

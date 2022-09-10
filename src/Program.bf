@@ -11,16 +11,6 @@ namespace ijo
         {
             var result = 0;
 
-            Value a = .Integer(40);
-            Value b = .Integer(2);
-
-            Console.WriteLine(scope $"a < b = {a < b }");
-            Console.WriteLine(scope $"a <= b = {a <= b }");
-            Console.WriteLine(scope $"a > b = {a > b }");
-            Console.WriteLine(scope $"a >= b = {a >= b }");
-            Console.WriteLine(scope $"a == b = {a == b }");
-            Console.WriteLine(scope $"a != b = {a != b }");
-
             result = Run(args);
 
             return result;
