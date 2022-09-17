@@ -8,12 +8,25 @@ class Scope
 
     private Dictionary<StringView, Value> constants = new .();
     private Dictionary<StringView, Value> variables = new .();
-    private List<StringView> symbols = new .() ~ delete _;
-    private List<StringView> strings = new .() ~ delete _;
+
+    // We want every scope to share the same symbols and strings
+    private List<StringView> symbols;
+    private List<StringView> strings;
 
     public this(Scope parent = null)
     {
         this.parent = parent;
+
+        if (parent != null)
+        {
+            symbols = parent.symbols;
+            strings = parent.strings;
+        }
+        else
+        {
+            symbols = new .();
+            strings = new .();
+        }
     }
 
     public ~this()
@@ -22,10 +35,18 @@ class Scope
         {
             v.Dispose();
         }
+        delete constants;
 
         for (let v in variables.Values)
         {
             v.Dispose();
+        }
+        delete variables;
+
+        if (parent == null)
+        {
+            delete symbols;
+            delete strings;
         }
     }
 
@@ -47,17 +68,11 @@ class Scope
 
     public bool HasSymbol(StringView name)
     {
-        if (parent != null && parent.HasSymbol(name))
-            return true;
-
         return symbols.Contains(name);
     }
 
     public bool HasString(StringView name)
     {
-        if (parent != null && parent.HasString(name))
-            return true;
-
         return strings.Contains(name);
     }
 
@@ -69,22 +84,22 @@ class Scope
         return constants.TryAdd(name, value);
     }
 
-    public bool DefineSymbol(StringView name)
+    public uint16 DefineSymbol(StringView name)
     {
         if (HasSymbol(name))
-            return false;
+            return (uint16)symbols.IndexOf(name);
 
         symbols.Add(name);
-        return true;
+        return (uint16)symbols.Count - 1;
     }
 
-    public bool DefineString(StringView name)
+    public uint16 DefineString(StringView name)
     {
         if (HasString(name))
-            return false;
+            return (uint16)strings.IndexOf(name);
 
         strings.Add(name);
-        return true;
+        return (uint16)strings.Count - 1;
     }
 
     public bool SetVar(StringView name, Value value)
@@ -99,5 +114,25 @@ class Scope
         }
 
         return variables.TryAdd(name, value);
+    }
+
+    public StringView GetString(uint16 idx)
+    {
+        return strings[idx];
+    }
+
+    public StringView GetSymbol(uint16 idx)
+    {
+        return symbols[idx];
+    }
+
+    public Value GetConstant(StringView name)
+    {
+        return constants[name];
+    }
+
+    public Value GetVariable(StringView name)
+    {
+        return variables[name];
     }
 }

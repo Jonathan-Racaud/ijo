@@ -21,6 +21,19 @@ extension Value : IDisposable
 
 extension Value : IFormattable
 {
+    public void Print()
+    {
+        switch (this)
+        {
+        case .Integer(let val): Console.Write(val);
+        case .Double(let val): Console.Write(val);
+        case .Bool(let val): Console.Write(val);
+        case .String(let val): Console.Write(val);
+        case .Symbol(let val): Console.Write(val);
+        case .Undefined: Console.Write(Default.Undefined);
+        }
+    }
+
     public void ToString(String outString, String format, IFormatProvider formatProvider)
     {
         outString.Clear();

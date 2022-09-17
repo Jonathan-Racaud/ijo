@@ -18,6 +18,7 @@ namespace ijo
 
         static int Run(String[] args)
         {
+            vm.IsInRepl = false;
             if (args.IsEmpty)
                 return RunRepl();
 
@@ -29,9 +30,10 @@ namespace ijo
 
         static int RunRepl()
         {
+            vm.IsInRepl = true;
             while (true)
             {
-                Console.Write("$ ");
+                Console.Write("@> ");
 
                 let line = scope String();
                 if (Console.ReadLine(line) case .Err)

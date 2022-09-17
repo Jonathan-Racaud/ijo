@@ -5,17 +5,21 @@ namespace ijo;
 
 class VirtualMachine
 {
+    public bool IsInRepl;
+
     private Scanner Scanner = new .() ~ delete _;
     private Parser Parser = new .() ~ delete _;
-    private ByteCodeGenerator CodeGenerator = new .() ~ delete _;
     private Scope Scope = new .() ~ delete _;
+
+    private ByteCodeGenerator CodeGenerator = new .(this.Scope) ~ delete _;
+    private ByteCodeExecutor CodeExecutor = new .(this.Scope) ~ delete _;
 
 #if DEBUG_AST
     private AstPrinter AstPrinter = new .() ~ delete _;
 #endif
 
 #if DEBUG_BYTE_CODE
-    private ByteCodePrinter BCodePrinter = new .() ~ delete _;
+    private ByteCodePrinter BCodePrinter = new .(Scope) ~ delete _;
 #endif
 
     typealias TokenList = List<Token>;
@@ -24,8 +28,33 @@ class VirtualMachine
 
     public int Run(String source)
     {
-        let tokens = CallOrReturn!(Scan(source));
-        let expressions = CallOrReturn!(Parse(tokens));
+        List<Token> tokens = null;
+        List<Expression> expressions = null;
+        List<uint16> code = null;
+
+        defer
+        {
+            if (tokens != null)
+            {
+                tokens.Clear();
+                delete tokens;
+            }
+
+            if (expressions != null)
+            {
+                ClearAndDeleteItems!(expressions);
+                delete expressions;
+            }
+
+            if (code != null)
+            {
+                code.Clear();
+                delete code;
+            }
+        }
+
+        tokens = CallOrReturn!(Scan(source));
+        expressions = CallOrReturn!(Parse(tokens));
 
 #if DEBUG_AST
         AstPrinter.Print(expressions);
@@ -33,18 +62,7 @@ class VirtualMachine
 
         CallOrReturn!(StaticAnalysis(expressions));
 
-        let code = CallOrReturn!(GetByteCode(expressions));
-
-        defer
-        {
-            code.Clear();
-            ClearAndDeleteItems!(expressions);
-            tokens.Clear();
-
-            delete code;
-            delete expressions;
-            delete tokens;
-        }
+        code = CallOrReturn!(GetByteCode(expressions));
 
 #if DEBUG_BYTE_CODE
         BCodePrinter.Print(code);
@@ -93,11 +111,19 @@ class VirtualMachine
             return .Err(Exit.Software);
         }
 
+        if (IsInRepl && code.Count > 0 && ((OpCode)code[code.Count - 1] != .Print))
+        {
+            code.Add(OpCode.Print);
+        }
+
+        code.Add(OpCode.Return);
+
         return .Ok(code);
     }
 
     Result<int> Execute(ByteCodeList code)
     {
+        CodeExecutor.Execute(code);
         return .Ok(Exit.Ok);
     }
 

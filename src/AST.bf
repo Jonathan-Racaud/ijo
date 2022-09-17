@@ -63,17 +63,12 @@ class GroupingExpr : Expression
     }
 }
 
-/*class VariableExpr : Expression
+class PrintExpr : Expression
 {
-    public String Name = new .() ~ delete _;
-    public VarType Type;
-    public Expression Expression ~ delete _;
-}*/
+    public Expression Expr ~ delete _;
 
-/*class FunctionExpr : Expression
-{
-    public String Name = new .() ~ delete _;
-    public VarType ReturnType;
-    public List<VariableExpr> Parameters = new .() ~ DeleteContainerAndItems!(_);
-    public List<Expression> Expressions ~ DeleteContainerAndItems!(_);
-}*/
+    public this(Expression expr)
+    {
+        Expr = expr;
+    }
+}

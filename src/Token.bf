@@ -53,6 +53,10 @@ enum TokenType : int
     case LessEqual;
     case Or;
     case Print;
+    case Read;
+    case Import;
+    case StartModule;
+    case EndModule;
 
     // Controls
     case Condition;

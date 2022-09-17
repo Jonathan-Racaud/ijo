@@ -18,7 +18,10 @@ class Parser
             Expression expr;
             if (ParseExpression(out expr) case .Err) return .Err;
 
-            expressions.Add(expr);
+            if (expr != null)
+            {
+                expressions.Add(expr);
+            }
         }
 
         tokens.Clear();
@@ -27,6 +30,26 @@ class Parser
 
     Result<void> ParseExpression(out Expression expr)
     {
+        expr = null;
+
+        if (Match(.Print))
+        {
+            return ParsePrint(out expr);
+        }
+        else if (Match(.Read))
+        {
+        }
+        else if (Match(.StartModule))
+        {
+        }
+        else if (Match(.Import))
+        {
+        }
+        else if (Match(.Undefined))
+        {
+            return .Ok;
+        }
+
         return ParseEquality(out expr);
     }
 
@@ -97,7 +120,7 @@ class Parser
 
         if (ParseUnary(out expr) case .Err) return .Err;
 
-        while (Match(.Star, .Slash))
+        while (Match(.Star, .Slash, .Percent))
         {
             Token op = Previous();
             Expression right;
@@ -157,15 +180,16 @@ class Parser
         return .Err;
     }
 
-    /*Result<void> ParseVariableExpr(out VariableExpr varExpr)
+    Result<void> ParsePrint(out Expression outExpr)
     {
-        if (Consume(.Identifier, "Expected a variable name") case .Ok(let token))
-        {
-            varExpr.Name.Set(token.Literal);
-        }
+        outExpr = null;
 
+        Expression right;
+        if (ParseExpression(out right) case .Err) return .Err;
+
+        outExpr = new PrintExpr(right);
         return .Ok;
-    }*/
+    }
 
     Token Advance()
     {

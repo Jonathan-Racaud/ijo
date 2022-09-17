@@ -5,6 +5,13 @@ namespace ijo;
 
 class ByteCodeGenerator
 {
+    Scope env;
+
+    public this(Scope env)
+    {
+        this.env = env;
+    }
+
     public Result<void> Generate(List<Expression> expressions, List<uint16> code)
     {
         for (var expr in expressions)
@@ -12,7 +19,7 @@ class ByteCodeGenerator
             if (Generate(expr, code) case .Err) return .Err;
         }
 
-        code.Add(OpCode.Return);
+        /*code.Add(OpCode.Return);*/
 
         return .Ok;
     }
@@ -25,6 +32,7 @@ class ByteCodeGenerator
         case typeof(GroupingExpr): Generate(expression as GroupingExpr, code);
         case typeof(UnaryExpr): Generate(expression as UnaryExpr, code);
         case typeof(LiteralExpr): Generate(expression as LiteralExpr, code);
+        case typeof(PrintExpr): Generate(expression as PrintExpr, code);
         default: return .Err;
         }
         return .Ok;
@@ -60,18 +68,39 @@ class ByteCodeGenerator
         {
         case .Integer:
             let val = int.Parse(expr.Literal).Value;
-            code.Add(OpCode.Constant);
+            code.Add(OpCode.ConstantI);
             code.Add(1);
             code.Add((uint16)val);
 
         case .Float:
-            let val = float.Parse(expr.Literal).Value;
-            code.Add(OpCode.Constant);
+            let val = double.Parse(expr.Literal).Value;
+            code.Add(OpCode.ConstantD);
             code.Add(1);
             code.Add((uint16)val);
 
+        // OP_STRING STR_IDX
+        case .String:
+            let idx = env.DefineString(expr.Literal);
+            code.Add(OpCode.String);
+            code.Add(idx);
+
+        // OP_SYMBOL SYMBOL_IDX
+        case .Symbol:
+            let idx = env.DefineSymbol(expr.Literal);
+            code.Add(OpCode.Symbol);
+            code.Add(idx);
+
         default: return .Err;
         }
+
+        return .Ok;
+    }
+
+    Result<void> Generate(PrintExpr expr, List<uint16> code)
+    {
+        if (Generate(expr.Expr, code) case .Err) return .Err;
+
+        code.Add(OpCode.Print);
 
         return .Ok;
     }

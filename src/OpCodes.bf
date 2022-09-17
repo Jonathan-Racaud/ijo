@@ -3,7 +3,8 @@ namespace ijo;
 
 enum OpCode : uint16
 {
-    case Constant;
+    case ConstantI;
+    case ConstantD;
     case String;
     case Symbol;
 
@@ -27,6 +28,9 @@ enum OpCode : uint16
     case Negate;
     case Opposite;
 
+    case Print;
+    case Read;
+
     case Break;
     case Return;
 
@@ -46,29 +50,33 @@ enum OpCode : uint16
         {
             switch (this)
             {
-            case Constant: return "OP_CONST";
-            case String: return "OP_STR";
-            case Symbol: return "OP_SYM";
+            case .ConstantD: return "OP_CONST_D";
+            case .ConstantI: return "OP_CONST_I";
+            case .String: return "OP_STR";
+            case .Symbol: return "OP_SYM";
 
-            case Add: return "OP_ADD";
-            case Subtract: return "OP_SUB";
-            case Multiply: return "OP_MUL";
-            case Divide: return "OP_DIV";
-            case Modulo: return "OP_MOD";
+            case .Add: return "OP_ADD";
+            case .Subtract: return "OP_SUB";
+            case .Multiply: return "OP_MUL";
+            case .Divide: return "OP_DIV";
+            case .Modulo: return "OP_MOD";
 
-            case True: return "OP_TRUE";
-            case False: return "OP_FALSE";
-            case Undefined: return "OP_UNDEFINED";
+            case .True: return "OP_TRUE";
+            case .False: return "OP_FALSE";
+            case .Undefined: return "OP_UNDEFINED";
 
-            case Equal: return "OP_EQ";
-            case Greater: return "OP_GT";
-            case GreaterThan: return "OP_GTEQ";
-            case Less: return "OP_LESS";
-            case LessThan: return "OP_LESSEQ";
+            case .Equal: return "OP_EQ";
+            case .Greater: return "OP_GT";
+            case .GreaterThan: return "OP_GTEQ";
+            case .Less: return "OP_LESS";
+            case .LessThan: return "OP_LESSEQ";
 
-            case Not: return "OP_NOT";
-            case Negate: return "OP_NEG";
-            case Opposite: return "OP_OPP";
+            case .Not: return "OP_NOT";
+            case .Negate: return "OP_NEG";
+            case .Opposite: return "OP_OPP";
+
+            case .Print: return "OP_PRINT";
+            case .Read: return "OP_READ";
 
             case Break: return "OP_BREAK";
             case Return: return "OP_RET";

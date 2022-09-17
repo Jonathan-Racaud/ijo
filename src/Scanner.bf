@@ -42,7 +42,10 @@ class Scanner
         switch (c)
         {
         case '$': return MakeToken(.Var);
-        case '#': return MakeToken(.Const);
+        case '#':
+            if (Match("##")) return MakeToken(.StartModule);
+            if (Match("#/")) return MakeToken(.EndModule);
+            return MakeToken(.Const);
 
         case '(':
             if (Match('$')) return MakeToken(.Function);
@@ -64,7 +67,13 @@ class Scanner
             if (Match('$')) return MakeToken(.Map);
             if (Match('-')) return MakeToken(.Break);
             if (Match('=')) return MakeToken(.LessEqual);
+            if (Match('<')) return Match('=') ? MakeToken(.Import) : MakeToken(.Print);
             return MakeToken(.Less);
+
+        case '>':
+            if (Match('=')) return MakeToken(.GreaterEqual);
+            if (Match('>')) return MakeToken(.Read);
+            return MakeToken(.Greater);
 
         case '?':
             if (Match('(')) return MakeToken(.Condition);
@@ -93,6 +102,7 @@ class Scanner
         case '+': return MakeToken(.Plus);
         case '_': return MakeToken(.Underscore);
         case '/': return MakeToken(.Slash);
+        case '%': return MakeToken(.Percent);
         case '*': return MakeToken(.Star);
         case '\\': return MakeToken(.BackSlash);
         case '!': return MakeToken(Match('=') ? .BangEqual : .Bang);
@@ -200,7 +210,7 @@ class Scanner
             Advance();
         }
 
-        let str = StringView(source, position, Length());
+        let str = StringView(source, column, Length());
 
         if (str == ":undefined")
         {
@@ -268,6 +278,17 @@ class Scanner
         if (source[position] != char) return false;
 
         position++;
+        return true;
+    }
+
+    bool Match(StringView str)
+    {
+        for (var i = 0; i < str.Length; i++)
+        {
+            if (!Match(str[i]))
+                return false;
+        }
+
         return true;
     }
 

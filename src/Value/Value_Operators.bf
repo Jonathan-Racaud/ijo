@@ -95,7 +95,7 @@ extension Value
             switch (b)
             {
             case .Double(let f): return .Integer(p / int(f));
-            case .Integer(let i): return .Integer(p / i);
+            case .Integer(let i): return (i != 0) ? .Integer(p / i) : .Symbol(":WrongOperation");
             default: return .Undefined;
             }
         }
@@ -105,7 +105,7 @@ extension Value
             switch (b)
             {
             case .Double(let f): return .Double(p / f);
-            case .Integer(let i): return .Double(p / double(i));
+            case .Integer(let i): return (i != 0) ? .Double(p / i) : .Symbol(":WrongOperation");
             default: return .Undefined;
             }
         }
@@ -120,7 +120,7 @@ extension Value
             switch (b)
             {
             case .Double(let f): return .Integer(p % int(f));
-            case .Integer(let i): return .Integer(p % i);
+            case .Integer(let i): return (i != 0) ? .Integer(p % i) : .Symbol(":WrongOperation");
             default: return .Undefined;
             }
         }
@@ -130,12 +130,22 @@ extension Value
             switch (b)
             {
             case .Double(let f): return .Double(p % f);
-            case .Integer(let i): return .Double(p % double(i));
+            case .Integer(let i): return (i != 0) ? .Double(p % i) : .Symbol(":WrongOperation");
             default: return .Undefined;
             }
         }
 
         return .Undefined;
+    }
+
+    public static Value operator -(Value a)
+    {
+        switch (a)
+        {
+        case .Integer(var p0): return .Integer(-p0);
+        case .Double(var p0): return .Double(-p0);
+        default: return .Undefined;
+        }
     }
 }
 
