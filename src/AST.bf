@@ -72,3 +72,25 @@ class PrintExpr : Expression
         Expr = expr;
     }
 }
+
+class IdentifierExpr : Expression
+{
+    public StringView Name;
+
+    public this(StringView name)
+    {
+        Name = name;
+    }
+}
+
+class VarExpr : Expression
+{
+    public StringView Name;
+    public Expression Expr ~ delete _;
+
+    public this(StringView name, Expression expr)
+    {
+        Name = name;
+        Expr = expr;
+    }
+}

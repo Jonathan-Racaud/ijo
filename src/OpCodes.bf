@@ -8,6 +8,10 @@ enum OpCode : uint16
     case String;
     case Symbol;
 
+    case VarDef;
+    case ConstDef;
+    case Identifier;
+
     case Add;
     case Subtract;
     case Multiply;
@@ -19,6 +23,7 @@ enum OpCode : uint16
     case Undefined;
 
     case Equal;
+    case NotEqual;
     case Greater;
     case GreaterThan;
     case Less;
@@ -77,6 +82,9 @@ enum OpCode : uint16
 
             case .Print: return "OP_PRINT";
             case .Read: return "OP_READ";
+            case .VarDef: return "OP_VAR";
+            case .ConstDef: return "OP_CONST";
+            case .Identifier: return "OP_IDENTIFIER";
 
             case Break: return "OP_BREAK";
             case Return: return "OP_RET";

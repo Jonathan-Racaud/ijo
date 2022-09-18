@@ -2,16 +2,141 @@ using System;
 using System.Collections;
 namespace ijo;
 
+struct VarDefinition : IDisposable
+{
+    public String Name = new .();
+    public Value Value;
+
+    public this(StringView name, Value value)
+    {
+        Name.Set(name);
+        Value = value;
+    }
+
+    public void Dispose()
+    {
+        delete Name;
+    }
+}
+
+static
+{
+    public static VarDefinition UndefinedVarDef = .("undefined", .Undefined);
+}
+
+class VarList : ICollection<VarDefinition>
+{
+    List<VarDefinition> list = new .() ~ DeleteContainerAndDisposeItems!(_);
+
+    public int Count => list.Count;
+
+    public void Add(VarDefinition item)
+    {
+        list.Add(item);
+    }
+
+    public void Clear()
+    {
+        list.Clear();
+    }
+
+    public bool Contains(VarDefinition item)
+    {
+        for (var elem in list)
+        {
+            if (elem.Name == item.Name)
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool Contains(StringView name)
+    {
+        for (var elem in list)
+        {
+            if (elem.Name == name)
+                return true;
+        }
+
+        return false;
+    }
+
+    public void CopyTo(Span<VarDefinition> span)
+    {
+    }
+
+    public bool Remove(VarDefinition item)
+    {
+        if (Contains(item))
+        {
+            list.Remove(item);
+            return true;
+        }
+
+        return false;
+    }
+
+    public VarDefinition this[StringView name]
+    {
+        get
+        {
+            for (var elem in list)
+            {
+                if (elem.Name == name)
+                    return elem;
+            }
+
+            return UndefinedVarDef;
+        }
+
+        set
+        {
+            for (var elem in list)
+            {
+                if (elem.Name == name)
+                {
+                    elem = value;
+                    return;
+                }
+            }
+        }
+    }
+
+    public int IndexOf(StringView name)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (list[i].Name == name)
+                return i;
+        }
+
+        return -1;
+    }
+
+    public void Set(int index, Value value)
+    {
+        list[index].Value = value;
+    }
+
+    public Value Get(int index)
+    {
+        return list[index].Value;
+    }
+}
+
 class Scope
 {
     private Scope parent;
 
     private Dictionary<StringView, Value> constants = new .();
-    private Dictionary<StringView, Value> variables = new .();
+    /*private Dictionary<StringView, Value> variables = new .();*/
+
+    private VarList variables = new .();
 
     // We want every scope to share the same symbols and strings
-    private List<StringView> symbols;
-    private List<StringView> strings;
+    private List<String> symbols;
+    private List<String> strings;
 
     public this(Scope parent = null)
     {
@@ -37,16 +162,12 @@ class Scope
         }
         delete constants;
 
-        for (let v in variables.Values)
-        {
-            v.Dispose();
-        }
         delete variables;
 
         if (parent == null)
         {
-            delete symbols;
-            delete strings;
+            DeleteContainerAndItems!(strings);
+            DeleteContainerAndItems!(symbols);
         }
     }
 
@@ -63,15 +184,15 @@ class Scope
         if (parent != null && parent.HasVar(name))
             return true;
 
-        return variables.ContainsKey(name);
+        return variables.Contains(name);
     }
 
-    public bool HasSymbol(StringView name)
+    public bool HasSymbol(String name)
     {
         return symbols.Contains(name);
     }
 
-    public bool HasString(StringView name)
+    public bool HasString(String name)
     {
         return strings.Contains(name);
     }
@@ -84,21 +205,21 @@ class Scope
         return constants.TryAdd(name, value);
     }
 
-    public uint16 DefineSymbol(StringView name)
+    public uint16 DefineSymbol(String name)
     {
         if (HasSymbol(name))
             return (uint16)symbols.IndexOf(name);
 
-        symbols.Add(name);
+        symbols.Add(new .(name));
         return (uint16)symbols.Count - 1;
     }
 
-    public uint16 DefineString(StringView name)
+    public uint16 DefineString(String name)
     {
         if (HasString(name))
             return (uint16)strings.IndexOf(name);
 
-        strings.Add(name);
+        strings.Add(new .(name));
         return (uint16)strings.Count - 1;
     }
 
@@ -107,21 +228,32 @@ class Scope
         if (parent.HasVar(name))
             return parent.SetVar(name, value);
 
-        if (variables.ContainsKey(name))
+        if (variables.Contains(name))
         {
-            variables[name] = value;
-            return true;
+            variables[name] = .(name, value);
         }
 
-        return variables.TryAdd(name, value);
+        variables.Add(.(name, value));
+        return true;
     }
 
-    public StringView GetString(uint16 idx)
+    public void SetVar(int index, Value value)
+    {
+        variables.Set(index, value);
+    }
+
+    public int AddVar(StringView name)
+    {
+        variables.Add(.(name, .Undefined));
+        return variables.Count - 1;
+    }
+
+    public String GetString(uint16 idx)
     {
         return strings[idx];
     }
 
-    public StringView GetSymbol(uint16 idx)
+    public String GetSymbol(uint16 idx)
     {
         return symbols[idx];
     }
@@ -131,8 +263,23 @@ class Scope
         return constants[name];
     }
 
-    public Value GetVariable(StringView name)
+    public int GetVariable(StringView name)
     {
-        return variables[name];
+        if (parent != null && parent.HasVar(name))
+        {
+            return parent.GetVariable(name);
+        }
+
+        if (variables.Contains(name))
+        {
+            return variables.IndexOf(name);
+        }
+
+        return -1;
+    }
+
+    public Value GetVarValue(int index)
+    {
+        return variables.Get(index);
     }
 }

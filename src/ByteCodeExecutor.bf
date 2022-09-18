@@ -40,27 +40,60 @@ class ByteCodeExecutor
                 let a = Stack.PopFront();
                 let b = Stack.PopFront();
                 Stack.AddFront(b + a);
+                a.Dispose();
+                b.Dispose();
                 Current += 1;
             case .Subtract:
                 let a = Stack.PopFront();
                 let b = Stack.PopFront();
                 Stack.AddFront(b - a);
+                a.Dispose();
+                b.Dispose();
                 Current += 1;
             case .Multiply:
                 let a = Stack.PopFront();
                 let b = Stack.PopFront();
                 Stack.AddFront(b * a);
+                a.Dispose();
+                b.Dispose();
                 Current += 1;
             case .Divide:
                 let a = Stack.PopFront();
                 let b = Stack.PopFront();
                 Stack.AddFront(b / a);
+                a.Dispose();
+                b.Dispose();
                 Current += 1;
             case .Modulo:
                 let a = Stack.PopFront();
                 let b = Stack.PopFront();
                 Stack.AddFront(b % a);
+                a.Dispose();
+                b.Dispose();
                 Current += 1;
+            case .Equal:
+                let a = Stack.PopFront();
+                let b = Stack.PopFront();
+                Stack.AddFront(b == a);
+                a.Dispose();
+                b.Dispose();
+                Current += 1;
+            case .NotEqual:
+                let a = Stack.PopFront();
+                let b = Stack.PopFront();
+                Stack.AddFront(b != a);
+                a.Dispose();
+                b.Dispose();
+                Current += 1;
+            case .VarDef:
+                let val = Stack.PopFront();
+                let varIdx = code[Current + 1];
+                Scope.SetVar(varIdx, val);
+                Current += 2;
+            case .Identifier:
+                let varIdx = code[Current + 1];
+                Stack.AddFront(Scope.GetVarValue(varIdx));
+                Current += 2;
             case .Print: Print(code);
             default: return;
             }
@@ -127,12 +160,13 @@ class ByteCodeExecutor
 
     void Print(List<uint16> code)
     {
+        defer { Current += 1; }
+
+        if (Stack.IsEmpty)
+            return;
+
         let val = Stack.PopFront();
-
         val.Print();
-
         val.Dispose();
-
-        Current += 1;
     }
 }

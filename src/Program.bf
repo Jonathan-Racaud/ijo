@@ -18,7 +18,6 @@ namespace ijo
 
         static int Run(String[] args)
         {
-            vm.IsInRepl = false;
             if (args.IsEmpty)
                 return RunRepl();
 
@@ -52,6 +51,7 @@ namespace ijo
 
         static int RunFile(String[] args)
         {
+            vm.IsInRepl = false;
             if (args[1].IsEmpty)
                 return Exit.Usage;
 
@@ -64,6 +64,8 @@ namespace ijo
 
             let source = File.ReadAllText(path, .. new .());
             defer delete source;
+
+            vm.Run(source);
 
             return Exit.Software;
         }

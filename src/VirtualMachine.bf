@@ -18,7 +18,7 @@ class VirtualMachine
     private AstPrinter AstPrinter = new .() ~ delete _;
 #endif
 
-#if DEBUG_BYTE_CODE
+#if DEBUG_BYTECODE
     private ByteCodePrinter BCodePrinter = new .(Scope) ~ delete _;
 #endif
 
@@ -64,7 +64,7 @@ class VirtualMachine
 
         code = CallOrReturn!(GetByteCode(expressions));
 
-#if DEBUG_BYTE_CODE
+#if DEBUG_BYTECODE
         BCodePrinter.Print(code);
 #endif
 
@@ -111,7 +111,8 @@ class VirtualMachine
             return .Err(Exit.Software);
         }
 
-        if (IsInRepl && code.Count > 0 && ((OpCode)code[code.Count - 1] != .Print))
+        let op = (OpCode)code[code.Count - 1];
+        if (IsInRepl && code.Count > 0 && (op != .Print))
         {
             code.Add(OpCode.Print);
         }

@@ -36,6 +36,14 @@ class Parser
         {
             return ParsePrint(out expr);
         }
+        else if (Match(.Var))
+        {
+            return ParseVariable(out expr);
+        }
+        else if (Match(.Identifier))
+        {
+            return ParseIdentifier(out expr);
+        }
         else if (Match(.Read))
         {
         }
@@ -188,6 +196,35 @@ class Parser
         if (ParseExpression(out right) case .Err) return .Err;
 
         outExpr = new PrintExpr(right);
+        return .Ok;
+    }
+
+    Result<void> ParseVariable(out Expression outExpr)
+    {
+        outExpr = null;
+
+        Consume(.Identifier, "Expected identifier");
+        let name = Previous().Literal;
+
+        if (Consume(.Equal) case .Err) return .Err;
+
+        Expression right;
+        if (ParseExpression(out right) case .Err)
+        {
+            if (right != null)
+                delete right;
+            return .Err;
+        }
+
+        outExpr = new VarExpr(name, right);
+
+        return .Ok;
+    }
+
+    Result<void> ParseIdentifier(out Expression outExpr)
+    {
+        outExpr = new IdentifierExpr(Previous().Literal);
+
         return .Ok;
     }
 

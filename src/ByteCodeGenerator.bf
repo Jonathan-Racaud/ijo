@@ -5,11 +5,11 @@ namespace ijo;
 
 class ByteCodeGenerator
 {
-    Scope env;
+    Scope Scope;
 
     public this(Scope env)
     {
-        this.env = env;
+        this.Scope = env;
     }
 
     public Result<void> Generate(List<Expression> expressions, List<uint16> code)
@@ -33,6 +33,8 @@ class ByteCodeGenerator
         case typeof(UnaryExpr): Generate(expression as UnaryExpr, code);
         case typeof(LiteralExpr): Generate(expression as LiteralExpr, code);
         case typeof(PrintExpr): Generate(expression as PrintExpr, code);
+        case typeof(VarExpr): Generate(expression as VarExpr, code);
+        case typeof(IdentifierExpr): Generate(expression as IdentifierExpr, code);
         default: return .Err;
         }
         return .Ok;
@@ -80,13 +82,13 @@ class ByteCodeGenerator
 
         // OP_STRING STR_IDX
         case .String:
-            let idx = env.DefineString(expr.Literal);
+            let idx = Scope.DefineString(scope .(expr.Literal));
             code.Add(OpCode.String);
             code.Add(idx);
 
         // OP_SYMBOL SYMBOL_IDX
         case .Symbol:
-            let idx = env.DefineSymbol(expr.Literal);
+            let idx = Scope.DefineSymbol(scope .(expr.Literal));
             code.Add(OpCode.Symbol);
             code.Add(idx);
 
@@ -105,6 +107,38 @@ class ByteCodeGenerator
         return .Ok;
     }
 
+    Result<void> Generate(VarExpr expr, List<uint16> code)
+    {
+        var varIdx = -1;
+        if (Scope.HasVar(expr.Name))
+        {
+            varIdx = Scope.GetVariable(expr.Name);
+        }
+        else
+        {
+            varIdx = Scope.AddVar(expr.Name);
+        }
+
+        if (Generate(expr.Expr, code) case .Err) return .Err;
+
+        code.Add(OpCode.VarDef);
+        code.Add((uint16)varIdx);
+
+        return .Ok;
+    }
+
+    Result<void> Generate(IdentifierExpr expr, List<uint16> code)
+    {
+        if (!Scope.HasVar(expr.Name))
+            return .Err;
+
+        let varIdx = Scope.GetVariable(expr.Name);
+        code.Add(OpCode.Identifier);
+        code.Add((uint16)varIdx);
+
+        return .Ok;
+    }
+
     Result<void> GenerateOperation(Token token, List<uint16> code)
     {
         switch (token.Type)
@@ -114,6 +148,8 @@ class ByteCodeGenerator
         case .Slash: code.Add(OpCode.Divide);
         case .Star: code.Add(OpCode.Multiply);
         case .Percent: code.Add(OpCode.Modulo);
+        case .EqualEqual: code.Add(OpCode.Equal);
+        case .BangEqual: code.Add(OpCode.NotEqual);
         default: return .Err;
         }
 

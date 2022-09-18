@@ -40,6 +40,8 @@ class ByteCodePrinter
                 .LessThan,
                 .Print,
                 .Read,
+                .VarDef,
+                .Identifier,
                 .Return,
                 .Break: PrintSimple(op);
             default:

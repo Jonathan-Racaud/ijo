@@ -5,10 +5,11 @@ Name = "ijo"
 StartupObject = "ijo.Program"
 
 [Configs.Debug.Win64]
-DebugCommandArguments = "run $(ProjectDir)/examples/userFunction.ijo"
+DebugCommandArguments = "run $(ProjectDir)/examples/hello/hello.ijo"
 
 [Configs."Debug - REPL".Win64]
 BeefLibType = "Static"
+PreprocessorMacros = ["DEBUG", "DEBUG_BYTECODE"]
 
 [Configs."Debug - REPL".Win32]
 BeefLibType = "Static"

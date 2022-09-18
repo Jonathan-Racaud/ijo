@@ -7,7 +7,7 @@ enum Value
     case Double(double);
     case Bool(bool);
     case String(String);
-    case Symbol(StringView);
+    case Symbol(String);
     case Undefined;
 }
 
