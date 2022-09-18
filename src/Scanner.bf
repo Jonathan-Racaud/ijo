@@ -145,12 +145,14 @@ class Scanner
 
     Token MakeToken(TokenType type)
     {
+        let literal = StringView(source, column, Length());
+
         return .()
             {
                 Type = type,
                 Line = line,
                 Column = column,
-                Literal = StringView(source, column, Length())
+                Literal = literal
             };
     }
 
@@ -185,7 +187,7 @@ class Scanner
 
     Token MakeString()
     {
-        /*MoveColumn();*/
+        MoveColumn();
 
         // We assume that the first " has already been consumed
         while (Peek() != '"' && !IsAtEnd())
@@ -199,7 +201,16 @@ class Scanner
         // We consume the closing "
         Advance();
 
-        return MakeToken(.String);
+        let str = source.Substring(column, Length() - 1).Unescape(.. new .());
+        let literal = StringView(str);
+
+        return .()
+            {
+                Type = .String,
+                Column = column,
+                Literal = literal,
+                Origin = str
+            };
     }
 
     Token MakeSymbol()

@@ -319,4 +319,17 @@ extension Value
 
         return .Undefined;
     }
+
+    public bool IsTrue
+    {
+        get
+        {
+            switch (this)
+            {
+            case .Bool(let p0): return p0;
+            case .Undefined: return false;
+            default: return true;
+            }
+        }
+    }
 }

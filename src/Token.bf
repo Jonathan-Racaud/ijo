@@ -1,16 +1,23 @@
 using System;
 namespace ijo;
 
-struct Token
+struct Token : IDisposable
 {
     public TokenType Type;
     public StringView Literal = .();
+    public String Origin;
     public int Line;
     public int Column;
 
     public void PrettyPrint()
     {
         Type.PrettyPrint();
+    }
+
+    public void Dispose()
+    {
+        if (Type == .String && Origin != null)
+            delete Origin;
     }
 }
 

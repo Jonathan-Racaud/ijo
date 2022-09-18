@@ -21,7 +21,7 @@ struct VarDefinition : IDisposable
 
 static
 {
-    public static VarDefinition UndefinedVarDef = .("undefined", .Undefined);
+    public static VarDefinition UndefinedVarDef = .("undefined", .Undefined) ~ _.Dispose();
 }
 
 class VarList : ICollection<VarDefinition>

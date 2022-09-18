@@ -36,6 +36,11 @@ class VirtualMachine
         {
             if (tokens != null)
             {
+                for (let t in tokens)
+                {
+                    t.Dispose();
+                }
+
                 tokens.Clear();
                 delete tokens;
             }

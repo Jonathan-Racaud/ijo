@@ -8,6 +8,8 @@ class Parser
     int current;
     List<Token> tokens;
 
+    bool parsingConditional = false;
+
     public Result<void> Parse(List<Token> toks, List<Expression> expressions)
     {
         current = 0;
@@ -15,6 +17,8 @@ class Parser
 
         while (!Match(.EOF))
         {
+            parsingConditional = false;
+
             Expression expr;
             if (ParseExpression(out expr) case .Err) return .Err;
 
@@ -24,7 +28,6 @@ class Parser
             }
         }
 
-        tokens.Clear();
         return .Ok;
     }
 
@@ -44,6 +47,10 @@ class Parser
         {
             return ParseIdentifier(out expr);
         }
+        else if (Match(.Condition))
+        {
+            return ParseConditional(out expr);
+        }
         else if (Match(.Read))
         {
         }
@@ -54,6 +61,10 @@ class Parser
         {
         }
         else if (Match(.Undefined))
+        {
+            return .Ok;
+        }
+        else if (Match(.NewLine))
         {
             return .Ok;
         }
@@ -168,6 +179,15 @@ class Parser
             return .Ok;
         }
 
+        if (Match(.Identifier))
+        {
+            Expression identifier;
+            ParseIdentifier(out identifier);
+
+            outExpr = identifier;
+            return .Ok;
+        }
+
         if (Match(.LeftParen))
         {
             Expression expr;
@@ -183,6 +203,10 @@ class Parser
             outExpr = new GroupingExpr(expr);
             return .Ok;
         }
+
+        // It is possible to have the following syntax: ?() to
+        if (parsingConditional)
+            return .Ok;
 
         Console.WriteLine("Invalid expression");
         return .Err;
@@ -223,7 +247,84 @@ class Parser
 
     Result<void> ParseIdentifier(out Expression outExpr)
     {
-        outExpr = new IdentifierExpr(Previous().Literal);
+        outExpr = null;
+
+        Expression identifier = new IdentifierExpr(Previous().Literal);
+
+        if (Match(.Equal))
+        {
+            Expression assignment;
+            ParseExpression(out assignment);
+
+            outExpr = new AssignmentExpr(identifier, assignment);
+            return .Ok;
+        }
+
+        outExpr = identifier;
+        return .Ok;
+    }
+
+    Result<void> ParseConditional(out Expression outExpr)
+    {
+        outExpr = null;
+        parsingConditional = true;
+
+        Expression condition = null;
+        List<Expression> body = new .();
+
+        if (ParseEquality(out condition) case .Err) return .Err;
+        if (Consume(.RightParen, "Expected ')'") case .Err) return .Err;
+        if (Consume(.LeftBrace, "Expected '}'") case .Err) return .Err;
+
+        while (!Match(.RightBrace))
+        {
+            if (Match(.EOF))
+                return .Err;
+
+            Expression expr;
+            if (ParseExpression(out expr) case .Err) return .Err;
+
+            if (expr != null)
+                body.Add(expr);
+        }
+
+        outExpr = new ConditionExpr(condition, body);
+        return .Ok;
+    }
+
+    Result<void> ParseLoop(out Expression outExpr)
+    {
+        outExpr = null;
+
+        Expression initialization = null;
+        Expression condition = null;
+        Expression increment = null;
+
+        ParseExpression(out initialization);
+
+        if (Match(.Semicolon)) { ParseEquality(out condition); }
+        if (Match(.Semicolon)) { ParseEquality(out increment); }
+
+        if (Consume(.RightParen, "Expected ')'") case .Err) return .Err;
+        if (Consume(.LeftBrace, "Expected '{'") case .Err) return .Err;
+
+        Expression body;
+        ParseExpression(out body);
+
+        if (Consume(.RightBrace, "Expected '}'") case .Err) return .Err;
+
+        if (condition == null && increment == null)
+        {
+            outExpr = new LoopExpr(body, initialization, null, null);
+        }
+        else if (increment == null)
+        {
+            outExpr = new LoopExpr(body, condition, initialization, null);
+        }
+        else
+        {
+            outExpr = new LoopExpr(body, condition, initialization, increment);
+        }
 
         return .Ok;
     }

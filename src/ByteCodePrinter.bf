@@ -22,6 +22,7 @@ class ByteCodePrinter
             case .ConstantD,.ConstantI: i += PrintConstant(code, op, i);
             case .String: i += PrintString(code, op, i);
             case .Symbol: i += PrintSymbol(code, op, i);
+            case .IsTrue: i += PrintIsTrue(code, op, i);
             case
                 .Add,
                 .Subtract,
@@ -34,6 +35,7 @@ class ByteCodePrinter
                 .True,
                 .False,
                 .Equal,
+                .NotEqual,
                 .Greater,
                 .GreaterThan,
                 .Less,
@@ -42,10 +44,11 @@ class ByteCodePrinter
                 .Read,
                 .VarDef,
                 .Identifier,
+                .Jump,
                 .Return,
                 .Break: PrintSimple(op);
             default:
-                PrintError();
+                PrintError(op);
                 return;
             }
 
@@ -83,13 +86,23 @@ class ByteCodePrinter
         return index + 1;
     }
 
+    int PrintIsTrue(List<uint16> code, OpCode op, int index)
+    {
+        let trueIdx = code[index + 1];
+        let falseIdx = code[index + 2];
+
+        Console.Write(scope $"{op.Str} {trueIdx} {falseIdx}");
+
+        return index + 2;
+    }
+
     void PrintSimple(OpCode op)
     {
         Console.Write(op.Str);
     }
 
-    void PrintError()
+    void PrintError(OpCode op)
     {
-        Console.WriteLine("[ERROR]: Unknown byte code");
+        Console.WriteLine(scope $"[ERROR]: Unknown byte code: {op}");
     }
 }

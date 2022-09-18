@@ -35,6 +35,9 @@ class ByteCodeGenerator
         case typeof(PrintExpr): Generate(expression as PrintExpr, code);
         case typeof(VarExpr): Generate(expression as VarExpr, code);
         case typeof(IdentifierExpr): Generate(expression as IdentifierExpr, code);
+        case typeof(ConditionExpr): Generate(expression as ConditionExpr, code);
+        case typeof(LoopExpr): Generate(expression as LoopExpr, code);
+        case typeof(AssignmentExpr): Generate(expression as AssignmentExpr, code);
         default: return .Err;
         }
         return .Ok;
@@ -139,6 +142,85 @@ class ByteCodeGenerator
         return .Ok;
     }
 
+    Result<void> Generate(AssignmentExpr expr, List<uint16> code)
+    {
+        let varName = (expr.Identifier as IdentifierExpr).Name;
+        if (!Scope.HasVar(varName))
+            return .Err;
+
+        if (Generate(expr.Assignment, code) case .Err) return .Err;
+
+        let varIdx = Scope.GetVariable(varName);
+        code.Add(OpCode.VarSet);
+        code.Add((uint16)varIdx);
+
+        return .Ok;
+    }
+
+    Result<void> Generate(ConditionExpr expr, List<uint16> code)
+    {
+        List<uint16> bodyInstructions = scope .();
+        for (let e in expr.Body)
+        {
+            if (Generate(e, bodyInstructions) case .Err) return .Err;
+        }
+
+        if (Generate(expr.Condition, code) case .Err) return .Err;
+        code.Add(OpCode.IsTrue);
+        code.Add((uint16)code.Count + 2);
+        code.Add((uint16)(code.Count + bodyInstructions.Count) + 1);
+        code.AddRange(bodyInstructions);
+
+        return .Ok;
+    }
+
+    Result<void> Generate(LoopExpr expr, List<uint16> code)
+    {
+        if (expr.Initialization != null)
+        {
+            if (Generate(expr.Initialization, code) case .Err) return .Err;
+        }
+
+        List<uint16> incrementInstructions = scope .();
+        if (expr.Increment != null)
+        {
+            if (Generate(expr.Body, incrementInstructions) case .Err)
+            {
+                return .Err;
+            }
+        }
+
+        List<uint16> bodyInstructions = scope .();
+        if (Generate(expr.Body, bodyInstructions) case .Err)
+        {
+            return .Err;
+        }
+
+        let condPos = (uint16)code.Count;
+
+        // First we add the instructions for the condition computation
+        if (Generate(expr.Condition, code) case .Err) return .Err;
+
+        // If true, then we will jump to the first instruction located at code.Count because
+        // it is the first instruction after the condition, which is the start of the body.
+        // Otherwise we jump to after the end of both the bodyInstructions + incrementInstructions
+        code.Add(OpCode.IsTrue);
+        code.Add((uint16)code.Count + 1);
+        code.Add(incrementInstructions.IsEmpty ? uint16.MaxValue : (uint16)(code.Count + bodyInstructions.Count + incrementInstructions.Count));
+
+        code.AddRange(bodyInstructions);
+
+        // We directly add the increment instructions after the body as they need to be executed
+        // for every iteration
+        code.AddRange(incrementInstructions);
+
+        // We instruct to jump back to the first instruction to compute the condition
+        code.Add(OpCode.Jump);
+        code.Add(condPos);
+
+        return .Ok;
+    }
+
     Result<void> GenerateOperation(Token token, List<uint16> code)
     {
         switch (token.Type)
@@ -150,6 +232,10 @@ class ByteCodeGenerator
         case .Percent: code.Add(OpCode.Modulo);
         case .EqualEqual: code.Add(OpCode.Equal);
         case .BangEqual: code.Add(OpCode.NotEqual);
+        case .Greater: code.Add(OpCode.Greater);
+        case .GreaterEqual: code.Add(OpCode.GreaterThan);
+        case .Less: code.Add(OpCode.Less);
+        case .LessEqual: code.Add(OpCode.LessThan);
         default: return .Err;
         }
 

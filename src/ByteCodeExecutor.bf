@@ -85,6 +85,34 @@ class ByteCodeExecutor
                 a.Dispose();
                 b.Dispose();
                 Current += 1;
+            case .Greater:
+                let a = Stack.PopFront();
+                let b = Stack.PopFront();
+                Stack.AddFront(b > a);
+                a.Dispose();
+                b.Dispose();
+                Current += 1;
+            case .GreaterThan:
+                let a = Stack.PopFront();
+                let b = Stack.PopFront();
+                Stack.AddFront(b >= a);
+                a.Dispose();
+                b.Dispose();
+                Current += 1;
+            case .Less:
+                let a = Stack.PopFront();
+                let b = Stack.PopFront();
+                Stack.AddFront(b < a);
+                a.Dispose();
+                b.Dispose();
+                Current += 1;
+            case .LessThan:
+                let a = Stack.PopFront();
+                let b = Stack.PopFront();
+                Stack.AddFront(b <= a);
+                a.Dispose();
+                b.Dispose();
+                Current += 1;
             case .VarDef:
                 let val = Stack.PopFront();
                 let varIdx = code[Current + 1];
@@ -94,6 +122,21 @@ class ByteCodeExecutor
                 let varIdx = code[Current + 1];
                 Stack.AddFront(Scope.GetVarValue(varIdx));
                 Current += 2;
+            case .VarSet:
+                let varIdx = code[Current + 1];
+                var val = Scope.GetVarValue(varIdx);
+                val = Stack.PopFront();
+                Scope.SetVar(varIdx, val);
+                Current += 2;
+            case .IsTrue:
+                let val = Stack.PopFront();
+                let trueIns = code[Current + 1];
+                let falseIns = code[Current + 2];
+
+                Current = val.IsTrue ? trueIns : falseIns;
+            case .Jump:
+                let idx = code[Current + 1];
+                Current = idx;
             case .Print: Print(code);
             default: return;
             }

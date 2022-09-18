@@ -11,6 +11,7 @@ enum OpCode : uint16
     case VarDef;
     case ConstDef;
     case Identifier;
+    case VarSet;
 
     case Add;
     case Subtract;
@@ -28,6 +29,7 @@ enum OpCode : uint16
     case GreaterThan;
     case Less;
     case LessThan;
+    case IsTrue;
 
     case Not;
     case Negate;
@@ -36,6 +38,7 @@ enum OpCode : uint16
     case Print;
     case Read;
 
+    case Jump;
     case Break;
     case Return;
 
@@ -75,6 +78,7 @@ enum OpCode : uint16
             case .GreaterThan: return "OP_GTEQ";
             case .Less: return "OP_LESS";
             case .LessThan: return "OP_LESSEQ";
+            case .IsTrue: return "OP_IS_TRUE";
 
             case .Not: return "OP_NOT";
             case .Negate: return "OP_NEG";
@@ -86,6 +90,7 @@ enum OpCode : uint16
             case .ConstDef: return "OP_CONST";
             case .Identifier: return "OP_IDENTIFIER";
 
+            case Jump: return "OP_JUMP";
             case Break: return "OP_BREAK";
             case Return: return "OP_RET";
             default: return "OP_UNKNOWN";

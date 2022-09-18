@@ -94,3 +94,43 @@ class VarExpr : Expression
         Expr = expr;
     }
 }
+
+class AssignmentExpr : Expression
+{
+    public Expression Identifier ~ delete _;
+    public Expression Assignment ~ delete _;
+
+    public this(Expression identifier, Expression assignment)
+    {
+        Identifier = identifier;
+        Assignment = assignment;
+    }
+}
+
+class ConditionExpr : Expression
+{
+    public Expression Condition ~ delete _;
+    public List<Expression> Body ~ DeleteContainerAndItems!(_);
+
+    public this(Expression condition, List<Expression> body)
+    {
+        Condition = condition;
+        Body = body;
+    }
+}
+
+class LoopExpr : Expression
+{
+    public Expression Initialization ~ delete _;
+    public Expression Condition ~ delete _;
+    public Expression Increment ~ delete _;
+    public Expression Body ~ delete _;
+
+    public this(Expression body, Expression condition, Expression initialization, Expression increment)
+    {
+        Body = body;
+        Condition = condition;
+        Initialization = initialization;
+        Increment = increment;
+    }
+}
