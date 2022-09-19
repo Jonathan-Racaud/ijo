@@ -184,7 +184,7 @@ class ByteCodeGenerator
         List<uint16> incrementInstructions = scope .();
         if (expr.Increment != null)
         {
-            if (Generate(expr.Body, incrementInstructions) case .Err)
+            if (Generate(expr.Increment, incrementInstructions) case .Err)
             {
                 return .Err;
             }
@@ -205,8 +205,14 @@ class ByteCodeGenerator
         // it is the first instruction after the condition, which is the start of the body.
         // Otherwise we jump to after the end of both the bodyInstructions + incrementInstructions
         code.Add(OpCode.IsTrue);
-        code.Add((uint16)code.Count + 1);
-        code.Add(incrementInstructions.IsEmpty ? uint16.MaxValue : (uint16)(code.Count + bodyInstructions.Count + incrementInstructions.Count));
+        code.Add((uint16)code.Count + 2);
+
+        let nextIdxIfNoIncrement = (uint16)(code.Count + bodyInstructions.Count) + 2;
+
+        // +3 because last increment instruction +1 = op jump +1 = jump arg +1 = instruction after all of that.
+        let nextIdxIfIncrement = (uint16)(code.Count + bodyInstructions.Count + incrementInstructions.Count) + 3;
+
+        code.Add(incrementInstructions.IsEmpty ? nextIdxIfNoIncrement : nextIdxIfIncrement);
 
         code.AddRange(bodyInstructions);
 

@@ -51,6 +51,10 @@ class Parser
         {
             return ParseConditional(out expr);
         }
+        else if (Match(.Loop))
+        {
+            return ParseLoop(out expr);
+        }
         else if (Match(.Read))
         {
         }
@@ -62,14 +66,12 @@ class Parser
         }
         else if (Match(.Undefined))
         {
-            return .Ok;
-        }
-        else if (Match(.NewLine))
-        {
-            return .Ok;
         }
 
-        return ParseEquality(out expr);
+        if (ParseEquality(out expr) case .Err) return .Err;
+        /*if (Consume(.NewLine, "Expected end of expression. Expressions end with a new line") case .Err) return .Err;*/
+
+        return .Ok;
     }
 
     Result<void> ParseEquality(out Expression outExpr)
@@ -254,7 +256,7 @@ class Parser
         if (Match(.Equal))
         {
             Expression assignment;
-            ParseExpression(out assignment);
+            ParseEquality(out assignment);
 
             outExpr = new AssignmentExpr(identifier, assignment);
             return .Ok;
@@ -300,10 +302,11 @@ class Parser
         Expression condition = null;
         Expression increment = null;
 
-        ParseExpression(out initialization);
+        if (!PeekMatch(.Semicolon))
+            ParseExpression(out initialization);
 
         if (Match(.Semicolon)) { ParseEquality(out condition); }
-        if (Match(.Semicolon)) { ParseEquality(out increment); }
+        if (Match(.Semicolon)) { ParseExpression(out increment); }
 
         if (Consume(.RightParen, "Expected ')'") case .Err) return .Err;
         if (Consume(.LeftBrace, "Expected '{'") case .Err) return .Err;
@@ -313,14 +316,23 @@ class Parser
 
         if (Consume(.RightBrace, "Expected '}'") case .Err) return .Err;
 
-        if (condition == null && increment == null)
+        // ~(cond) {}
+        // What we initially parsed as initialization becomes the condition.
+        if (initialization != null && condition == null && increment == null)
         {
             outExpr = new LoopExpr(body, initialization, null, null);
         }
-        else if (increment == null)
+        // ~(; cond; incr)
+        else if (initialization == null && condition != null && increment != null)
+        {
+            outExpr = new LoopExpr(body, condition, null, increment);
+        }
+        // ~(init; cond) {}
+        else if (initialization != null && condition != null && increment == null)
         {
             outExpr = new LoopExpr(body, condition, initialization, null);
         }
+        // !(init; cond; incr) {}
         else
         {
             outExpr = new LoopExpr(body, condition, initialization, increment);
@@ -358,6 +370,19 @@ class Parser
             if (IsSameToken(t))
             {
                 Advance();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool PeekMatch(params TokenType[] types)
+    {
+        for (let t in types)
+        {
+            if (IsSameToken(t))
+            {
                 return true;
             }
         }
