@@ -124,9 +124,9 @@ class LoopExpr : Expression
     public Expression Initialization ~ delete _;
     public Expression Condition ~ delete _;
     public Expression Increment ~ delete _;
-    public Expression Body ~ delete _;
+    public List<Expression> Body ~ DeleteContainerAndItems!(_);
 
-    public this(Expression body, Expression condition, Expression initialization, Expression increment)
+    public this(List<Expression> body, Expression condition, Expression initialization, Expression increment)
     {
         Body = body;
         Condition = condition;

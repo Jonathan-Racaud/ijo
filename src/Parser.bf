@@ -35,6 +35,8 @@ class Parser
     {
         expr = null;
 
+        if (Match(.NewLine)) return .Ok;
+
         if (Match(.Print))
         {
             return ParsePrint(out expr);
@@ -43,10 +45,10 @@ class Parser
         {
             return ParseVariable(out expr);
         }
-        else if (Match(.Identifier))
+        /*else if (Match(.Identifier))
         {
             return ParseIdentifier(out expr);
-        }
+        }*/
         else if (Match(.Condition))
         {
             return ParseConditional(out expr);
@@ -305,16 +307,28 @@ class Parser
         if (!PeekMatch(.Semicolon))
             ParseExpression(out initialization);
 
-        if (Match(.Semicolon)) { ParseEquality(out condition); }
+        if (Match(.Semicolon)) { ParseExpression(out condition); }
         if (Match(.Semicolon)) { ParseExpression(out increment); }
 
         if (Consume(.RightParen, "Expected ')'") case .Err) return .Err;
         if (Consume(.LeftBrace, "Expected '{'") case .Err) return .Err;
 
-        Expression body;
-        ParseExpression(out body);
+        List<Expression> body = new .();
 
-        if (Consume(.RightBrace, "Expected '}'") case .Err) return .Err;
+        while (!Match(.RightBrace))
+        {
+            if (Match(.EOF))
+            {
+                Console.WriteLine("Expected '}'");
+                return .Err;
+            }
+
+            Expression expr;
+            if (ParseExpression(out expr) case .Err) return .Err;
+
+            if (expr != null)
+                body.Add(expr);
+        }
 
         // ~(cond) {}
         // What we initially parsed as initialization becomes the condition.

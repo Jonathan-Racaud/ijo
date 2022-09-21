@@ -191,9 +191,9 @@ class ByteCodeGenerator
         }
 
         List<uint16> bodyInstructions = scope .();
-        if (Generate(expr.Body, bodyInstructions) case .Err)
+        for (let e in expr.Body)
         {
-            return .Err;
+            if (Generate(e, bodyInstructions) case .Err) return .Err;
         }
 
         let condPos = (uint16)code.Count;
