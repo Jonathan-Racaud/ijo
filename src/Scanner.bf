@@ -111,6 +111,7 @@ class Scanner
         case '"': return MakeString();
         case ';': return MakeToken(.Semicolon);
         case '\n': return MakeToken(.NewLine);
+        case ',': return MakeToken(.Comma);
         }
 
         return MakeErrorToken("Undefined token");

@@ -38,6 +38,9 @@ enum OpCode : uint16
     case Print;
     case Read;
 
+    case LoadArg;
+    case Call;
+
     case Jump;
     case Break;
     case Return;
@@ -89,6 +92,8 @@ enum OpCode : uint16
             case .VarDef: return "OP_VAR";
             case .ConstDef: return "OP_CONST";
             case .Identifier: return "OP_IDENTIFIER";
+
+            case .LoadArg: return "OP_LDARG";
 
             case Jump: return "OP_JUMP";
             case Break: return "OP_BREAK";

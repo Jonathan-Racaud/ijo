@@ -138,6 +138,23 @@ class ByteCodeExecutor
                 let idx = code[Current + 1];
                 Current = idx;
             case .Print: Print(code);
+
+            // TODO: Figure out how to call and load arguments of functions
+            case .Call:
+                let idx = code[Current + 1];
+                if (Scope.GetFunc(idx) case .Ok(let func))
+                {
+                    Execute(func.Code);
+                }
+                else
+                {
+                    Console.WriteLine("Error calling function");
+                    return;
+                }
+
+                Current += 2;
+            case .LoadArg:
+                Current += 2;
             default: return;
             }
         }

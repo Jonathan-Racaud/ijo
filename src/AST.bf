@@ -134,3 +134,31 @@ class LoopExpr : Expression
         Increment = increment;
     }
 }
+
+class FunctionExpr : Expression
+{
+    public StringView Name;
+    public List<StringView> Parameters ~ delete _;
+    public List<Expression> Body ~ delete _;
+    public ReturnType ReturnType;
+
+    public this(StringView name, List<Expression> body, List<StringView> parameters = null, ReturnType returnType = .Undefined)
+    {
+        Name = name;
+        Body = body;
+        Parameters = parameters;
+        ReturnType = returnType;
+    }
+}
+
+class FunctionCallExpr : Expression
+{
+    public StringView Name;
+    public List<Expression> Arguments ~ DeleteContainerAndItems!(_);
+
+    public this(StringView name, List<Expression> arguments)
+    {
+        Name = name;
+        Arguments = arguments;
+    }
+}

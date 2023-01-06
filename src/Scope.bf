@@ -6,16 +6,49 @@ struct VarDefinition : IDisposable
 {
     public String Name = new .();
     public Value Value;
+    public int OpCodeIdx;
 
-    public this(StringView name, Value value)
+    public this(StringView name, Value value, int opCodeIdx = -1)
     {
         Name.Set(name);
         Value = value;
+        OpCodeIdx = opCodeIdx;
     }
 
     public void Dispose()
     {
         delete Name;
+    }
+}
+
+struct FuncDefinition : IDisposable
+{
+    public String Name = new .();
+    public int ArgCount;
+    public ReturnType ReturnType;
+    public List<uint16> Code;
+
+    public this(StringView name, int argCount, ReturnType returnType, List<uint16> code)
+    {
+        Name.Set(name);
+        ArgCount = argCount;
+        ReturnType = returnType;
+        Code = code;
+    }
+
+    public this()
+    {
+        ArgCount = 0;
+        ReturnType = .Undefined;
+        Code = null;
+    }
+
+    public void Dispose()
+    {
+        delete Name;
+
+        if (Code != null)
+            delete Code;
     }
 }
 
@@ -125,6 +158,121 @@ class VarList : ICollection<VarDefinition>
     }
 }
 
+class FuncList : ICollection<FuncDefinition>
+{
+    List<FuncDefinition> list = new .() ~ DeleteContainerAndDisposeItems!(_);
+
+    public int Count => list.Count;
+
+    public void Add(FuncDefinition item)
+    {
+        list.Add(item);
+    }
+
+    public void Clear()
+    {
+        list.Clear();
+    }
+
+    public bool Contains(FuncDefinition item)
+    {
+        for (var elem in list)
+        {
+            if (elem.Name == item.Name)
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool Contains(StringView name, int paramCount)
+    {
+        for (var elem in list)
+        {
+            if (elem.Name == name && elem.ArgCount == paramCount)
+                return true;
+        }
+
+        return false;
+    }
+
+    public void CopyTo(Span<FuncDefinition> span)
+    {
+    }
+
+    public bool Remove(FuncDefinition item)
+    {
+        if (Contains(item))
+        {
+            list.Remove(item);
+            return true;
+        }
+
+        return false;
+    }
+
+    public FuncDefinition this[StringView name]
+    {
+        get
+        {
+            for (var elem in list)
+            {
+                if (elem.Name == name)
+                    return elem;
+            }
+
+            return .();
+        }
+
+        set
+        {
+            for (var elem in list)
+            {
+                if (elem.Name == name)
+                {
+                    elem = value;
+                    return;
+                }
+            }
+        }
+    }
+
+    public FuncDefinition this[int index]
+    {
+        get
+        {
+            return list[index];
+        }
+
+        set
+        {
+            list[index] = value;
+        }
+    }
+
+    public int IndexOf(StringView name, int paramCount)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (list[i].Name == name && list[i].ArgCount == paramCount)
+                return i;
+        }
+
+        return -1;
+    }
+
+    public void Set(int index, int argCount, ReturnType returnType)
+    {
+        list[index].ArgCount = argCount;
+        list[index].ReturnType = returnType;
+    }
+
+    public (int, ReturnType) Get(int index)
+    {
+        return (list[index].ArgCount, list[index].ReturnType);
+    }
+}
+
 class Scope
 {
     private Scope parent;
@@ -133,6 +281,7 @@ class Scope
     /*private Dictionary<StringView, Value> variables = new .();*/
 
     private VarList variables = new .();
+    private FuncList functions = new .();
 
     // We want every scope to share the same symbols and strings
     private List<String> symbols;
@@ -185,6 +334,17 @@ class Scope
             return true;
 
         return variables.Contains(name);
+    }
+
+    public bool HasFunc(StringView name, int paramCount)
+    {
+        if (parent != null && parent.HasFunc(name, paramCount))
+            return true;
+
+        if (!functions.Contains(name, paramCount))
+            return false;
+
+        return (paramCount == functions[name].ArgCount);
     }
 
     public bool HasSymbol(String name)
@@ -248,6 +408,13 @@ class Scope
         return variables.Count - 1;
     }
 
+    public int AddFunc(StringView name, int paramCount, ReturnType returnType, List<uint16> code)
+    {
+        functions.Add(FuncDefinition(name, paramCount, returnType, code));
+
+        return functions.Count - 1;
+    }
+
     public String GetString(uint16 idx)
     {
         return strings[idx];
@@ -281,5 +448,25 @@ class Scope
     public Value GetVarValue(int index)
     {
         return variables.Get(index);
+    }
+
+    public int GetFuncIdx(StringView name, int paramCount)
+    {
+        if (parent != null && parent.HasFunc(name, paramCount))
+        {
+            return parent.GetFuncIdx(name, paramCount);
+        }
+
+        if (functions.Contains(name, paramCount))
+        {
+            return functions.IndexOf(name, paramCount);
+        }
+
+        return -1;
+    }
+
+    public Result<FuncDefinition> GetFunc(int index)
+    {
+        return .Ok(functions[index]);
     }
 }

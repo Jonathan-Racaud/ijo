@@ -5,7 +5,7 @@ Name = "ijo"
 StartupObject = "ijo.Program"
 
 [Configs.Debug.Win64]
-DebugCommandArguments = "run $(ProjectDir)/examples/00_basics/04_loop.ijo"
+DebugCommandArguments = "run $(ProjectDir)/examples/00_basics/05_functions.ijo"
 
 [Configs."Debug - REPL".Win64]
 BeefLibType = "Static"

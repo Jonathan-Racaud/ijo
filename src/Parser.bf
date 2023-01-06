@@ -10,6 +10,16 @@ class Parser
 
     bool parsingConditional = false;
 
+    Dictionary<StringView, ReturnType> primitiveTypes = new .()
+        {
+            ("Int", .Integer),
+            ("Double", .Double),
+            ("Bool", .Bool),
+            ("String", .String),
+            ("Symbol", .Symbol),
+            ("Undefined", .Undefined)
+        };
+
     public Result<void> Parse(List<Token> toks, List<Expression> expressions)
     {
         current = 0;
@@ -45,10 +55,10 @@ class Parser
         {
             return ParseVariable(out expr);
         }
-        /*else if (Match(.Identifier))
+        else if (Match(.Function))
         {
-            return ParseIdentifier(out expr);
-        }*/
+            return ParseFunction(out expr);
+        }
         else if (Match(.Condition))
         {
             return ParseConditional(out expr);
@@ -253,18 +263,66 @@ class Parser
     {
         outExpr = null;
 
-        Expression identifier = new IdentifierExpr(Previous().Literal);
+        let identifierLiteral = Previous().Literal;
 
         if (Match(.Equal))
         {
             Expression assignment;
             ParseEquality(out assignment);
 
+            Expression identifier = new IdentifierExpr(identifierLiteral);
             outExpr = new AssignmentExpr(identifier, assignment);
             return .Ok;
         }
 
+        if (Match(.LeftParen))
+        {
+            List<Expression> args;
+            ParseFunctionCall(out args);
+
+            outExpr = new FunctionCallExpr(identifierLiteral, args);
+            return .Ok;
+        }
+
+        Expression identifier = new IdentifierExpr(identifierLiteral);
         outExpr = identifier;
+        return .Ok;
+    }
+
+    Result<void> ParseFunctionCall(out List<Expression> args)
+    {
+        args = new .();
+
+        while (!Match(.RightParen))
+        {
+            if (Match(.EOF))
+            {
+                Console.WriteLine("Invalid syntax for function call");
+                delete args;
+                args = null;
+                return .Err;
+            }
+
+            Expression argExpr;
+            if (ParseExpression(out argExpr) case .Err)
+            {
+                delete args;
+                args = null;
+                return .Err;
+            }
+            args.Add(argExpr);
+
+            // We ignore the comma and new line because function calls can have multiple parameters
+            // and be written on multiple lines
+            //
+            // e.g:
+            //  add(a, b)
+            // or
+            //  add(a,
+            //      b)
+            if (Match(.Comma, .NewLine)) continue;
+        }
+
         return .Ok;
     }
 
@@ -353,6 +411,74 @@ class Parser
         }
 
         return .Ok;
+    }
+
+    // Starts with (
+    Result<void> ParseFunction(out Expression outExpr)
+    {
+        outExpr = null;
+
+        StringView name = "";
+        // It will be possible to have anonymous functions with the syntax: ($, param1, param2)
+        if (Match(.Identifier))
+        {
+            name = Previous().Literal;
+        }
+
+        if (Consume(.Comma, "Function name must be separated from parameters with a comma ','") case .Err) return .Err;
+
+        List<StringView> parameters = new .();
+        while (true)
+        {
+            if (Match(.EOF))
+                return .Err;
+
+            let param = Advance().Literal;
+            parameters.Add(param);
+
+            if (Match(.RightParen))
+                break;
+
+            if (Consume(.Comma, "Function parameters must be separated with a comma ','") case .Err) return .Err;
+        }
+
+        ReturnType returnType = .Undefined;
+        if (Match(.Return))
+        {
+            Expression returnTypeIdentifier = null;
+            if (Match(.Identifier))
+                if (ParseIdentifier(out returnTypeIdentifier) case .Err) return .Err;
+
+            returnType = MapIdentifierToValue(((IdentifierExpr)returnTypeIdentifier).Name);
+        }
+
+        if (Consume(.LeftBrace, "Expected '{'") case .Err) return .Err;
+
+        List<Expression> body = new .();
+        while (!Match(.RightBrace))
+        {
+            if (Match(.EOF))
+                return .Err;
+
+            Expression expr;
+            if (ParseExpression(out expr) case .Err) return .Err;
+
+            if (expr != null)
+                body.Add(expr);
+        }
+
+        outExpr = new FunctionExpr(name, body, parameters, returnType);
+
+        return .Ok;
+    }
+
+    ReturnType MapIdentifierToValue(StringView name)
+    {
+        if (primitiveTypes.ContainsKey(name))
+            return primitiveTypes.GetValue(name);
+
+        // For now we do not handle user defined types
+        return .Undefined;
     }
 
     Token Advance()

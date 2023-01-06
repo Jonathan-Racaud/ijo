@@ -38,6 +38,8 @@ class ByteCodeGenerator
         case typeof(ConditionExpr): Generate(expression as ConditionExpr, code);
         case typeof(LoopExpr): Generate(expression as LoopExpr, code);
         case typeof(AssignmentExpr): Generate(expression as AssignmentExpr, code);
+        case typeof(FunctionExpr): Generate(expression as FunctionExpr);
+        case typeof(FunctionCallExpr): Generate(expression as FunctionCallExpr, code);
         default: return .Err;
         }
         return .Ok;
@@ -223,6 +225,38 @@ class ByteCodeGenerator
         // We instruct to jump back to the first instruction to compute the condition
         code.Add(OpCode.Jump);
         code.Add(condPos);
+
+        return .Ok;
+    }
+
+    Result<void> Generate(FunctionExpr expr)
+    {
+        List<uint16> code = new .();
+        for (uint16 i = 0; i < expr.Parameters.Count; i++)
+        {
+            var idx = -1;
+            if (!Scope.HasString(scope .(expr.Parameters[i])))
+            {
+                idx = Scope.DefineString(new .(expr.Parameters[i]));
+            }
+            code.Add(OpCode.LoadArg);
+            // When calling the function, the parameter to be loaded on the stack has to be associated with
+            // the name at idx.
+            code.Add((uint16)idx);
+        }
+
+        if (Generate(expr.Body, code) case .Err) return .Err;
+
+        Scope.AddFunc(expr.Name, expr.Parameters.Count, expr.ReturnType, code);
+
+        return .Ok;
+    }
+
+    Result<void> Generate(FunctionCallExpr expr, List<uint16> code)
+    {
+        let funcIdx = Scope.GetFuncIdx(expr.Name, expr.Arguments.Count);
+        code.Add(OpCode.Call);
+        code.Add((uint16)funcIdx);
 
         return .Ok;
     }
