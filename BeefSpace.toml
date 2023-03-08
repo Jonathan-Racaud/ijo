@@ -1,11 +1,8 @@
 FileVersion = 1
-Projects = {ijo = {Path = "."}}
+Projects = {ijoLang = {Path = "."}}
 
 [Workspace]
-StartupProject = "ijo"
-
-[Configs."Debug - REPL".Win64]
-ConfigSelections = {corlib = {Config = "Debug"}}
+StartupProject = "ijoLang"
 
 [Configs."Debug - REPL".Win32]
-ConfigSelections = {ijo = {Config = "Debug"}, corlib = {Config = "Debug"}}
+ConfigSelections = {ijoLang = {Config = "Debug"}}

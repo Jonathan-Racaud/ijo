@@ -1,9 +1,10 @@
 using System;
 using System.IO;
+using ijoLang.Emitters;
 
 namespace ijoLang
 {
-    class Program
+    /*class Program
     {
         private static VirtualMachine vm = new .() ~ delete _;
 
@@ -76,6 +77,50 @@ namespace ijoLang
             Console.WriteLine("    run    Interpret the file given at path.");
 
             return Exit.Usage;
+        }
+    }*/
+
+    class Program
+    {
+        public static int Main(String[] args)
+        {
+            let scanner = scope Scanner();
+            let parser = scope Parser();
+            let emitter = scope CEmitter();
+
+
+            String source = new .();
+            defer delete source;
+
+            switch (args[0])
+            {
+            case "c":
+                let path = args[1];
+
+                if (!File.Exists(path))
+                {
+                    Console.Error.WriteLine(scope $"File doesn't exists: {path}");
+                    return Exit.IOErr;
+                }
+
+                File.ReadAllText(path, source);
+            default:
+                return 1;
+            }
+
+            let tokens = scanner.Scan(source, .. scope .());
+            let ast = parser.Parse(tokens, .. scope .());
+
+            let output = new FileStream();
+            let currentDir = Directory.GetCurrentDirectory(.. scope .());
+            let outputPath = Path.InternalCombine(..scope .(), currentDir, "program.c");
+
+            output.Create(outputPath, .Write);
+
+            emitter.Emit(output, ast);
+            output.Close();
+
+            return 0;
         }
     }
 }

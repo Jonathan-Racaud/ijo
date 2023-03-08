@@ -1,11 +1,11 @@
 FileVersion = 1
 
 [Project]
-Name = "ijo"
-StartupObject = "ijo.Program"
+Name = "ijoLang"
+StartupObject = "ijoLang.Program"
 
 [Configs.Debug.Win64]
-DebugCommandArguments = "run $(ProjectDir)/examples/00_basics/05_functions.ijo"
+DebugCommandArguments = "c $(ProjectDir)/examples/00_basics/00_hello_world.ijo"
 
 [Configs."Debug - REPL".Win64]
 BeefLibType = "Static"
