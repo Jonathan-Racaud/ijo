@@ -1,5 +1,5 @@
 using System;
-namespace ijo;
+namespace ijoLang;
 
 // Arithmetic operators
 extension Value

@@ -1,5 +1,5 @@
 using System;
-namespace ijo;
+namespace ijoLang;
 
 struct Token : IDisposable
 {

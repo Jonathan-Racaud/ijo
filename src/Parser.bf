@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
-using ijo.AST;
-namespace ijo;
+using ijoLang.AST;
+namespace ijoLang;
 
 class Parser
 {

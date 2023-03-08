@@ -1,4 +1,4 @@
-namespace ijo
+namespace ijoLang
 {
     public enum Exit: int
     {

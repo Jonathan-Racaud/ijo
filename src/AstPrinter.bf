@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
-using ijo.AST;
+using ijoLang.AST;
 
-namespace ijo;
+namespace ijoLang;
 
 class AstPrinter
 {

@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-namespace ijo;
+namespace ijoLang;
 
 class Scanner
 {

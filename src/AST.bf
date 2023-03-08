@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-namespace ijo.AST;
+namespace ijoLang.AST;
 
 enum VarType
 {

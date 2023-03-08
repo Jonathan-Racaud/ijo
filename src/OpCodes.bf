@@ -1,5 +1,5 @@
 using System;
-namespace ijo;
+namespace ijoLang;
 
 enum OpCode : uint16
 {

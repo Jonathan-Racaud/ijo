@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace ijo
+namespace ijoLang
 {
     class Program
     {
