@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using ijoLang.Emitters;
+using ijoLang.Commands;
 
 namespace ijoLang
 {
@@ -86,34 +87,92 @@ namespace ijoLang
         {
             let scanner = scope Scanner();
             let parser = scope Parser();
-            let emitter = scope CEmitter();
-
-
-            String source = new .();
+            let source = new String();
             defer delete source;
 
-            switch (args[0])
+            let outputExt = scope String();
+
+            Emitter emitter = null;
+            defer { if (emitter != null) delete emitter; }
+
+            let cCodeCommand = Command() {
+                Name = "c",
+                Handler = new [&](c) => {
+                    emitter = new CEmitter();
+                    outputExt.Set(".c");
+                    return 0;
+				}
+			};
+
+            let jsCodeCommand = Command() {
+                Name = "js",
+                Handler = new [&](c) => {
+                    let js = new JSEmitter();
+                    js.StdOutCall.Set("console.log");
+                    emitter = js;
+                    outputExt.Set(".js");
+                    return 0;
+            	}
+            };
+
+            let nodeCodeCommand = Command() {
+                Name = "node",
+                Handler = new [&](c) => {
+                    let js = new JSEmitter();
+                    js.StdOutCall.Set("process.stdout.write");
+                    emitter = js;
+                    outputExt.Set(".js");
+                    return 0;
+            	}
+            };
+
+            let helpCommand = Command() {
+                Name = "help",
+                Handler = new (c) => {
+                    Console.WriteLine("Usage: ijoLang <target_lang> File");
+                    return 0;
+            	}
+            };
+
+            let cliManager = scope CommandManager(helpCommand);
+            cliManager.Register(cCodeCommand);
+            cliManager.Register(jsCodeCommand);
+            cliManager.Register(nodeCodeCommand);
+
+            if (args.Count != 2)
             {
-            case "c":
-                let path = args[1];
-
-                if (!File.Exists(path))
-                {
-                    Console.Error.WriteLine(scope $"File doesn't exists: {path}");
-                    return Exit.IOErr;
-                }
-
-                File.ReadAllText(path, source);
-            default:
+                helpCommand.Handler(helpCommand);
                 return 1;
             }
 
+            let commandName = args[0];
+
+            if (cliManager.HasCommandWithName(commandName))
+            {
+                var command = cliManager.GetCommandWithName(commandName);
+                command.Handler(command);
+            }
+
+            ReadSourceFile(args[1], source);
+
             let tokens = scanner.Scan(source, .. scope .());
+            defer {
+                for (let t in tokens)
+                {
+                    t.Dispose();
+                }
+
+                tokens.Clear();
+			}
+
             let ast = parser.Parse(tokens, .. scope .());
+            defer { ClearAndDeleteItems!(ast); }
 
             let output = new FileStream();
+            defer delete output;
+
             let currentDir = Directory.GetCurrentDirectory(.. scope .());
-            let outputPath = Path.InternalCombine(..scope .(), currentDir, "program.c");
+            let outputPath = Path.InternalCombine(..scope .(), currentDir, scope $"program{outputExt}");
 
             output.Create(outputPath, .Write);
 
@@ -121,6 +180,17 @@ namespace ijoLang
             output.Close();
 
             return 0;
+        }
+
+        static void ReadSourceFile(StringView path, String output)
+        {
+            if (!File.Exists(path))
+            {
+                Console.Error.WriteLine(scope $"File doesn't exists: {path}");
+                return;
+            }
+
+            File.ReadAllText(path, output);
         }
     }
 }

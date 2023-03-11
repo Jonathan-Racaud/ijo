@@ -18,7 +18,7 @@ class Parser
             ("String", .String),
             ("Symbol", .Symbol),
             ("Undefined", .Undefined)
-        };
+        } ~ delete _;
 
     public Result<void> Parse(List<Token> toks, List<Expression> expressions)
     {

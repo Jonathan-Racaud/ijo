@@ -5,7 +5,7 @@ Name = "ijoLang"
 StartupObject = "ijoLang.Program"
 
 [Configs.Debug.Win64]
-DebugCommandArguments = "c $(ProjectDir)/examples/00_basics/00_hello_world.ijo"
+DebugCommandArguments = "node $(ProjectDir)/examples/00_basics/01_basic_math.ijo"
 
 [Configs."Debug - REPL".Win64]
 BeefLibType = "Static"
