@@ -6,3 +6,4 @@ src_previous_impl
 examples/
 *.lnk
 misc/
+mytests/

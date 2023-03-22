@@ -15,6 +15,9 @@ enum VarType
 
 interface Expression { }
 
+class NewLineExpression : Expression {}
+class NotImplementedExpression : Expression {}
+
 class BinaryExpr : Expression
 {
     public Expression Left ~ delete _;

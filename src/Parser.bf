@@ -1,71 +1,75 @@
 using System;
 using System.Collections;
 using ijoLang.AST;
+
 namespace ijoLang;
+
+typealias TokenList = List<Token>;
+typealias ExpressionList = List<Expression>;
 
 class Parser
 {
     int current;
-    List<Token> tokens;
+    TokenList tokens;
 
     bool parsingConditional = false;
 
     Dictionary<StringView, ReturnType> primitiveTypes = new .()
-        {
-            ("Int", .Integer),
-            ("Double", .Double),
-            ("Bool", .Bool),
-            ("String", .String),
-            ("Symbol", .Symbol),
-            ("Undefined", .Undefined)
-        } ~ delete _;
+    {
+        ("Int", .Integer),
+        ("Double", .Double),
+        ("Bool", .Bool),
+        ("String", .String),
+        ("Undefined", .Undefined)
+    } ~ delete _;
 
-    public Result<void> Parse(List<Token> toks, List<Expression> expressions)
+    public Result<ExpressionList> Parse(TokenList tokens)
     {
         current = 0;
-        this.tokens = toks;
+        this.tokens = tokens;
 
+        let ast = new ExpressionList();
         while (!Match(.EOF))
         {
             parsingConditional = false;
 
-            Expression expr;
-            if (ParseExpression(out expr) case .Err) return .Err;
+            let res = ParseExpression();
+            if (res case .Err) return .Err;
+
+            let expr = res.Value;
 
             if (expr != null)
             {
-                expressions.Add(expr);
+                ast.Add(expr);
             }
         }
 
-        return .Ok;
+        return .Ok(ast);
     }
 
-    Result<void> ParseExpression(out Expression expr)
+    Result<Expression> ParseExpression()
     {
-        expr = null;
-
-        if (Match(.NewLine)) return .Ok;
+        if (Match(.NewLine)) return .Ok(new NewLineExpression());
 
         if (Match(.Print))
         {
-            return ParsePrint(out expr);
+            return ParsePrint();
         }
         else if (Match(.Var))
         {
-            return ParseVariable(out expr);
+            return ParseVariable();
         }
         else if (Match(.Function))
         {
-            return ParseFunction(out expr);
+            return ParseFunction();
         }
         else if (Match(.Condition))
         {
-            return ParseConditional(out expr);
+            return ParseConditional();
         }
         else if (Match(.Loop))
         {
-            return ParseLoop(out expr);
+            return ParseLoop();
         }
         else if (Match(.Read))
         {
@@ -80,133 +84,100 @@ class Parser
         {
         }
 
-        if (ParseEquality(out expr) case .Err) return .Err;
+        let equality = NotError!(ParseEquality());
         /*if (Consume(.NewLine, "Expected end of expression. Expressions end with a new line") case .Err) return .Err;*/
 
-        return .Ok;
+        return equality;
     }
 
-    Result<void> ParseEquality(out Expression outExpr)
+    Result<Expression> ParseEquality()
     {
-        outExpr = null;
-        Expression expr;
-
-        if (ParseComparison(out expr) case .Err) return .Err;
+        var comp = NotError!(ParseComparison());
 
         while (Match(.BangEqual, .EqualEqual))
         {
             let op = Previous();
+            let right = NotError!(ParseComparison());
 
-            Expression right;
-            if (ParseComparison(out right) case .Err) return .Err;
-
-            expr = new BinaryExpr(expr, op, right);
+            comp = new BinaryExpr(comp, op, right);
         }
 
-        outExpr = expr;
-        return .Ok;
+        return comp;
     }
 
-    Result<void> ParseComparison(out Expression outExpr)
+    Result<Expression> ParseComparison()
     {
-        outExpr = null;
-        Expression expr;
-
-        if (ParseTerm(out expr) case .Err) return .Err;
+        var term = NotError!(ParseTerm());
 
         while (Match(.Greater, .GreaterEqual, .Less, .LessEqual))
         {
             Token op = Previous();
-            Expression right;
-            if (ParseTerm(out right) case .Err) return .Err;
-            expr = new BinaryExpr(expr, op, right);
+            let right = NotError!(ParseTerm());
+
+            term = new BinaryExpr(term, op, right);
         }
 
-        outExpr = expr;
-        return .Ok;
+        return term;
     }
 
-    Result<void> ParseTerm(out Expression outExpr)
+    Result<Expression> ParseTerm()
     {
-        outExpr = null;
-        Expression expr;
-
-        if (ParseFactor(out expr) case .Err) return .Err;
+        var factor = NotError!(ParseFactor());
 
         while (Match(.Minus, .Plus))
         {
             Token op = Previous();
-            Expression right;
-            if (ParseFactor(out right) case .Err) return .Err;
+            let right = NotError!(ParseFactor());
 
-            expr = new BinaryExpr(expr, op, right);
+            factor = new BinaryExpr(factor, op, right);
         }
 
-        outExpr = expr;
-        return .Ok;
+        return factor;
     }
 
-    Result<void> ParseFactor(out Expression outExpr)
+    Result<Expression> ParseFactor()
     {
-        outExpr = null;
-        Expression expr;
-
-        if (ParseUnary(out expr) case .Err) return .Err;
+        var unary = NotError!(ParseUnary());
 
         while (Match(.Star, .Slash, .Percent))
         {
             Token op = Previous();
-            Expression right;
-            if (ParseUnary(out right) case .Err) return .Err;
+            let right = NotError!(ParseUnary());
 
-            expr = new BinaryExpr(expr, op, right);
+            unary = new BinaryExpr(unary, op, right);
         }
 
-        outExpr = expr;
-        return .Ok;
+        return unary;
     }
 
-    Result<void> ParseUnary(out Expression outExpr)
+    Result<Expression> ParseUnary()
     {
-        outExpr = null;
-
         if (Match(.Bang, .Minus))
         {
             Token op = Previous();
-            Expression right;
-            if (ParseUnary(out right) case .Err) return .Err;
+            let right = NotError!(ParseUnary());
 
-            outExpr = new UnaryExpr(op, right);
-            return .Ok;
+            return new UnaryExpr(op, right);
         }
 
-        return ParsePrimary(out outExpr);
+        return ParsePrimary();
     }
 
-    Result<void> ParsePrimary(out Expression outExpr)
+    Result<Expression> ParsePrimary()
     {
-        outExpr = null;
-
         if (Match(.Integer, .Float, .String, .Symbol))
         {
-            outExpr = new LiteralExpr(Previous().Literal, Previous().Type);
-            return .Ok;
+            return new LiteralExpr(Previous().Literal, Previous().Type);
         }
 
         if (Match(.Identifier))
         {
-            Expression identifier;
-            ParseIdentifier(out identifier);
-
-            outExpr = identifier;
-            return .Ok;
+            return ParseIdentifier();
         }
 
         if (Match(.LeftParen))
         {
-            Expression expr;
-
-            if (ParseExpression(out expr) case .Err) return .Err;
+            var expr = NotError!(ParseExpression());
 
             if (Consume(.RightParen, "Missing closing ')'") case .Err)
             {
@@ -214,84 +185,66 @@ class Parser
                 return .Err;
             }
 
-            outExpr = new GroupingExpr(expr);
-            return .Ok;
+            return new GroupingExpr(expr);
         }
 
         // It is possible to have the following syntax: ?() to
         if (parsingConditional)
-            return .Ok;
+            return NotError!(ParseElseConditional());
 
         Console.WriteLine("Invalid expression");
         return .Err;
     }
 
-    Result<void> ParsePrint(out Expression outExpr)
+    Result<Expression> ParseElseConditional()
     {
-        outExpr = null;
-
-        Expression right;
-        if (ParseExpression(out right) case .Err) return .Err;
-
-        outExpr = new PrintExpr(right);
-        return .Ok;
+        return new NotImplementedExpression();
     }
 
-    Result<void> ParseVariable(out Expression outExpr)
+    Result<Expression> ParsePrint()
     {
-        outExpr = null;
+        let right = NotError!(ParseExpression());
 
+        return new PrintExpr(right);
+    }
+
+    Result<Expression> ParseVariable()
+    {
         Consume(.Identifier, "Expected identifier");
         let name = Previous().Literal;
 
         if (Consume(.Equal) case .Err) return .Err;
 
-        Expression right;
-        if (ParseExpression(out right) case .Err)
-        {
-            if (right != null)
-                delete right;
-            return .Err;
-        }
+        let right = NotError!(ParseExpression());
 
-        outExpr = new VarExpr(name, right);
-
-        return .Ok;
+        return new VarExpr(name, right);
     }
 
-    Result<void> ParseIdentifier(out Expression outExpr)
+    Result<Expression> ParseIdentifier()
     {
-        outExpr = null;
-
         let identifierLiteral = Previous().Literal;
 
         if (Match(.Equal))
         {
-            Expression assignment;
-            ParseEquality(out assignment);
+            let assignment = NotError!(ParseEquality());
+            let identifier = new IdentifierExpr(identifierLiteral);
 
-            Expression identifier = new IdentifierExpr(identifierLiteral);
-            outExpr = new AssignmentExpr(identifier, assignment);
-            return .Ok;
+            return new AssignmentExpr(identifier, assignment);
         }
 
         if (Match(.LeftParen))
         {
-            List<Expression> args;
-            ParseFunctionCall(out args);
+            let functionCallArgs = NotError!(ParseFunctionCall());
 
-            outExpr = new FunctionCallExpr(identifierLiteral, args);
-            return .Ok;
+            return new FunctionCallExpr(identifierLiteral, functionCallArgs);
         }
 
-        Expression identifier = new IdentifierExpr(identifierLiteral);
-        outExpr = identifier;
-        return .Ok;
+        return new IdentifierExpr(identifierLiteral);
     }
 
-    Result<void> ParseFunctionCall(out List<Expression> args)
+    Result<List<Expression>> ParseFunctionCall()
     {
-        args = new .();
+        var args = new List<Expression>();
 
         while (!Match(.RightParen))
         {
@@ -303,13 +256,7 @@ class Parser
                 return .Err;
             }
 
-            Expression argExpr;
-            if (ParseExpression(out argExpr) case .Err)
-            {
-                delete args;
-                args = null;
-                return .Err;
-            }
+            let argExpr = NotError!(ParseExpression());
             args.Add(argExpr);
 
             // We ignore the comma and new line because function calls can have multiple parameters
@@ -323,18 +270,17 @@ class Parser
             if (Match(.Comma, .NewLine)) continue;
         }
 
-        return .Ok;
+        return args;
     }
 
-    Result<void> ParseConditional(out Expression outExpr)
+    Result<Expression> ParseConditional()
     {
-        outExpr = null;
         parsingConditional = true;
 
-        Expression condition = null;
         List<Expression> body = new .();
 
-        if (ParseEquality(out condition) case .Err) return .Err;
+        var condition = NotError!(ParseEquality());
+        
         if (Consume(.RightParen, "Expected ')'") case .Err) return .Err;
         if (Consume(.LeftBrace, "Expected '}'") case .Err) return .Err;
 
@@ -343,30 +289,35 @@ class Parser
             if (Match(.EOF))
                 return .Err;
 
-            Expression expr;
-            if (ParseExpression(out expr) case .Err) return .Err;
+            let expr = NotError!(ParseExpression());
 
             if (expr != null)
                 body.Add(expr);
         }
 
-        outExpr = new ConditionExpr(condition, body);
-        return .Ok;
+        return new ConditionExpr(condition, body);
     }
 
-    Result<void> ParseLoop(out Expression outExpr)
+    Result<Expression> ParseLoop()
     {
-        outExpr = null;
-
         Expression initialization = null;
         Expression condition = null;
         Expression increment = null;
 
         if (!PeekMatch(.Semicolon))
-            ParseExpression(out initialization);
+        {
+            initialization = NotError!(ParseExpression());
+        }
 
-        if (Match(.Semicolon)) { ParseExpression(out condition); }
-        if (Match(.Semicolon)) { ParseExpression(out increment); }
+        if (Match(.Semicolon))
+		{
+			condition = NotError!(ParseExpression());
+		}
+
+        if (Match(.Semicolon))
+		{
+			increment = NotError!(ParseExpression());
+		}
 
         if (Consume(.RightParen, "Expected ')'") case .Err) return .Err;
         if (Consume(.LeftBrace, "Expected '{'") case .Err) return .Err;
@@ -381,8 +332,7 @@ class Parser
                 return .Err;
             }
 
-            Expression expr;
-            if (ParseExpression(out expr) case .Err) return .Err;
+            let expr = NotError!(ParseExpression());
 
             if (expr != null)
                 body.Add(expr);
@@ -392,32 +342,28 @@ class Parser
         // What we initially parsed as initialization becomes the condition.
         if (initialization != null && condition == null && increment == null)
         {
-            outExpr = new LoopExpr(body, initialization, null, null);
-        }
-        // ~(; cond; incr)
-        else if (initialization == null && condition != null && increment != null)
-        {
-            outExpr = new LoopExpr(body, condition, null, increment);
-        }
-        // ~(init; cond) {}
-        else if (initialization != null && condition != null && increment == null)
-        {
-            outExpr = new LoopExpr(body, condition, initialization, null);
-        }
-        // !(init; cond; incr) {}
-        else
-        {
-            outExpr = new LoopExpr(body, condition, initialization, increment);
+            return new LoopExpr(body, initialization, null, null);
         }
 
-        return .Ok;
+        // ~(; cond; incr)
+        if (initialization == null && condition != null && increment != null)
+        {
+            return new LoopExpr(body, condition, null, increment);
+        }
+
+        // ~(init; cond) {}
+        if (initialization != null && condition != null && increment == null)
+        {
+            return new LoopExpr(body, condition, initialization, null);
+        }
+
+        // !(init; cond; incr) {}
+        return new LoopExpr(body, condition, initialization, increment);
     }
 
     // Starts with (
-    Result<void> ParseFunction(out Expression outExpr)
+    Result<Expression> ParseFunction()
     {
-        outExpr = null;
-
         StringView name = "";
         // It will be possible to have anonymous functions with the syntax: ($, param1, param2)
         if (Match(.Identifier))
@@ -447,7 +393,9 @@ class Parser
         {
             Expression returnTypeIdentifier = null;
             if (Match(.Identifier))
-                if (ParseIdentifier(out returnTypeIdentifier) case .Err) return .Err;
+            {
+                returnTypeIdentifier = NotError!(ParseIdentifier());
+            }
 
             returnType = MapIdentifierToValue(((IdentifierExpr)returnTypeIdentifier).Name);
         }
@@ -460,16 +408,13 @@ class Parser
             if (Match(.EOF))
                 return .Err;
 
-            Expression expr;
-            if (ParseExpression(out expr) case .Err) return .Err;
+            let expr = NotError!(ParseExpression());
 
             if (expr != null)
                 body.Add(expr);
         }
 
-        outExpr = new FunctionExpr(name, body, parameters, returnType);
-
-        return .Ok;
+        return new FunctionExpr(name, body, parameters, returnType);
     }
 
     ReturnType MapIdentifierToValue(StringView name)

@@ -165,8 +165,12 @@ namespace ijoLang
                 tokens.Clear();
 			}
 
-            let ast = parser.Parse(tokens, .. scope .());
-            defer { ClearAndDeleteItems!(ast); }
+            let res = (parser.Parse(tokens));
+            if (res == .Err)
+                return Exit.Software;
+
+            let ast = res.Value;
+            defer { DeleteContainerAndItems!(ast); }
 
             let output = new FileStream();
             defer delete output;

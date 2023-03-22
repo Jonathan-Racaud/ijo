@@ -18,4 +18,12 @@ static
 
         result.Value
     }
+
+    public static mixin NotError(var result)
+    {
+        if (result case .Err)
+            return .Err;
+
+        result.Value
+    }
 }

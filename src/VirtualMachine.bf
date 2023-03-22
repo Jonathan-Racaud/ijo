@@ -93,13 +93,9 @@ class VirtualMachine
     {
         List<Expression> expressions = new .();
 
-        if (Parser.Parse(tokens, expressions) case .Err)
+        let astRes = Parser.Parse(tokens);
+        if (astRes case .Err)
         {
-            for (let e in expressions)
-            {
-                if (e != null) delete e;
-            }
-            delete expressions;
             return .Err(Exit.Software);
         }
 
