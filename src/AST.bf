@@ -13,10 +13,35 @@ enum VarType
     case Struct;
 }
 
-interface Expression { }
+class Ast
+{
+    public List<Expression> Expressions ~ DeleteContainerAndItems!(_);
+    public StringView ModuleName;
 
-class NewLineExpression : Expression {}
-class NotImplementedExpression : Expression {}
+    public this(StringView moduleName, List<Expression> expressions)
+    {
+        ModuleName = moduleName;
+        Expressions = expressions;
+    }
+
+    public void Print(int level = 0)
+    {
+        for (let e in Expressions) {
+            e.Print(level);
+		}
+    }
+}
+
+interface Expression {
+    public void Print(int level);
+}
+
+class NewLineExpression : Expression {
+    public void Print(int level) {}
+}
+class NotImplementedExpression : Expression {
+    public void Print(int level) { Console.WriteLine("<<NOT IMPLEMENTED>>"); }
+}
 
 class BinaryExpr : Expression
 {
@@ -30,6 +55,16 @@ class BinaryExpr : Expression
         Operator = op;
         Right = right;
     }
+
+    public void Print(int level)
+	{
+        Console.Write(scope String(' ', level * 2));
+		Console.WriteLine("BinaryExpr:");
+        Left.Print(level + 1);
+        Console.Write(scope String(' ', level * 4));
+        Console.WriteLine(scope $"Operator({Operator.Literal})");
+        Right.Print(level + 1);
+	}
 }
 
 class UnaryExpr : Expression
@@ -41,6 +76,15 @@ class UnaryExpr : Expression
     {
         Operator = op;
         Right = right;
+    }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine("UnaryExpr:");
+        Console.Write(scope String(' ', level * 3));
+        Console.WriteLine(scope $"Operator({Operator.Literal})");
+        Right.Print(level + 1);
     }
 }
 
@@ -54,6 +98,12 @@ class LiteralExpr : Expression
         Literal = literal;
         Type = type;
     }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"LiteralExpr({Type} {Literal.QuoteString(..scope .())})");
+    }
 }
 
 class GroupingExpr : Expression
@@ -63,6 +113,15 @@ class GroupingExpr : Expression
     public this(Expression expr)
     {
         Expr = expr;
+    }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"GroupingExpr:(");
+        Expr.Print(level + 1);
+        Console.Write(scope String(' ', level * 2));
+        Console.WriteLine(scope $")");
     }
 }
 
@@ -74,6 +133,13 @@ class PrintExpr : Expression
     {
         Expr = expr;
     }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"PrintExpr:");
+        Expr.Print(level + 1);
+    }
 }
 
 class IdentifierExpr : Expression
@@ -83,6 +149,12 @@ class IdentifierExpr : Expression
     public this(StringView name)
     {
         Name = name;
+    }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"IdentifierExpr({Name})");
     }
 }
 
@@ -96,6 +168,13 @@ class VarExpr : Expression
         Name = name;
         Expr = expr;
     }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"VarExpr({Name})");
+        Expr.Print(level + 1);
+    }
 }
 
 class AssignmentExpr : Expression
@@ -108,6 +187,14 @@ class AssignmentExpr : Expression
         Identifier = identifier;
         Assignment = assignment;
     }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"AssignmentExpr:");
+        Identifier.Print(level + 1);
+        Assignment.Print(level + 1);
+    }
 }
 
 class ConditionExpr : Expression
@@ -119,6 +206,21 @@ class ConditionExpr : Expression
     {
         Condition = condition;
         Body = body;
+    }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"ConditionExpr:");
+        Console.Write(scope String(' ', (level + 1)));
+        Console.WriteLine(scope $"Condition:");
+        Condition.Print(level + 1);
+
+        Console.Write(scope String(' ', (level + 1)));
+        Console.WriteLine(scope $"Instructions:");
+        for (var instruction in Body) {
+            instruction.Print(level + 1);
+		}
     }
 }
 
@@ -136,22 +238,79 @@ class LoopExpr : Expression
         Initialization = initialization;
         Increment = increment;
     }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"LoopExpr:");
+        
+
+        if (Initialization != null)
+        {
+            Console.Write(scope String(' ', level * 3));
+			Console.WriteLine(scope $"Initialization:");
+            Initialization.Print(level + 1);
+        }
+
+        if (Condition != null)
+        {
+            Console.Write(scope String(' ', level * 3));
+            Console.WriteLine(scope $"Condition:");
+            Condition.Print(level + 1);
+        }
+
+        if (Increment != null)
+        {
+            Console.Write(scope String(' ', level * 3));
+            Console.WriteLine(scope $"Increment:");
+            Increment.Print(level + 1);
+        }
+
+        Console.Write(scope String(' ', level * 3));
+        Console.WriteLine(scope $"Instructions:");
+        for (var instruction in Body) {
+            instruction.Print(level + 1);
+    	}
+    }
 }
 
 class FunctionExpr : Expression
 {
     public StringView Name;
-    public List<StringView> Parameters ~ delete _;
-    public List<Expression> Body ~ delete _;
+    public List<ParameterDefinition> Parameters ~ delete _;
+    public List<Expression> Body ~ DeleteContainerAndItems!(_);
     public ReturnType ReturnType;
 
-    public this(StringView name, List<Expression> body, List<StringView> parameters = null, ReturnType returnType = .Undefined)
+    public this(StringView name, List<Expression> body, List<ParameterDefinition> parameters = null, ReturnType returnType = .Undefined)
     {
         Name = name;
         Body = body;
         Parameters = parameters;
         ReturnType = returnType;
     }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"FunctionExpr({Name}, {ReturnType}):");
+        for (var param in Parameters) {
+            Console.Write(scope String(' ', level + 1));
+            Console.WriteLine(scope $"Param({param.OuterName}, {param.InnerName}, {param.TypeName})");
+    	}
+
+        Console.Write(scope String(' ', level + 1));
+        Console.WriteLine("Instructions:");
+        for (var instruction in Body) {
+            instruction.Print(level + 1);
+        }
+    }
+}
+
+struct ParameterDefinition
+{
+    public StringView? OuterName;
+    public StringView InnerName;
+    public StringView TypeName;
 }
 
 class FunctionCallExpr : Expression
@@ -163,5 +322,17 @@ class FunctionCallExpr : Expression
     {
         Name = name;
         Arguments = arguments;
+    }
+
+    public void Print(int level)
+    {
+        Console.Write(scope String(' ', level * 2));
+    	Console.WriteLine(scope $"FunctionCallExpr({Name}):");
+
+        for (var param in Arguments) {
+            Console.Write(scope String(' ', level * 2));
+            Console.WriteLine(scope $"Argument:");
+            param.Print(level + 1);
+    	}
     }
 }

@@ -235,9 +235,9 @@ class ByteCodeGenerator
         for (uint16 i = 0; i < expr.Parameters.Count; i++)
         {
             var idx = -1;
-            if (!Scope.HasString(scope .(expr.Parameters[i])))
+            if (!Scope.HasString(scope .(expr.Parameters[i].InnerName)))
             {
-                idx = Scope.DefineString(new .(expr.Parameters[i]));
+                idx = Scope.DefineString(new .(expr.Parameters[i].InnerName));
             }
             code.Add(OpCode.LoadArg);
             // When calling the function, the parameter to be loaded on the stack has to be associated with

@@ -12,6 +12,11 @@ class JSEmitter : Emitter
     public String StdOutCall = new .() ~ delete _;
     private bool printing;
 
+    public override void Emit(Stream stream, Ast ast)
+    {
+        Emit(stream, ast.Expressions);
+    }
+
     public override void Emit(Stream stream, List<Expression> expressions)
     {
         for (var expr in expressions)

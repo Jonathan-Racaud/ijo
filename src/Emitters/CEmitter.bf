@@ -8,19 +8,23 @@ namespace ijoLang.Emitters;
 
 class CEmitter : Emitter
 {
+    public override void Emit(Stream stream, Ast ast)
+    {
+        EmitMandatoryCode(stream);
+
+        stream.WriteLine("void program() {");
+        Emit(stream, ast.Expressions);
+        stream.WriteLine("}");
+
+        EmitMain(stream, ast);
+    }
+
     public override void Emit(Stream stream, List<Expression> expressions)
     {
-        stream.Write("#include <stdio.h>\n\n");
-        stream.Write("int main(int argc, char** argv)\n");
-        stream.Write("{\n");
-
         for (var expr in expressions)
         {
             Emit(stream, expr);
         }
-
-        stream.Write("  return 0;");
-        stream.Write("}\n");
     }
 
     public override void Emit(Stream stream, Expression expression)
@@ -230,5 +234,21 @@ class CEmitter : Emitter
     protected override void Emit(Stream stream, Token token)
     {
         stream.Write(token.Literal);
+    }
+
+    private void EmitMandatoryCode(Stream stream) {
+        stream.WriteLine("#include <stdio.h>");
+    }
+
+    private void EmitMain(Stream stream, Ast ast) {
+        stream.WriteLine(
+        scope $"""
+            int main(int argc, char** argv) {{
+                {ast.ModuleName}();
+
+                return 0;
+            }}
+        """
+        );
     }
 }

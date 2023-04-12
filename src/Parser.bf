@@ -373,14 +373,44 @@ class Parser
 
         if (Consume(.Comma, "Function name must be separated from parameters with a comma ','") case .Err) return .Err;
 
-        List<StringView> parameters = new .();
+        List<ParameterDefinition> parameters = new .();
         while (true)
         {
             if (Match(.EOF))
                 return .Err;
 
-            let param = Advance().Literal;
-            parameters.Add(param);
+            var parameterDefinition = ParameterDefinition();
+
+            StringView component1;
+			StringView? component2 = null;
+			StringView? component3 = null;
+
+            component1 = Advance().Literal;
+
+            if (PeekMatch(.Identifier))
+                component2 = Advance().Literal;
+
+            if (PeekMatch(.Identifier))
+	            component3 = Advance().Literal;
+
+            if (component2 != null && component3 != null)
+            {
+                parameterDefinition.OuterName = component1;
+                parameterDefinition.InnerName = component2.Value;
+                parameterDefinition.TypeName = component3.Value;
+            }
+            else if (component2 != null && component3 == null)
+            {
+                parameterDefinition.InnerName = component1;
+                parameterDefinition.TypeName = component2.Value;
+            }
+            else
+            {
+                Console.Error.WriteLine("Function parameter must have a name and type");
+                return .Err;
+            }
+
+            parameters.Add(parameterDefinition);
 
             if (Match(.RightParen))
                 break;

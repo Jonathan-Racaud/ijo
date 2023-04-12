@@ -1,12 +1,14 @@
 using System.Collections;
 using System.IO;
 
-using ijoLang.AST;
 using ijoLang;
+using ijoLang.AST;
+
 namespace ijoLang.Emitters;
 
 abstract class Emitter
 {
+    public abstract void Emit(Stream stream, Ast ast);
     public abstract void Emit(Stream stream, List<Expression> expressions);
     public abstract void Emit(Stream stream, Expression expression);
 

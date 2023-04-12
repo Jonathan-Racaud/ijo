@@ -13,3 +13,22 @@ namespace System
         }
     }
 }
+
+namespace System.IO
+{
+    extension Stream
+    {
+        public Result<void>  WriteLine(String val)
+        {
+            let res = this.Write(val);
+
+            switch (res)
+            {
+                case .Err: return .Err;
+                default: break;
+            }
+
+            return this.Write("\n");
+        }
+    }
+}
