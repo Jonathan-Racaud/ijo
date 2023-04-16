@@ -3,7 +3,10 @@ project(ijoVM)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   message("Building in DEBUG mode")
-  add_definitions(-DDEBUG)
+  add_definitions(
+    -DDEBUG
+    -DDEBUG_TRACE_EXECUTION
+  )
 endif()
 
 # Sources
