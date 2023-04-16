@@ -27,3 +27,23 @@ void ValueArrayAppend(ValueArray *array, Value value) {
 void ValuePrint(Value value) {
     ConsoleWrite("%g", value);
 }
+
+Value ValueAdd(Value a, Value b) {
+    return a + b;
+}
+
+Value ValueSub(Value a, Value b) {
+    return a - b;
+}
+
+Value ValueDiv(Value a, Value b) {
+    return a / b;
+}
+
+Value ValueMul(Value a, Value b) {
+    return a * b;
+}
+
+Value ValueMod(Value a, Value b) {
+    return (int)a % (int)b;
+}

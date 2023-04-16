@@ -23,15 +23,16 @@ int main(int argc, char **argv) {
   Chunk chunk;
   ChunkNew(&chunk);
 
-  int constant = ChunkAddConstant(&chunk, 1.2);
-  ChunkWriteCode(&chunk, OP_MODULE, 1);
   ChunkWriteCode(&chunk, OP_CONSTANT, 3);
-  ChunkWriteCode(&chunk, constant, 3);
+  ChunkWriteCode(&chunk, 2, 3);
+  ChunkWriteCode(&chunk, OP_CONSTANT, 3);
+  ChunkWriteCode(&chunk, 3, 3);
+  ChunkWriteCode(&chunk, OP_ADD, 3);
   ChunkWriteCode(&chunk, OP_RETURN, 3);
 
-#if DEBUG
-  DisassembleChunk(&chunk, "Test Chunk");
-#endif
+  if (!ijoVMInterpret(vm, &chunk)) {
+    LogError("An error occurred while interpreting chunk");
+  }
 
   ChunkDelete(&chunk);
 

@@ -7,7 +7,15 @@
 /// @brief The different Operation Code the ijoVM understands.
 typedef enum {
     OP_CONSTANT,
+
     OP_ADD,
+    OP_SUB,
+    OP_MUL,
+    OP_DIV,
+    OP_MOD,
+
+    OP_PRINT,
+
     OP_MODULE,
     OP_RETURN,
 } OpCode;

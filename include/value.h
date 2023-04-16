@@ -47,4 +47,44 @@ void ValueArrayAppend(ValueArray *array, Value value);
  */
 void ValuePrint(Value value);
 
+/**
+ * @brief Adds two value together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return The sum of the two values.
+ */
+Value ValueAdd(Value a, Value b);
+
+/**
+ * @brief Subtract two value together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return The subtraction of the two values.
+ */
+Value ValueSub(Value a, Value b);
+
+/**
+ * @brief Multiply two value together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return The multiplication of the two values.
+ */
+Value ValueMul(Value a, Value b);
+
+/**
+ * @brief Divides two value together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return The division of the two values.
+ */
+Value ValueDiv(Value a, Value b);
+
+/**
+ * @brief Modulo between two values.
+ * @param a The first value.
+ * @param b The second value.
+ * @return The module of the two values.
+ */
+Value ValueMod(Value a, Value b);
+
 #endif // IJO_VALUE_H

@@ -2,6 +2,9 @@
 #define IJO_VM_H
 
 #include "chunk.h"
+#include "value.h"
+
+#define STACK_MAX 256
 
 /// @brief The result of interpreting a Chunk of code.
 typedef enum {
@@ -24,6 +27,12 @@ typedef struct {
 
     /// @brief Current instruction pointer.
     uint32_t *ip;
+
+    /// @brief The stack to operate upon.
+    Value stack[STACK_MAX];
+
+    /// @brief Pointer to the top of the stack.
+    Value *stackTop;
 } ijoVM;
 
 /**
@@ -51,5 +60,25 @@ InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk);
  * @return The interpret result for this vm.
  */
 InterpretResult ijoVMRun(ijoVM *vm);
+
+/**
+ * @brief Resets the stack for the specified @p vm.
+ * @param vm The vm that needs its stack reset.
+ */
+void ijoVMStackReset(ijoVM *vm);
+
+/**
+ * @brief Push a value to the stack.
+ * @param vm The vm that needs its stack pushed.
+ * @param value The value to push..
+ */
+void ijoVMStackPush(ijoVM *vm, Value value);
+
+/**
+ * @brief Pop a value of the stack.
+ * @param vm The vm that needs its stack popped.
+ * @return The popped value.
+ */
+Value ijoVMStackPop(ijoVM *vm);
 
 #endif // IJO_VM_H
