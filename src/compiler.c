@@ -6,9 +6,14 @@
 
 void parserAdvance(Parser *parser);
 void expression(Parser *parser, Chunk *chunk);
+void grouping(Parser *parser, Chunk *chunk);
+void unary(Parser *parser, Chunk *chunk);
+void binary(Parser *parser, Chunk *chunk);
 void consume(Parser *parser, TokenType type, const char * message);
 
 Token scanToken(Parser *parser);
+
+void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence);
 
 void errorAt(Parser *parser, Token *token, const char *message);
 void errorAtCurrent(Parser *parser);
@@ -49,7 +54,42 @@ void parserAdvance(Parser *parser) {
 }
 
 void expression(Parser *parser, Chunk *chunk) {
+    parsePrecedence(parser, chunk, PREC_ASSIGNMENT);
+}
 
+void grouping(Parser *parser, Chunk *chunk) {
+    expression(parser, chunk);
+    consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after expression");
+}
+
+void unary(Parser *parser, Chunk *chunk) {
+  TokenType operatorType = parser->previous.type;
+
+  // Compile the operand.
+  parsePrecedence(parser, chunk, PREC_UNARY);
+
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_MINUS: emitInstruction(parser, chunk, OP_NEG); break;
+    default: return; // Unreachable.
+  }
+}
+
+void binary(Parser *parser, Chunk *chunk) {
+    TokenType operatorType = parser->previous.type;
+
+    ParseRule *rule = getRule(operatorType);
+    parsePrecedence((Precedence)(rule->precedence + 1));
+
+    switch (operatorType)
+    {
+    case TOKEN_PLUS:    emitInstruction(parser, chunk, OP_ADD); break;
+    case TOKEN_MINUS:   emitInstruction(parser, chunk, OP_SUB); break;
+    case TOKEN_SLASH:   emitInstruction(parser, chunk, OP_DIV); break;
+    case TOKEN_STAR:    emitInstruction(parser, chunk, OP_MUL); break;
+    case TOKEN_PERCENT: emitInstruction(parser, chunk, OP_MOD); break;
+    default: return;
+    }
 }
 
 void consume(Parser *parser, TokenType type, const char * message) {
@@ -102,6 +142,10 @@ Token scanToken(Parser *parser) {
     Token token;
 
     return token;
+}
+
+void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
+
 }
 
 void errorAt(Parser *parser, Token *token, const char *message) {
