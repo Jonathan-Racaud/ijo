@@ -9,17 +9,18 @@ Token errorToken(Scanner *scanner, const char *message);
 Token string(Scanner *scanner);
 Token number(Scanner *scanner);
 Token identifier(Scanner *scanner);
+Token varOrKeyword(Scanner *scanner);
 TokenType identifierType();
 
 bool isAlpha(char c);
 bool isDigit(char c);
+bool isWhitespace(char c);
 bool isAtEnd(Scanner *scanner);
 bool match(Scanner* scanner, char expected);
 char advance(Scanner *scanner);
 char peek(Scanner *scanner);
 char peekNext(Scanner *scanner);
 void skipWhitespace(Scanner *scanner);
-
 
 // Public functions implementations
 
@@ -78,6 +79,8 @@ Token ScannerScan(Scanner *scanner) {
                 match(scanner, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 
         case '"': return string(scanner);
+
+        case '#': return  varOrKeyword(scanner);
         case '\n': return makeToken(scanner, TOKEN_EOL);
     }
 
@@ -142,6 +145,58 @@ Token identifier(Scanner *scanner) {
   return makeToken(scanner, identifierType());
 }
 
+Token varOrKeyword(Scanner *scanner) {
+    char c;
+
+    while (isAlpha(peek(scanner)) ||
+           isDigit(peek(scanner)) ||
+           isWhitespace(peek(scanner))) {
+
+        /**
+         * The following syntax is accepted:
+         * 
+         * #Obj
+         * {
+         *      field: Type
+         * }
+         * 
+         * #func
+         * (param: Type) -> Type {}
+         * 
+         * #assert
+         * @(param: Type) {}
+         * 
+         * #Enum
+         * |
+         *      Val1,
+         *      Val2
+         * |
+         * 
+         * #Array
+         * [String]
+         * 
+         * #HashMap
+         * <String, String>
+        */
+        if (peek(scanner) == '\n') continue;
+
+        if (isAtEnd(scanner)) return errorToken(scanner, "Unexpected character");
+        
+        c = advance(scanner);
+    }
+
+    switch (c)
+    {
+    case '{': return makeToken(scanner, TOKEN_STRUCT);
+    case '[': return makeToken(scanner, TOKEN_ARRAY);
+    case '<': return makeToken(scanner, TOKEN_MAP);
+    case '|': return makeToken(scanner, TOKEN_ENUM);
+    case '%': return makeToken(scanner, TOKEN_MODULE);
+    default:
+        break;
+    }
+}
+
 bool isAtEnd(Scanner *scanner) {
     return *scanner->current == '\0';
 }
@@ -198,6 +253,10 @@ bool isAlpha(char c) {
   return (c >= 'a' && c <= 'z') ||
          (c >= 'A' && c <= 'Z') ||
           c == '_';
+}
+
+bool isWhitespace(char c) {
+    return (c == ' ' || c == '\r' || c == '\t');
 }
 
 TokenType identifierType() {
