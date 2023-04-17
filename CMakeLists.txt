@@ -19,6 +19,8 @@ set(SOURCES
   ${SOURCE_DIR}/value.c
   ${SOURCE_DIR}/log.c
   ${SOURCE_DIR}/ijoVM.c
+  ${SOURCE_DIR}/compiler.c
+  ${SOURCE_DIR}/scanner.c
 )
 
 # Includes
@@ -31,6 +33,8 @@ set(INCLUDES
   ${INCLUDE_DIR}/value.h
   ${INCLUDE_DIR}/log.h
   ${INCLUDE_DIR}/ijoVM.h
+  ${INCLUDE_DIR}/compiler.h
+  ${INCLUDE_DIR}/scanner.h
 )
 include_directories(${INCLUDE_DIR})
 

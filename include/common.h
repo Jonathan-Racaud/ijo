@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define LOG_LEVEL_ALL      1
 #define LOG_LEVEL_INFO     0
