@@ -10,9 +10,21 @@
 #endif
 
 InterpretResult Interpret(ijoVM *vm, char *source) {
-  Chunk chunk = Compile(source);
+  Chunk chunk;
+  ChunkNew(&chunk);
 
-  return INTERPRET_OK;
+  if (!Compile(source, &chunk)) {
+    ChunkDelete(&chunk);
+    return INTERPRET_COMPILE_ERROR;
+  }
+
+  vm->chunk = &chunk;
+  vm->ip = vm->chunk->code;
+
+  InterpretResult result = ijoVMRun(vm);
+  ChunkDelete(&chunk);
+
+  return result;
 }
 
 void StartRepl(ijoVM *vm) {
