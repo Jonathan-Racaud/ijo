@@ -14,6 +14,14 @@ typedef enum {
     OP_DIV,
     OP_MOD,
 
+    OP_NEG,
+    
+    OP_EQ,
+    OP_LT,
+    OP_LE,
+    OP_GT,
+    OP_GE,
+
     OP_PRINT,
 
     OP_MODULE,

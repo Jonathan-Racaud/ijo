@@ -87,4 +87,51 @@ Value ValueDiv(Value a, Value b);
  */
 Value ValueMod(Value a, Value b);
 
+/**
+ * @brief Compare two values together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return True when @p a == @p b>
+ */
+bool ValueEqual(Value a, Value b);
+
+/**
+ * @brief Compare two values together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return True when @p a > @p b
+ */
+bool ValueGreaterThan(Value a, Value b);
+
+/**
+ * @brief Compare two values together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return True when @p a >= @p b.
+ */
+bool ValueGreaterEqual(Value a, Value b);
+
+/**
+ * @brief Compare two values together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return True when @p a < @p b.
+ */
+bool ValueLessThan(Value a, Value b);
+
+/**
+ * @brief Compare two values together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return True when @p a <= @p b.
+ */
+bool ValueLessEqual(Value a, Value b);
+
+/**
+ * @brief Negate a value.
+ * @param val 
+ * @return The negated value.
+ */
+Value ValueNegate(Value val);
+
 #endif // IJO_VALUE_H

@@ -27,6 +27,20 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
         return DisassembleSimpleInstruction("OP_MUL", chunk, offset);
     case OP_DIV:
         return DisassembleSimpleInstruction("OP_DIV", chunk, offset);
+    case OP_MOD:
+        return DisassembleSimpleInstruction("OP_MOD", chunk, offset);
+    case OP_NEG:
+        return DisassembleSimpleInstruction("OP_NEG", chunk, offset);
+    case OP_EQ:
+        return DisassembleSimpleInstruction("OP_EQ", chunk, offset);
+    case OP_LT:
+        return DisassembleSimpleInstruction("OP_LT", chunk, offset);
+    case OP_LE:
+        return DisassembleSimpleInstruction("OP_LE", chunk, offset);
+    case OP_GT:
+        return DisassembleSimpleInstruction("OP_GT", chunk, offset);
+    case OP_GE:
+        return DisassembleSimpleInstruction("OP_GE", chunk, offset);
     case OP_PRINT:
         return DisassembleSimpleInstruction("OP_PRINT", chunk, offset);
     case OP_RETURN:

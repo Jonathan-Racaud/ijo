@@ -80,6 +80,11 @@ InterpretResult ijoVMRun(ijoVM *vm) {
             ijoVMStackPush(vm, ValueMod(a, b));
             break;
         }
+        case OP_NEG: {
+            Value val = ijoVMStackPop(vm);
+            ijoVMStackPush(vm, ValueNegate(val));
+            break;
+        }
         case OP_PRINT: {
             Value val = ijoVMStackPop(vm);
             ValuePrint(val);

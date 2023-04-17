@@ -47,3 +47,27 @@ Value ValueMul(Value a, Value b) {
 Value ValueMod(Value a, Value b) {
     return (int)a % (int)b;
 }
+
+bool ValueEqual(Value a, Value b) {
+    return a == b;
+}
+
+bool ValueGreaterThan(Value a, Value b) {
+    return a > b;
+}
+
+bool ValueGreaterEqual(Value a, Value b) {
+    return a >= b;
+}
+
+bool ValueLessThan(Value a, Value b) {
+    return !ValueGreaterThan(a, b);
+}
+
+bool ValueLessEqual(Value a, Value b) {
+    return !ValueGreaterEqual(a, b);
+}
+
+Value ValueNegate(Value val) {
+    return -val;
+}
