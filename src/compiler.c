@@ -28,7 +28,7 @@ void endCompiler(Parser *parser, Chunk *chunk);
 
 // Public functions implementations
 
-bool Compile(const char *source, Chunk *chunk) {
+bool Compile(const char *source, Chunk *chunk, CompileMode mode) {
     Scanner *scanner = ScannerNew();
     ScannerInit(scanner, source);
 
@@ -37,7 +37,19 @@ bool Compile(const char *source, Chunk *chunk) {
 
     parserAdvance(&parser);
     expression(&parser, chunk);
-    consume(&parser, TOKEN_EOF, "Expected end of expression");
+
+    switch (mode)
+    {
+    case COMPILE_FILE:
+        consume(&parser, TOKEN_EOF, "Expected end of expression");
+        break;
+    case COMPILE_REPL:
+        consume(&parser, TOKEN_EOL, "Expected end of expression");
+        break;
+    default:
+        LogError("Unknown compile mode");
+        parser.hadError = true;
+    }
 
     ScannerDelete(scanner);
 

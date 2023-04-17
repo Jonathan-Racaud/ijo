@@ -1,7 +1,7 @@
 #ifndef IJO_VM_H
 #define IJO_VM_H
 
-#include "chunk.h"
+#include "compiler.h"
 #include "value.h"
 
 #define STACK_MAX 256
@@ -39,7 +39,7 @@ typedef struct {
  * @brief Instantiate a new ijoVM.
  * @return A pointer to the ijoVM.
  */
-ijoVM *ijoVMNew();
+void ijoVMNew(ijoVM *vm);
 
 /**
  * @brief Deletes an @p ijoVM.
@@ -52,14 +52,14 @@ void ijoVMDelete(ijoVM *vm);
  * @param chunk The chunk of code to be interpreted.
  * @return The result of the code interpretation.
  */
-InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk);
+InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk, CompileMode mode);
 
 /**
  * @brief Runs the vm.
  * @param vm The vm to run.
  * @return The interpret result for this vm.
  */
-InterpretResult ijoVMRun(ijoVM *vm);
+InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode);
 
 /**
  * @brief Resets the stack for the specified @p vm.

@@ -1,34 +1,34 @@
 #include "ijoVM.h"
-#include "ijoMemory.h"
 #include "common.h"
+#include "ijoMemory.h"
 #include "log.h"
 
 #if DEBUG
 #include "debug.h"
 #endif
 
-ijoVM *ijoVMNew() {
-    ijoVM* vm = (ijoVM*)malloc(sizeof(ijoVM));
-
-    if (!vm) {
-        LogCritical("Unable to allocate memory for the vm");
-    }
+void ijoVMNew(ijoVM *vm) {
+    ijoVMStackReset(vm);
 }
 
 void ijoVMDelete(ijoVM *vm) {
     Delete(vm);
 }
 
-InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk) {
+InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk, CompileMode mode) {
     vm->chunk = chunk;
     vm->ip = vm->chunk->code;
 
-    return ijoVMRun(vm);
+    return ijoVMRun(vm, mode);
 }
 
-InterpretResult ijoVMRun(ijoVM *vm) {
+InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
 #define READ_BYTE() (*vm->ip++)
 #define READ_CONST() (vm->chunk->constants.values[READ_BYTE()])
+
+#if DEBUG_TRACE_EXECUTION
+    LogDebug(" == Stack evolution ==");
+#endif
 
     for(;;) {
         #if DEBUG_TRACE_EXECUTION
@@ -39,7 +39,7 @@ InterpretResult ijoVMRun(ijoVM *vm) {
             ConsoleWrite("]");
         }
         ConsoleWriteLine("");
-        // DisassembleInstruction(vm->chunk, (uint32_t)(vm->ip - vm->chunk->code));
+        DisassembleInstruction(vm->chunk, (uint32_t)(vm->ip - vm->chunk->code));
         #endif
 
         uint32_t instruction;
@@ -49,6 +49,7 @@ InterpretResult ijoVMRun(ijoVM *vm) {
         case OP_CONSTANT: {
             Value constant = READ_CONST();
             ijoVMStackPush(vm, constant);
+            break;
         }
         case OP_ADD: {
             Value b = ijoVMStackPop(vm);
@@ -91,6 +92,15 @@ InterpretResult ijoVMRun(ijoVM *vm) {
             ConsoleWriteLine("");
         }
         case OP_RETURN: {
+            if (mode == COMPILE_REPL)
+            {
+                #if DEBUG_TRACE_EXECUTION
+                    LogDebug(" == Stack evolution ==");
+                #endif
+
+                ValuePrint(ijoVMStackPop(vm));
+                ConsoleWriteLine("");
+            }
             return INTERPRET_OK;
         }
         

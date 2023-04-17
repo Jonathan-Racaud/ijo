@@ -30,5 +30,5 @@ void ChunkWriteCode(Chunk *chunk, uint32_t code, uint32_t line) {
 
 uint32_t ChunkAddConstant(Chunk *chunk, Value value) {
     ValueArrayAppend(&chunk->constants, value);
-    return chunk->constants.count + 1;
+    return chunk->constants.count - 1;
 }

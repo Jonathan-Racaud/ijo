@@ -5,6 +5,12 @@
 #include "token.h"
 #include "scanner.h"
 
+/// @brief Helps the compiler know what it is it's compiling.
+typedef enum {
+  COMPILE_FILE,
+  COMPILE_REPL
+} CompileMode;
+
 /// @brief The Parser struct for the ijoVM.
 typedef struct {
     /// @brief The current Token.
@@ -66,6 +72,6 @@ void ParserInit(Parser *parser, Scanner *scanner);
  * @param chunk The compiled chunk from @p source.
  * @return True when the compilation was successful.
  */
-bool Compile(const char *source, Chunk *chunk);
+bool Compile(const char *source, Chunk *chunk, CompileMode mode);
 
 #endif // IJO_COMPILER_H

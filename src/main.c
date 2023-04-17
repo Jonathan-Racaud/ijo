@@ -4,11 +4,11 @@
 #include "ijoVM.h"
 #include "compiler.h"
 
-InterpretResult Interpret(ijoVM *vm, char *source) {
+InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode) {
   Chunk chunk;
   ChunkNew(&chunk);
 
-  if (!Compile(source, &chunk)) {
+  if (!Compile(source, &chunk, mode)) {
     ChunkDelete(&chunk);
     return INTERPRET_COMPILE_ERROR;
   }
@@ -16,7 +16,7 @@ InterpretResult Interpret(ijoVM *vm, char *source) {
   vm->chunk = &chunk;
   vm->ip = vm->chunk->code;
 
-  InterpretResult result = ijoVMRun(vm);
+  InterpretResult result = ijoVMRun(vm, mode);
   ChunkDelete(&chunk);
 
   return result;
@@ -37,7 +37,7 @@ void StartRepl(ijoVM *vm) {
       break;
     }
 
-    Interpret(vm, line);
+    Interpret(vm, line, COMPILE_REPL);
   }
 
 }
@@ -83,7 +83,7 @@ void RunFile(ijoVM *vm, char *path) {
     exit(74);
   }
 
-  InterpretResult result = Interpret(vm, source);
+  InterpretResult result = Interpret(vm, source, COMPILE_FILE);
   free(source);
 
   if (result == INTERPRET_COMPILE_ERROR) exit(65);
@@ -92,20 +92,20 @@ void RunFile(ijoVM *vm, char *path) {
 
 int main(int argc, char **argv) {
   LogInfo("Creating a new ijoVM...");
-  ijoVM *vm = ijoVMNew();
+  ijoVM vm;
+  ijoVMNew(&vm);
 
   if (argc == 1) {
-    StartRepl(vm);
+    StartRepl(&vm);
   } else if (argc == 2) {
-    RunFile(vm, argv[1]);
+    RunFile(&vm, argv[1]);
   } else {
     ConsoleWriteLine("Usage: ijoVM [path]");
-    ijoVMDelete(vm);
+    ijoVMDelete(&vm);
     exit(64);
   }
 
   LogInfo("Stopping the ijoVM");
-  ijoVMDelete(vm);
 
   return 0;
 }

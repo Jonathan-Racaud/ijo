@@ -64,7 +64,7 @@ uint32_t DisassembleSimpleInstruction(const char *name, Chunk *chunk, uint32_t o
 }
 
 uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t offset) {
-    uint32_t constant = chunk->code[offset];
+    uint32_t constant = chunk->code[offset + 1];
     
     ConsoleWrite("%-16s %4d '", name, constant);
     ValuePrint(chunk->constants.values[constant]);
