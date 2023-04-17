@@ -1,6 +1,8 @@
 #ifndef IJO_SCANNER_H
 #define IJO_SCANNER_H
 
+#include "token.h"
+
 /// @brief Represents a Scanner.
 typedef struct {
     /// @brief Marks the beginning of the current lexem.
@@ -30,5 +32,12 @@ void ScannerDelete(Scanner *scanner);
  * @param source The source code to scan.
  */
 void ScannerInit(Scanner *scanner, const char *source);
+
+/**
+ * @brief Scans and return the next token.
+ * @param scanner The scanner responsible to scan the code.
+ * @return The token scanned.
+ */
+Token ScannerScan(Scanner *scanner);
 
 #endif // IJO_SCANNER_H

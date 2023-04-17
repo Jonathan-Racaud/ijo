@@ -16,3 +16,7 @@ void ScannerInit(Scanner *scanner, const char *source) {
     scanner->current = source;
     scanner->line = 1;
 }
+
+Token ScannerScan(Scanner *scanner) {
+    
+}
