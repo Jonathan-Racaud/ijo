@@ -26,6 +26,10 @@ void StartRepl(ijoVM *vm) {
       break;
     }
 
+    if (0 == strcmp(line, "exit\n")) {
+      break;
+    }
+
     Interpret(vm, line);
   }
 

@@ -18,8 +18,7 @@ typedef enum {
   // Literals.
   TOKEN_IDENTIFIER, TOKEN_STRING, TOKEN_NUMBER,
 
-  // Keywords even though ijo does not have keywords.
-  // They are more like KeySymbols.
+  // KeySymbols. They act like keywords, but use symbols instead.
   TOKEN_AND, TOKEN_STRUCT, TOKEN_ELSE, TOKEN_FALSE,
   TOKEN_FOR, TOKEN_FUNC, TOKEN_ASSERT, TOKEN_IF, TOKEN_NIL, TOKEN_OR,
   TOKEN_PRINT, TOKEN_RETURN, TOKEN_SUPER, TOKEN_THIS,
