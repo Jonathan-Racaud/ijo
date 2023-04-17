@@ -4,11 +4,6 @@
 #include "ijoVM.h"
 #include "compiler.h"
 
-#if DEBUG
-#include "debug.h"
-#define LOG_LEVEL LOG_LEVEL_DEBUG
-#endif
-
 InterpretResult Interpret(ijoVM *vm, char *source) {
   Chunk chunk;
   ChunkNew(&chunk);

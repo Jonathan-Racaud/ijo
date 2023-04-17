@@ -3,6 +3,7 @@
 
 #include "chunk.h"
 #include "token.h"
+#include "scanner.h"
 
 /// @brief The Parser struct for the ijoVM.
 typedef struct {
@@ -17,6 +18,9 @@ typedef struct {
 
     /// @brief Tracks if we are in panic mode.
     bool panicMode;
+
+    /// @brief The scanner associated with this Parser.
+    Scanner *scanner;
 } Parser;
 
 /// @brief Define the levels of precedences from lowest to highest.
@@ -52,8 +56,9 @@ typedef struct {
 /**
  * @brief Initializes the specified @p parser.
  * @param parser The parser to initialize.
+ * @param scanner The scanner associated with the @p parser.
  */
-void ParserInit(Parser *parser);
+void ParserInit(Parser *parser, Scanner *scanner);
 
 /**
  * @brief Compiles @p source code to a Chunk.

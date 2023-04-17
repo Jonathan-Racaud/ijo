@@ -2,6 +2,10 @@
 #include "scanner.h"
 #include "log.h"
 
+#ifdef DEBUG_PRINT_CODE
+#include "debug.h"
+#endif
+
 // Private functions forward declarations
 
 void parserAdvance(Parser *parser);
@@ -10,8 +14,6 @@ void grouping(Parser *parser, Chunk *chunk);
 void unary(Parser *parser, Chunk *chunk);
 void binary(Parser *parser, Chunk *chunk);
 void consume(Parser *parser, TokenType type, const char * message);
-
-Token scanToken(Parser *parser);
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence);
 ParseRule* getRule(TokenType type);
@@ -31,7 +33,7 @@ bool Compile(const char *source, Chunk *chunk) {
     ScannerInit(scanner, source);
 
     Parser parser;
-    ParserInit(&parser);
+    ParserInit(&parser, scanner);
 
     parserAdvance(&parser);
     expression(&parser, chunk);
@@ -47,7 +49,7 @@ void parserAdvance(Parser *parser) {
     parser->previous = parser->current;
 
     for (;;) {
-        parser->current = scanToken(parser);
+        parser->current = ScannerScan(parser->scanner);
         if (parser->current.type != TOKEN_ERROR) break;
 
         errorAtCurrent(parser);
@@ -132,17 +134,17 @@ void emitReturn(Parser* parser, Chunk *chunk) {
 
 void endCompiler(Parser *parser, Chunk *chunk) {
     emitReturn(parser, chunk);
+
+    #ifdef DEBUG_PRINT_CODE
+    if (!parser->hadError) {
+        DisassembleChunk(chunk, "Code");
+    }
+    #endif
 }
 
 void number(Parser *parser, Chunk *chunk) {
     Value value = strtod(parser->previous.start, NULL);
     emitConstant(parser, chunk, value);
-}
-
-Token scanToken(Parser *parser) {
-    Token token;
-
-    return token;
 }
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
@@ -190,9 +192,10 @@ void errorAtCurrent(Parser *parser) {
 
 // Parser public functions implementations
 
-void ParserInit(Parser *parser) {
+void ParserInit(Parser *parser, Scanner *scanner) {
     parser->panicMode = false;
     parser->hadError = false;
+    parser->scanner = scanner;
 }
 
 /**
