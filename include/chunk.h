@@ -61,7 +61,7 @@ void ChunkDelete(Chunk *chunk);
 /// @param line: The line number inside the source file.
 void ChunkWriteCode(Chunk *chunk, uint32_t code, uint32_t line);
 
-/// @brief Adds a constant value to the @p chunk and returns its index
+/// @brief Adds a constant value to the @p chunk and returns its index.
 /// @param chunk: The chunk to add the constant to.
 /// @param value: The value to add to the chunk's constant pool.
 //

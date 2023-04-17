@@ -3,12 +3,13 @@
 #include "log.h"
 
 // Private function forward declaration
-
+#ifndef IJO_SCANNER_PRIV_C
+#define IJO_SCANNER_PRIV_C
 Token makeToken(Scanner *scanner, TokenType);
 Token errorToken(Scanner *scanner, const char *message);
-Token string(Scanner *scanner);
-Token number(Scanner *scanner);
-Token identifier(Scanner *scanner);
+Token scanString(Scanner *scanner);
+Token scanNumber(Scanner *scanner);
+Token scanIdentifier(Scanner *scanner);
 Token varOrKeyword(Scanner *scanner);
 TokenType identifierType();
 
@@ -17,11 +18,11 @@ bool isDigit(char c);
 bool isWhitespace(char c);
 bool isAtEnd(Scanner *scanner);
 bool match(Scanner* scanner, char expected);
-char advance(Scanner *scanner);
+char scannerAdvance(Scanner *scanner);
 char peek(Scanner *scanner);
 char peekNext(Scanner *scanner);
 void skipWhitespace(Scanner *scanner);
-
+#endif // IJO_SCANNER_PRIV_C
 // Public functions implementations
 
 Scanner *ScannerNew() {
@@ -47,10 +48,10 @@ Token ScannerScan(Scanner *scanner) {
 
     if (isAtEnd(scanner)) return makeToken(scanner, TOKEN_EOF);
 
-    char c = advance(scanner);
+    char c = scannerAdvance(scanner);
 
-    if (isDigit(c)) return number(scanner);
-    if (isAlpha(c)) return identifier(scanner);
+    if (isDigit(c)) return scanNumber(scanner);
+    if (isAlpha(c)) return scanIdentifier(scanner);
 
     switch (c) {
         case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
@@ -78,7 +79,7 @@ Token ScannerScan(Scanner *scanner) {
             return makeToken(scanner,
                 match(scanner, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 
-        case '"': return string(scanner);
+        case '"': return scanString(scanner);
 
         case '#': return  varOrKeyword(scanner);
         case '\n': return makeToken(scanner, TOKEN_EOL);
@@ -113,35 +114,35 @@ Token errorToken(Scanner *scanner, const char *message) {
     return error;
 }
 
-Token string(Scanner *scanner) {
+Token scanString(Scanner *scanner) {
   while (peek(scanner) != '"' && !isAtEnd(scanner)) {
     if (peek(scanner) == '\n') scanner->line++;
-    advance(scanner);
+    scannerAdvance(scanner);
   }
 
   if (isAtEnd(scanner)) return errorToken(scanner, "Unterminated string.");
 
   // The closing quote.
-  advance(scanner);
+  scannerAdvance(scanner);
   return makeToken(scanner, TOKEN_STRING);
 }
 
-Token number(Scanner *scanner) {
-  while (isDigit(peek(scanner))) advance(scanner);
+Token scanNumber(Scanner *scanner) {
+  while (isDigit(peek(scanner))) scannerAdvance(scanner);
 
   // Look for a fractional part.
   if (peek(scanner) == '.' && isDigit(peekNext(scanner))) {
     // Consume the ".".
-    advance(scanner);
+    scannerAdvance(scanner);
 
-    while (isDigit(peek(scanner))) advance(scanner);
+    while (isDigit(peek(scanner))) scannerAdvance(scanner);
   }
 
   return makeToken(scanner, TOKEN_NUMBER);
 }
 
-Token identifier(Scanner *scanner) {
-  while (isAlpha(peek(scanner)) || isDigit(peek(scanner))) advance(scanner);
+Token scanIdentifier(Scanner *scanner) {
+  while (isAlpha(peek(scanner)) || isDigit(peek(scanner))) scannerAdvance(scanner);
   return makeToken(scanner, identifierType());
 }
 
@@ -182,7 +183,7 @@ Token varOrKeyword(Scanner *scanner) {
 
         if (isAtEnd(scanner)) return errorToken(scanner, "Unexpected character");
         
-        c = advance(scanner);
+        c = scannerAdvance(scanner);
     }
 
     switch (c)
@@ -201,7 +202,7 @@ bool isAtEnd(Scanner *scanner) {
     return *scanner->current == '\0';
 }
 
-char advance(Scanner *scanner) {
+char scannerAdvance(Scanner *scanner) {
   scanner->current++;
   return scanner->current[-1];
 }
@@ -229,12 +230,12 @@ void skipWhitespace(Scanner *scanner) {
         case ' ':
         case '\r':
         case '\t':
-            advance(scanner);
+            scannerAdvance(scanner);
             break;
         case '/':
             if (peekNext(scanner) == '/') {
             // A comment goes until the end of the line.
-            while (peek(scanner) != '\n' && !isAtEnd(scanner)) advance(scanner);
+            while (peek(scanner) != '\n' && !isAtEnd(scanner)) scannerAdvance(scanner);
             } else {
                 return;
             }

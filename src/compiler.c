@@ -4,8 +4,8 @@
 
 // Private functions forward declarations
 
-void advance(Parser *parser);
-void expression(Parser *parser);
+void parserAdvance(Parser *parser);
+void expression(Parser *parser, Chunk *chunk);
 void consume(Parser *parser, TokenType type, const char * message);
 
 Token scanToken(Parser *parser);
@@ -15,8 +15,8 @@ void errorAtCurrent(Parser *parser);
 
 void emitIntruction(Parser *parser, Chunk *chunk, uint32_t instruction);
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2);
-void emitReturn(Chunk *chunk);
-void endCompiler(Chunk *chunk);
+void emitReturn(Parser *parser, Chunk *chunk);
+void endCompiler(Parser *parser, Chunk *chunk);
 
 // Public functions implementations
 
@@ -27,17 +27,17 @@ bool Compile(const char *source, Chunk *chunk) {
     Parser parser;
     ParserInit(&parser);
 
-    advance(&parser);
-    expression(&parser);
+    parserAdvance(&parser);
+    expression(&parser, chunk);
     consume(&parser, TOKEN_EOF, "Expected end of expression");
 
     ScannerDelete(scanner);
 
-    endCompiler(chunk);
+    endCompiler(&parser, chunk);
     return !parser.hadError;
 }
 
-void advance(Parser *parser) {
+void parserAdvance(Parser *parser) {
     parser->previous = parser->current;
 
     for (;;) {
@@ -48,34 +48,60 @@ void advance(Parser *parser) {
     }
 }
 
-void expression(Parser *parser) {
+void expression(Parser *parser, Chunk *chunk) {
 
 }
 
 void consume(Parser *parser, TokenType type, const char * message) {
     if (parser->current.type == type) {
-        advance(parser);
+        parserAdvance(parser);
         return;
     }
 
     errorAtCurrent(parser);
 }
 
+uint32_t makeConstant(Chunk *chunk, Value value) {
+    int constant = ChunkAddConstant(chunk, value);
+    
+    if (constant > UINT32_MAX) {
+        LogError("Too many constants in one chunk.");
+        return 0;
+    }
+
+    return constant;
+}
 
 void emitIntruction(Parser *parser, Chunk *chunk, uint32_t instruction) {
     ChunkWriteCode(chunk, instruction, parser->previous.line);
 }
 
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2) {
-
+    ChunkWriteCode(chunk, instruction1, parser->previous.line);
+    ChunkWriteCode(chunk, instruction2, parser->previous.line);
 }
 
-void emitReturn(Chunk *chunk) {
-    ChunkWriteCode(chunk, OP_RETURN);
+void emitConstant(Parser *parser, Chunk *chunk, Value value) {
+    emitInstructions(parser, chunk, OP_CONSTANT, makeConstant(chunk, value));
 }
 
-void endCompiler(Chunk *chunk) {
-    emitReturn(chunk);
+void emitReturn(Parser* parser, Chunk *chunk) {
+    ChunkWriteCode(chunk, OP_RETURN, parser->previous.line);
+}
+
+void endCompiler(Parser *parser, Chunk *chunk) {
+    emitReturn(parser, chunk);
+}
+
+void number(Parser *parser, Chunk *chunk) {
+    Value value = strtod(parser->previous.start, NULL);
+    emitConstant(parser, chunk, value);
+}
+
+Token scanToken(Parser *parser) {
+    Token token;
+
+    return token;
 }
 
 void errorAt(Parser *parser, Token *token, const char *message) {
