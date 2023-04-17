@@ -34,6 +34,21 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
+/// @brief Function pointer to a parser function for a given TokenType.
+typedef void (*ParseFunc)(Parser *, Chunk *);
+
+/// @brief Rule to follow when parsing.
+typedef struct {
+    /// @brief Function pointer to the parser function of an prefix expression.
+    ParseFunc prefix;
+
+    /// @brief Function pointer to the parser function of an infix expression.
+    ParseFunc infix;
+
+    /// @brief The precedence of an infix expression that uses that token as an operator.
+    Precedence precedence;
+} ParseRule;
+
 /**
  * @brief Initializes the specified @p parser.
  * @param parser The parser to initialize.

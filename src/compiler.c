@@ -14,11 +14,12 @@ void consume(Parser *parser, TokenType type, const char * message);
 Token scanToken(Parser *parser);
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence);
+ParseRule* getRule(TokenType type);
 
 void errorAt(Parser *parser, Token *token, const char *message);
 void errorAtCurrent(Parser *parser);
 
-void emitIntruction(Parser *parser, Chunk *chunk, uint32_t instruction);
+void emitInstruction(Parser *parser, Chunk *chunk, uint32_t instruction);
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2);
 void emitReturn(Parser *parser, Chunk *chunk);
 void endCompiler(Parser *parser, Chunk *chunk);
@@ -79,7 +80,7 @@ void binary(Parser *parser, Chunk *chunk) {
     TokenType operatorType = parser->previous.type;
 
     ParseRule *rule = getRule(operatorType);
-    parsePrecedence((Precedence)(rule->precedence + 1));
+    parsePrecedence(parser, chunk, (Precedence)(rule->precedence + 1));
 
     switch (operatorType)
     {
@@ -112,7 +113,7 @@ uint32_t makeConstant(Chunk *chunk, Value value) {
     return constant;
 }
 
-void emitIntruction(Parser *parser, Chunk *chunk, uint32_t instruction) {
+void emitInstruction(Parser *parser, Chunk *chunk, uint32_t instruction) {
     ChunkWriteCode(chunk, instruction, parser->previous.line);
 }
 
@@ -145,7 +146,22 @@ Token scanToken(Parser *parser) {
 }
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
+    parserAdvance(parser);
 
+    ParseFunc prefixRule = getRule(parser->previous.type)->prefix;
+
+    if (prefixRule == NULL) {
+        LogError("Expected expression");
+        return;
+    }
+
+    prefixRule(parser, chunk);
+
+    while (precedence <= getRule(parser->current.type)->precedence) {
+        parserAdvance(parser);
+        ParseFunc infixRule = getRule(parser->previous.type)->infix;
+        infixRule(parser, chunk);
+    }
 }
 
 void errorAt(Parser *parser, Token *token, const char *message) {
@@ -177,4 +193,57 @@ void errorAtCurrent(Parser *parser) {
 void ParserInit(Parser *parser) {
     parser->panicMode = false;
     parser->hadError = false;
+}
+
+/**
+ * @brief Rules for parsing based on the TokenType.
+ * 
+ * @note
+ * TokenType | Prefix ParseFunc | Infix ParseFunc | Precedence
+ */
+ParseRule rules[] = {
+  [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
+  [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
+  [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_DOT]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
+  [TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
+  [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
+  [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
+  [TOKEN_BANG]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_BANG_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_EQUAL_EQUAL]   = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_GREATER]       = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_GREATER_EQUAL] = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_LESS]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_LESS_EQUAL]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_STRING]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
+  [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_STRUCT]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_FALSE]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_FUNC]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_NIL]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_TRUE]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
+};
+
+ParseRule* getRule(TokenType type) {
+  return &rules[type];
 }
