@@ -179,11 +179,13 @@ void string(Parser *parser, Chunk *chunk) {
     // If ijo supported string escape sequences like \n, 
     // we’d translate those here. 
     // Since it doesn’t, we can take the characters as they are.
-    emitConstant(parser, chunk,
-                        // +1 to trim leading quotation mark.
-                        //                             -2 to trim trailing quotation mark.
-        OBJ_VAL(CStringCopy(parser->previous.start + 1, parser->previous.length - 2))
-    );
+
+    // +1 to trim leading quotation mark.
+    //                             -2 to trim trailing quotation mark.
+    Value str = OBJ_VAL(CStringCopy(parser->previous.start + 1, parser->previous.length - 2));
+    str.operators = stringOperators;
+
+    emitConstant(parser, chunk, str);
 }
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {

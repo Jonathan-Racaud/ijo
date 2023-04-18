@@ -33,7 +33,6 @@ ijoString *ijoStringNew(char *chars, int size) {
     ijoStringInit(string, chars, size);
 }
 
-
 void ijoStringInit(ijoString *string, char *chars, int size) {
     string->chars = chars;
     string->length = size;
@@ -44,8 +43,25 @@ void ijoStringDelete(ijoString *string) {
     Delete(string);
 }
 
-bool ijoStringEqual(ijoString *a, ijoString *b) {
-    return (a->length == b->length) && (memcmp(a->chars, b->chars, a->length) == 0);
+Value ijoStringEqual(Value a, Value b) {
+    ijoString *aString = AS_STRING(a);
+    ijoString *bString = AS_STRING(b);
+    return BOOL_VAL((aString->length == bString->length) && 
+                    (memcmp(aString->chars, bString->chars, aString->length) == 0));
+}
+
+Value ijoStringConcat(Value a, Value b) {
+    ijoString *aString = AS_STRING(a);
+    ijoString *bString = AS_STRING(b);
+    
+    int length = aString->length + bString->length + 1;
+
+    ijoString *result = ijoStringNew(NULL, length);
+    memcpy(result->chars, aString->chars, aString->length);
+    memcpy(result->chars + aString->length, bString->chars, bString->length);
+    result->chars[length] = '\0';
+
+    return OBJ_VAL(result);
 }
 
 ijoString *CStringCopy(const char* chars, int size) {

@@ -82,7 +82,15 @@ void ijoStringDelete(ijoString *string);
  * @param b The second string to compare.
  * @return True when the strings are the same.
  */
-bool ijoStringEqual(ijoString *a, ijoString *b);
+Value ijoStringEqual(Value a, Value b);
+
+/**
+ * @brief Concatenates two string together.
+ * @param a The first string to concat.
+ * @param b The second string to concat. Will be put at the end of @p a.
+ * @return The concatenated string.
+ */
+Value ijoStringConcat(Value a, Value b);
 
 /**
  * @brief Prints an ijoString to the console.

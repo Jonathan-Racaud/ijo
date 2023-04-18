@@ -78,6 +78,7 @@ extern ValueOperator numberOperators[];
 extern ValueOperator boolOperators[];
 extern ValueOperator resultOperators[];
 extern ValueOperator objOperators[];
+extern ValueOperator stringOperators[];
 
 #define BOOL_VAL(value)     ((Value){VAL_BOOL,   boolOperators,   {.boolean = value}})
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, numberOperators, {.number = value}})

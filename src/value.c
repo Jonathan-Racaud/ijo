@@ -65,7 +65,7 @@ Value ValueEqual(Value a, Value b) {
     }
 
     if (IS_STRING(a) && IS_STRING(b)) {
-        return BOOL_VAL(ijoStringEqual(AS_STRING(a), AS_STRING(b)));
+        return ijoStringEqual(a, b);
     }
 
     return ERROR_VAL();
@@ -169,7 +169,7 @@ ValueOperator resultOperators [] = {
 };
 
 /**
- * @brief Default operators for Obj values.
+ * @brief Default operators for ijoObj values.
  * @note ValueOperator | Prefix | Infix | Postfix
  */
 ValueOperator objOperators [] = {
@@ -180,6 +180,24 @@ ValueOperator objOperators [] = {
     [OPERATOR_PERCENT]             = {ValueError, ValueError2, ValueError},
     [OPERATOR_BANG]                = {ValueError, ValueError2, ValueError},
     [OPERATOR_EQUAL_EQUAL]         = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_LEFT]        = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_RIGHT]       = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_EQUAL_LEFT]  = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_EQUAL_RIGHT] = {ValueError, ValueError2, ValueError},
+};
+
+/**
+ * @brief Default operators for ijoString values.
+ * @note ValueOperator | Prefix | Infix | Postfix
+ */
+ValueOperator stringOperators [] = {
+    [OPERATOR_PLUS]                = {ValueError, ijoStringConcat, ValueError},
+    [OPERATOR_MINUS]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_STAR]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_SLASH]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PERCENT]             = {ValueError, ValueError2, ValueError},
+    [OPERATOR_BANG]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_EQUAL_EQUAL]         = {ValueError, ijoStringEqual, ValueError},
     [OPERATOR_CHEVRON_LEFT]        = {ValueError, ValueError2, ValueError},
     [OPERATOR_CHEVRON_RIGHT]       = {ValueError, ValueError2, ValueError},
     [OPERATOR_CHEVRON_EQUAL_LEFT]  = {ValueError, ValueError2, ValueError},
