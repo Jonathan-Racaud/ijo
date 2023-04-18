@@ -6,7 +6,6 @@
 // Forward declaration of types inside of ijoObj.h
 // We can't include it as it also includes value.h
 
-typedef enum ObjType ObjType;
 typedef struct ijoObj ijoObj;
 typedef struct ijoString ijoString;
 
@@ -48,7 +47,7 @@ struct ValueOperator;
  * @note
  * There's 4 bytes of padding between the tag and the value.
  */
-typedef struct {
+typedef struct Value {
     /// @brief The tag type for the value.
     /// @note 4 bytes
     ValueType type;
@@ -84,14 +83,13 @@ extern ValueOperator objOperators[];
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, numberOperators, {.number = value}})
 #define SUCCESS_VAL()       ((Value){VAL_RESULT, resultOperators, {.boolean = true}})
 #define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = false}})
-#define OBJ_VAL(value)      ((Value){VAL_OBJ,    objOperators,    {.obj = value }})
+#define OBJ_VAL(value)      ((Value){VAL_OBJ,    objOperators,    {.obj = (ijoObj*)value }})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)
 #define AS_SUCCESS(value)   ((value).as.boolean)
 #define AS_ERROR(value)     ((value).as.boolean)
 #define AS_OBJ(value)       ((value).as.obj)
-#define OBJ_TYPE(value)     (AS_OBJ(value)->type)
 
 #define IS_RESULT(value)    ((value).type == VAL_RESULT)
 #define IS_BOOL(value)      ((value).type == VAL_BOOL)

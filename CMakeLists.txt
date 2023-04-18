@@ -20,6 +20,7 @@ set(SOURCES
   ${SOURCE_DIR}/ijoVM.c
   ${SOURCE_DIR}/compiler.c
   ${SOURCE_DIR}/scanner.c
+  ${SOURCE_DIR}/ijoObj.c
 )
 
 # Includes

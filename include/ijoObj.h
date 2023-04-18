@@ -1,21 +1,23 @@
 #ifndef IJO_OBJ_H
 #define IJO_OBJ_H
 
+#include "common.h"
 #include "value.h"
 
-typedef enum ObjType {
+/// @brief The types of object ijo understands.
+typedef enum {
     OBJ_STRING,
 } ObjType;
 
 /// @brief Represents a heap allocated type.
 /// @note Can be a String, Function, Instance...
-typedef struct {
+struct ijoObj {
     /// @brief The object type.
     ObjType type;
-} ijoObj;
+};
 
 /// @brief Represents a String.
-typedef struct {
+struct ijoString {
     /// @brief Object header.
     ijoObj obj;
 
@@ -24,13 +26,56 @@ typedef struct {
 
     /// @brief Content of the String
     char *chars;
-} ijoString;
+};
+
+// ijoObj related functionalities
 
 bool isObjType(Value value, ObjType type);
 
-#define IS_STRING(value)       isObjType(value, OBJ_STRING)
+#define OBJ_TYPE(value)     (AS_OBJ(value)->type)
 
+/**
+ * @brief Instantiate a new ijoObject of size @p size and of type @p type.
+ * @param size The size for the object.
+ * @param type The type of the object.
+ * @return 
+ */
+ijoObj *ObjectNew(int size, ObjType type);
+
+// ijoString related functionalities
+
+#define IS_STRING(value)       isObjType(value, OBJ_STRING)
 #define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
+
+/**
+ * @brief Allocate a new ijoString with content @p chars with length @p size.
+ * @param chars The string content.
+ * @param size The string's length.
+ * @return 
+ */
+ijoString *ijoStringNew(char *chars, int size);
+
+/**
+ * @brief Initializes an ijoString with @p chars and @p size.
+ * @param string The string to initialize.
+ * @param chars The string's content.
+ * @param size The string's length.
+ */
+void ijoStringInit(ijoString *string, char* chars, int size);
+
+/**
+ * @brief Deletes an ijoString, freeing its payload.
+ * @param string The string to delete.
+ */
+void ijoStringDelete(ijoString *string);
+
+/**
+ * @brief Copy the string @p chars of length @p size and returns an ijoString.
+ * @param chars The string to copy.
+ * @param size The string's length.
+ * @return The copy of @p chars as an ijoString.
+ */
+ijoString* CStringCopy(const char* chars, int size);
 
 #endif // IJO_OBJ_H

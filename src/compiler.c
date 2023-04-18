@@ -1,6 +1,7 @@
 #include "compiler.h"
 #include "scanner.h"
 #include "log.h"
+#include "ijoObj.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
@@ -174,6 +175,17 @@ void literal(Parser *parser, Chunk *chunk) {
   }
 }
 
+void string(Parser *parser, Chunk *chunk) {
+    // If ijo supported string escape sequences like \n, 
+    // we’d translate those here. 
+    // Since it doesn’t, we can take the characters as they are.
+    emitConstant(parser, chunk,
+                        // +1 to trim leading quotation mark.
+                        //                             -2 to trim trailing quotation mark.
+        OBJ_VAL(CStringCopy(parser->previous.start + 1, parser->previous.length - 2))
+    );
+}
+
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
     parserAdvance(parser);
 
@@ -257,7 +269,7 @@ ParseRule rules[] = {
   [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON, TOKEN_ALL},
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON, TOKEN_ALL},
   [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
-  [TOKEN_STRING]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
+  [TOKEN_STRING]        = {string,   NULL,   PREC_NONE,       TOKEN_ALL},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE,       TOKEN_ALL},
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
   [TOKEN_STRUCT]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},

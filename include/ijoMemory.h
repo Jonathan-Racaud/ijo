@@ -4,6 +4,12 @@
 #include "common.h"
 
 /**
+ * @brief Allocates an array of @p type of length @p count.
+*/
+#define ALLOCATE(type, count) \
+    (type*)Reallocate(NULL, 0, sizeof(type) * (count))
+
+/**
  * @brief Grows the @p capacity by a factor of 2.
 */
 #define GROW_CAPACITY(capacity) \
