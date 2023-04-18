@@ -159,6 +159,14 @@ void number(Parser *parser, Chunk *chunk) {
     emitConstant(parser, chunk, NUMBER_VAL(value));
 }
 
+void literal(Parser *parser, Chunk *chunk) {
+  switch (parser->previous.type) {
+    case TOKEN_FALSE: emitInstruction(parser, chunk, OP_FALSE); break;
+    case TOKEN_TRUE: emitInstruction(parser, chunk, OP_TRUE); break;
+    default: return; // Unreachable.
+  }
+}
+
 void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
     parserAdvance(parser);
 
@@ -247,7 +255,7 @@ ParseRule rules[] = {
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_STRUCT]        = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
-  [TOKEN_FALSE]         = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
+  [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_FUNC]          = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
@@ -257,7 +265,7 @@ ParseRule rules[] = {
   [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_SUPER]         = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
-  [TOKEN_TRUE]          = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
+  [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},

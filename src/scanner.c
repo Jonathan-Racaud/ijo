@@ -291,23 +291,16 @@ TokenType identifierType(Scanner *scanner) {
   */    
   switch (scanner->start[0])
   {
-  case 't':
+  case '@':
     if (scanner->current - scanner->start > 1) {
       switch (scanner->start[1])
       {
-      case 'r': return checkKeyword(scanner, 2, 2, "ue", TOKEN_TRUE);
+      case 't': return checkKeyword(scanner, 2, 3, "rue", TOKEN_TRUE);
+      case 'f': return checkKeyword(scanner, 2, 4, "alse", TOKEN_FALSE);
       }
     }
-  case 'f':
-    if (scanner->current - scanner->start > 1) {
-      switch (scanner->start[1])
-      {
-      case 'a': return checkKeyword(scanner, 2, 3, "lse", TOKEN_FALSE);
-      }
-    }
-    break;
+    break;  
   
-  case '@': return TOKEN_ASSERT;
   default: return TOKEN_IDENTIFIER;
   }
 }

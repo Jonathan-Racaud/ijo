@@ -45,6 +45,10 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
         return DisassembleSimpleInstruction("OP_PRINT", chunk, offset);
     case OP_RETURN:
         return DisassembleSimpleInstruction("OP_RETURN", chunk, offset);
+    case OP_TRUE:
+        return DisassembleSimpleInstruction("OP_TRUE", chunk, offset);
+    case OP_FALSE:
+        return DisassembleSimpleInstruction("OP_FALSE", chunk, offset);
     case OP_MODULE:
         return DisassembleSimpleInstruction("OP_MODULE", chunk, offset);
 

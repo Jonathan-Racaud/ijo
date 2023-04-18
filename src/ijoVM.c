@@ -97,6 +97,14 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             ValuePrint(val);
             ConsoleWriteLine("");
         }
+        case OP_TRUE: {
+            ijoVMStackPush(vm, BOOL_VAL(true));
+            break;
+        }
+        case OP_FALSE: {
+            ijoVMStackPush(vm, BOOL_VAL(false));
+            break;
+        }
         case OP_RETURN: {
             if (mode == COMPILE_REPL)
             {

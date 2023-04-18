@@ -30,7 +30,7 @@ void ValuePrint(Value value) {
     }
 
     if (IS_BOOL(value)) {
-        ConsoleWrite("%s", AS_BOOL(value) ? "True" : "False");
+        ConsoleWrite("%s", AS_BOOL(value) ? "@true" : "@false");
     }
 
     if (IS_RESULT(value)) {
