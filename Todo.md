@@ -1,0 +1,1 @@
+- [] Implement a simple GC. For now, if we use String concatenation there will be memory leaks.
