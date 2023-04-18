@@ -1,6 +1,7 @@
 #include "value.h"
 #include "ijoMemory.h"
 #include "log.h"
+#include "ijoObj.h"
 
 void ValueArrayNew(ValueArray *array) {
     array->capacity = 0;
@@ -25,16 +26,12 @@ void ValueArrayAppend(ValueArray *array, Value value) {
 }
 
 void ValuePrint(Value value) {
-    if (IS_NUMBER(value)) {
-        ConsoleWrite("%g", AS_NUMBER(value));
-    }
-
-    if (IS_BOOL(value)) {
-        ConsoleWrite("%s", AS_BOOL(value) ? "@true" : "@false");
-    }
-
-    if (IS_RESULT(value)) {
-        ConsoleWrite("%s", AS_SUCCESS(value) ? "@success" : "@error");
+    switch (value.type)
+    {
+    case VAL_NUMBER: ConsoleWrite("%g", AS_NUMBER(value)); break;
+    case VAL_BOOL:   ConsoleWrite("%s", AS_BOOL(value) ? "@true" : "@false"); break;
+    case VAL_RESULT: ConsoleWrite("%g", AS_SUCCESS(value) ? "@success" : "@error"); break;
+    case VAL_OBJ: ObjectPrint(value); break;
     }
 }
 
@@ -65,6 +62,10 @@ Value ValueEqual(Value a, Value b) {
 
     if (IS_BOOL(a) && IS_BOOL(b)) {
         return BOOL_VAL(AS_BOOL(a) == AS_BOOL(b));
+    }
+
+    if (IS_STRING(a) && IS_STRING(b)) {
+        return BOOL_VAL(ijoStringEqual(AS_STRING(a), AS_STRING(b)));
     }
 
     return ERROR_VAL();

@@ -1,9 +1,8 @@
 #include "ijoObj.h"
-#include "value.h"
-
 #include "ijoMemory.h"
-#include "value.h"
 #include "ijoVM.h"
+#include "value.h"
+#include "log.h"
 
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)ObjectNew(sizeof(type), objectType)
@@ -18,12 +17,22 @@ bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && (AS_OBJ(value)->type == type);
 }
 
+void ObjectPrint(Value obj) {
+    switch (obj.type)
+    {
+    case OBJ_STRING: ConsoleWrite("%s", AS_CSTRING(obj)); break;
+    default: LogError("Unknown type");
+        break;
+    }
+}
+
+// Public ijoString functions implementations
+
 ijoString *ijoStringNew(char *chars, int size) {
     ijoString *string = ALLOCATE_OBJ(ijoString, OBJ_STRING);
     ijoStringInit(string, chars, size);
 }
 
-// Public ijoString functions implementations
 
 void ijoStringInit(ijoString *string, char *chars, int size) {
     string->chars = chars;
@@ -33,6 +42,10 @@ void ijoStringInit(ijoString *string, char *chars, int size) {
 void ijoStringDelete(ijoString *string) {
     free(string->chars);
     Delete(string);
+}
+
+bool ijoStringEqual(ijoString *a, ijoString *b) {
+    return (a->length == b->length) && (memcmp(a->chars, b->chars, a->length) == 0);
 }
 
 ijoString *CStringCopy(const char* chars, int size) {

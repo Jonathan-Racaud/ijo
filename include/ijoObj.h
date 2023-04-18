@@ -42,11 +42,17 @@ bool isObjType(Value value, ObjType type);
  */
 ijoObj *ObjectNew(int size, ObjType type);
 
+/**
+ * @brief Prints an object to the console.
+ * @param obj The object to print.
+*/
+void ObjectPrint(Value obj);
+
 // ijoString related functionalities
 
 #define IS_STRING(value)       isObjType(value, OBJ_STRING)
-#define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
-#define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
+#define AS_STRING(value)       ((ijoString*)AS_OBJ(value))
+#define AS_CSTRING(value)      (((ijoString*)AS_OBJ(value))->chars)
 
 /**
  * @brief Allocate a new ijoString with content @p chars with length @p size.
@@ -69,6 +75,20 @@ void ijoStringInit(ijoString *string, char* chars, int size);
  * @param string The string to delete.
  */
 void ijoStringDelete(ijoString *string);
+
+/**
+ * @brief Compares two strings.
+ * @param a The first string to compare.
+ * @param b The second string to compare.
+ * @return True when the strings are the same.
+ */
+bool ijoStringEqual(ijoString *a, ijoString *b);
+
+/**
+ * @brief Prints an ijoString to the console.
+ * @param string The string to print.
+*/
+void ijoStringPrint(ijoString *string);
 
 /**
  * @brief Copy the string @p chars of length @p size and returns an ijoString.
