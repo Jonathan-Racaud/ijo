@@ -3,13 +3,21 @@
 
 #include "common.h"
 
+// Forward declaration of types inside of ijoObj.h
+// We can't include it as it also includes value.h
+
+typedef enum ObjType ObjType;
+typedef struct ijoObj ijoObj;
+typedef struct ijoString ijoString;
+
 /**
  * @brief Types managed by the ijoVM.
  */
 typedef enum {
     VAL_RESULT,
     VAL_BOOL,
-    VAL_NUMBER
+    VAL_NUMBER,
+    VAL_OBJ
 } ValueType;
 
 /**
@@ -52,6 +60,7 @@ typedef struct {
     union {
         bool boolean;
         double number;
+        ijoObj *obj;
     } as;
 } Value;
 
@@ -69,20 +78,25 @@ typedef struct ValueOperator {
 extern ValueOperator numberOperators[];
 extern ValueOperator boolOperators[];
 extern ValueOperator resultOperators[];
+extern ValueOperator objOperators[];
 
 #define BOOL_VAL(value)     ((Value){VAL_BOOL,   boolOperators,   {.boolean = value}})
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, numberOperators, {.number = value}})
 #define SUCCESS_VAL()       ((Value){VAL_RESULT, resultOperators, {.boolean = true}})
 #define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = false}})
+#define OBJ_VAL(value)      ((Value){VAL_OBJ,    objOperators,    {.obj = value }})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)
 #define AS_SUCCESS(value)   ((value).as.boolean)
 #define AS_ERROR(value)     ((value).as.boolean)
+#define AS_OBJ(value)       ((value).as.obj)
+#define OBJ_TYPE(value)     (AS_OBJ(value)->type)
 
 #define IS_RESULT(value)    ((value).type == VAL_RESULT)
 #define IS_BOOL(value)      ((value).type == VAL_BOOL)
 #define IS_NUMBER(value)    ((value).type == VAL_NUMBER)
+#define IS_OBJ(value)       ((value).type == VAL_OBJ)
 
 /**
  * @brief Represents a dynamic array of Value.

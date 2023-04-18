@@ -131,30 +131,56 @@ ValueOperator numberOperators [] = {
     [OPERATOR_CHEVRON_EQUAL_RIGHT] = {ValueError, ValueNumberGreaterEqual, ValueError},
 };
 
+/**
+ * @brief Default operators for Boolean values.
+ * @note ValueOperator | Prefix | Infix | Postfix
+ */
 ValueOperator boolOperators [] = {
-    [OPERATOR_PLUS]               = {ValueError, ValueError2, ValueError},
-    [OPERATOR_MINUS]              = {ValueError, ValueError2, ValueError},
-    [OPERATOR_STAR]               = {ValueError, ValueError2, ValueError},
-    [OPERATOR_SLASH]              = {ValueError, ValueError2, ValueError},
-    [OPERATOR_PERCENT]            = {ValueError, ValueError2, ValueError},
-    [OPERATOR_BANG]               = {ValueBoolNot, ValueError2, ValueError},
-    [OPERATOR_EQUAL_EQUAL]        = {ValueError, ValueEqual, ValueError},
-    [OPERATOR_CHEVRON_LEFT]       = {ValueError, ValueNotEqual, ValueError},
-    [OPERATOR_CHEVRON_RIGHT]      = {ValueError, ValueError2, ValueError},
-    [OPERATOR_CHEVRON_EQUAL_LEFT] = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PLUS]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_MINUS]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_STAR]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_SLASH]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PERCENT]             = {ValueError, ValueError2, ValueError},
+    [OPERATOR_BANG]                = {ValueBoolNot, ValueError2, ValueError},
+    [OPERATOR_EQUAL_EQUAL]         = {ValueError, ValueEqual, ValueError},
+    [OPERATOR_CHEVRON_LEFT]        = {ValueError, ValueNotEqual, ValueError},
+    [OPERATOR_CHEVRON_RIGHT]       = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_EQUAL_LEFT]  = {ValueError, ValueError2, ValueError},
     [OPERATOR_CHEVRON_EQUAL_RIGHT] = {ValueError, ValueError2, ValueError},
 };
 
+/**
+ * @brief Default operators for Result values.
+ * @note ValueOperator | Prefix | Infix | Postfix
+ */
 ValueOperator resultOperators [] = {
-    [OPERATOR_PLUS]               = {ValueError, ValueError2, ValueError},
-    [OPERATOR_MINUS]              = {ValueError, ValueError2, ValueError},
-    [OPERATOR_STAR]               = {ValueError, ValueError2, ValueError},
-    [OPERATOR_SLASH]              = {ValueError, ValueError2, ValueError},
-    [OPERATOR_PERCENT]            = {ValueError, ValueError2, ValueError},
-    [OPERATOR_BANG]               = {ValueError, ValueError2, ValueError},
-    [OPERATOR_EQUAL_EQUAL]        = {ValueError, ValueError2, ValueError},
-    [OPERATOR_CHEVRON_LEFT]       = {ValueError, ValueError2, ValueError},
-    [OPERATOR_CHEVRON_RIGHT]      = {ValueError, ValueError2, ValueError},
-    [OPERATOR_CHEVRON_EQUAL_LEFT] = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PLUS]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_MINUS]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_STAR]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_SLASH]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PERCENT]             = {ValueError, ValueError2, ValueError},
+    [OPERATOR_BANG]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_EQUAL_EQUAL]         = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_LEFT]        = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_RIGHT]       = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_EQUAL_LEFT]  = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_EQUAL_RIGHT] = {ValueError, ValueError2, ValueError},
+};
+
+/**
+ * @brief Default operators for Obj values.
+ * @note ValueOperator | Prefix | Infix | Postfix
+ */
+ValueOperator objOperators [] = {
+    [OPERATOR_PLUS]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_MINUS]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_STAR]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_SLASH]               = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PERCENT]             = {ValueError, ValueError2, ValueError},
+    [OPERATOR_BANG]                = {ValueError, ValueError2, ValueError},
+    [OPERATOR_EQUAL_EQUAL]         = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_LEFT]        = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_RIGHT]       = {ValueError, ValueError2, ValueError},
+    [OPERATOR_CHEVRON_EQUAL_LEFT]  = {ValueError, ValueError2, ValueError},
     [OPERATOR_CHEVRON_EQUAL_RIGHT] = {ValueError, ValueError2, ValueError},
 };

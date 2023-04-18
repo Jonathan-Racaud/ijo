@@ -35,6 +35,7 @@ set(INCLUDES
   ${INCLUDE_DIR}/compiler.h
   ${INCLUDE_DIR}/scanner.h
   ${INCLUDE_DIR}/token.h
+  ${INCLUDE_DIR}/ijoObj.h
 )
 include_directories(${INCLUDE_DIR})
 
