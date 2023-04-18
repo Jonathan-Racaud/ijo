@@ -120,6 +120,14 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             ijoVMStackPush(vm, result);
             break;
         }
+        // !=
+        case OP_NEQ: {
+            Value b = ijoVMStackPop(vm);
+            Value a = ijoVMStackPop(vm);
+            Value result = (a.operators[OPERATOR_BANG_EQUAL]).infix(a, b);
+            ijoVMStackPush(vm, result);
+            break;
+        }
         // <
         case OP_LT: {
             Value b = ijoVMStackPop(vm);

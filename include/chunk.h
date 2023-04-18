@@ -17,6 +17,7 @@ typedef enum {
     OP_NEG,
     
     OP_EQ,
+    OP_NEQ,
     OP_LT,
     OP_LE,
     OP_GT,

@@ -26,6 +26,7 @@ typedef enum {
     OPERATOR_PERCENT,
     OPERATOR_BANG,
     OPERATOR_EQUAL_EQUAL,
+    OPERATOR_BANG_EQUAL,
     OPERATOR_CHEVRON_LEFT,
     OPERATOR_CHEVRON_RIGHT,
     OPERATOR_CHEVRON_EQUAL_LEFT,
@@ -71,8 +72,8 @@ extern ValueOperator resultOperators[];
 
 #define BOOL_VAL(value)     ((Value){VAL_BOOL,   boolOperators,   {.boolean = value}})
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, numberOperators, {.number = value}})
-#define SUCCESS_VAL()       ((Value){VAL_RESULT, resultOperators, {.boolean = 0}})
-#define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = 1}})
+#define SUCCESS_VAL()       ((Value){VAL_RESULT, resultOperators, {.boolean = true}})
+#define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = false}})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)
@@ -175,7 +176,15 @@ Value ValueBoolNot(Value a);
  * @param b The second value.
  * @return True when @p a == @p b>
  */
-Value ValueNumberEqual(Value a, Value b);
+Value ValueEqual(Value a, Value b);
+
+/**
+ * @brief Compare two values together.
+ * @param a The first value.
+ * @param b The second value.
+ * @return True when @p a != @p b>
+ */
+Value ValueNotEqual(Value a, Value b);
 
 /**
  * @brief Compare two values together.
