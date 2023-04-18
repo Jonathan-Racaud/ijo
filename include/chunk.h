@@ -27,6 +27,8 @@ typedef enum {
     OP_SUCCESS,
     OP_ERROR,
 
+    OP_NOT,
+
     OP_PRINT,
 
     OP_MODULE,

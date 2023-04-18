@@ -34,7 +34,7 @@ void ValuePrint(Value value) {
     }
 
     if (IS_RESULT(value)) {
-        ConsoleWrite("%s", AS_SUCCESS(value) ? ":O" : ":X");
+        ConsoleWrite("%s", AS_SUCCESS(value) ? "@success" : "@error");
     }
 }
 
@@ -90,6 +90,10 @@ Value ValueError2(Value a, Value b) {
     return ERROR_VAL();
 }
 
+Value ValueBoolNot(Value a) {
+    return BOOL_VAL(!AS_BOOL(a));
+}
+
 /**
  * @brief Default operators for Number values.
  * @note ValueOperator | Prefix | Infix | Postfix
@@ -100,6 +104,7 @@ ValueOperator numberOperators [] = {
     [OPERATOR_STAR]     = {ValueError, ValueNumberMul, ValueError},
     [OPERATOR_SLASH]    = {ValueError, ValueNumberDiv, ValueError},
     [OPERATOR_PERCENT]  = {ValueError, ValueNumberMod, ValueError},
+    [OPERATOR_BANG]     = {ValueError, ValueError2, ValueError},
 };
 
 ValueOperator boolOperators [] = {
@@ -108,6 +113,7 @@ ValueOperator boolOperators [] = {
     [OPERATOR_STAR]     = {ValueError, ValueError2, ValueError},
     [OPERATOR_SLASH]    = {ValueError, ValueError2, ValueError},
     [OPERATOR_PERCENT]  = {ValueError, ValueError2, ValueError},
+    [OPERATOR_BANG]     = {ValueBoolNot, ValueError2, ValueError},
 };
 
 ValueOperator resultOperators [] = {
@@ -116,4 +122,5 @@ ValueOperator resultOperators [] = {
     [OPERATOR_STAR]     = {ValueError, ValueError2, ValueError},
     [OPERATOR_SLASH]    = {ValueError, ValueError2, ValueError},
     [OPERATOR_PERCENT]  = {ValueError, ValueError2, ValueError},
+    [OPERATOR_BANG]     = {ValueError, ValueError2, ValueError},
 };

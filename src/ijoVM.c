@@ -36,7 +36,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         for (Value *slot = vm->stack; slot < vm->stackTop; slot++) {
             ConsoleWrite("[ ");
             ValuePrint(*slot);
-            ConsoleWrite("]");
+            ConsoleWrite(" ]");
         }
         ConsoleWriteLine("");
         DisassembleInstruction(vm->chunk, (uint32_t)(vm->ip - vm->chunk->code));
@@ -103,6 +103,12 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         }
         case OP_FALSE: {
             ijoVMStackPush(vm, BOOL_VAL(false));
+            break;
+        }
+        case OP_NOT: {
+            Value val = ijoVMStackPop(vm);
+            Value result = (val.operators[OPERATOR_BANG]).prefix(val);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_RETURN: {

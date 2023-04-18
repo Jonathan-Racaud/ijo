@@ -85,6 +85,7 @@ void unary(Parser *parser, Chunk *chunk) {
 
   // Emit the operator instruction.
   switch (operatorType) {
+    case TOKEN_BANG: emitInstruction(parser, chunk, OP_NOT); break;
     case TOKEN_MINUS: emitInstruction(parser, chunk, OP_NEG); break;
     default: return; // Unreachable.
   }
@@ -241,7 +242,7 @@ ParseRule rules[] = {
   [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR,   TOKEN_NUMBER},
   [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR,   TOKEN_NUMBER},
-  [TOKEN_BANG]          = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
+  [TOKEN_BANG]          = {unary,    NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_BANG_EQUAL]    = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_EQUAL]         = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},
   [TOKEN_EQUAL_EQUAL]   = {NULL,     NULL,   PREC_NONE,     TOKEN_ALL},

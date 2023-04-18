@@ -51,6 +51,8 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
         return DisassembleSimpleInstruction("OP_FALSE", chunk, offset);
     case OP_MODULE:
         return DisassembleSimpleInstruction("OP_MODULE", chunk, offset);
+    case OP_NOT:
+        return DisassembleSimpleInstruction("OP_NOT", chunk, offset);
 
     default:
         return DisassembleUnknownInstruction(chunk, instruction);

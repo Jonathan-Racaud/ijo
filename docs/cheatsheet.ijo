@@ -24,8 +24,8 @@
     -> string
 }
 
-#constantTrue = :O
-#constantFalse = :X
+#constantTrue = @true
+#constantFalse = @false
 
 #assert @(param: Type) -> param == :O
 

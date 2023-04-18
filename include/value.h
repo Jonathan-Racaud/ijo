@@ -24,6 +24,7 @@ typedef enum {
     OPERATOR_STAR,
     OPERATOR_SLASH,
     OPERATOR_PERCENT,
+    OPERATOR_BANG,
 } OperatorType;
 
 struct ValueOperator;
@@ -155,6 +156,13 @@ Value ValueNumberDiv(Value a, Value b);
  * @return The module of the two values.
  */
 Value ValueNumberMod(Value a, Value b);
+
+/**
+ * @brief Not operation on bools
+ * @param a The value to apply NOT
+ * @return The result of the operation.
+ */
+Value ValueBoolNot(Value a);
 
 /**
  * @brief Compare two values together.
