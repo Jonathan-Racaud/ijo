@@ -22,6 +22,11 @@ typedef enum {
     OP_GT,
     OP_GE,
 
+    OP_TRUE,
+    OP_FALSE,
+    OP_SUCCESS,
+    OP_ERROR,
+
     OP_PRINT,
 
     OP_MODULE,

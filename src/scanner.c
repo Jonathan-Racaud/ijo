@@ -11,6 +11,7 @@ Token scanString(Scanner *scanner);
 Token scanNumber(Scanner *scanner);
 Token scanIdentifier(Scanner *scanner);
 Token varOrKeyword(Scanner *scanner);
+Token boolOrAssert(Scanner *scanner);
 TokenType identifierType();
 
 bool isAlpha(char c);
@@ -51,7 +52,7 @@ Token ScannerScan(Scanner *scanner) {
     char c = scannerAdvance(scanner);
 
     if (isDigit(c)) return scanNumber(scanner);
-    if (isAlpha(c)) return scanIdentifier(scanner);
+    if (isAlpha(c) || (c == '@')) return scanIdentifier(scanner);
 
     switch (c) {
         case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
@@ -81,7 +82,11 @@ Token ScannerScan(Scanner *scanner) {
 
         case '"': return scanString(scanner);
 
-        case '#': return  varOrKeyword(scanner);
+        /**
+         * In ijo a 'Keyword' is the combination of '#' + identifier + one of the 
+         * symbols used in the switch inside of the varOrKeyword function.
+        */
+        case '#': return varOrKeyword(scanner);
         case '\n': return makeToken(scanner, TOKEN_EOL);
     }
 
@@ -143,7 +148,7 @@ Token scanNumber(Scanner *scanner) {
 
 Token scanIdentifier(Scanner *scanner) {
   while (isAlpha(peek(scanner)) || isDigit(peek(scanner))) scannerAdvance(scanner);
-  return makeToken(scanner, identifierType());
+  return makeToken(scanner, identifierType(scanner));
 }
 
 Token varOrKeyword(Scanner *scanner) {
@@ -178,7 +183,7 @@ Token varOrKeyword(Scanner *scanner) {
          * 
          * #HashMap
          * <String, String>
-        */
+         */
         if (peek(scanner) == '\n') continue;
 
         if (isAtEnd(scanner)) return errorToken(scanner, "Unexpected character");
@@ -196,6 +201,21 @@ Token varOrKeyword(Scanner *scanner) {
     default:
         break;
     }
+}
+
+TokenType checkKeyword(
+  Scanner* scanner,
+  int start,
+  int length,
+  const char* rest,
+  TokenType type
+) {
+  if (scanner->current - scanner->start == start + length &&
+      memcmp(scanner->start + start, rest, length) == 0) {
+    return type;
+  }
+
+  return TOKEN_IDENTIFIER;
 }
 
 bool isAtEnd(Scanner *scanner) {
@@ -260,6 +280,34 @@ bool isWhitespace(char c) {
     return (c == ' ' || c == '\r' || c == '\t');
 }
 
-TokenType identifierType() {
-  return TOKEN_IDENTIFIER;
+TokenType identifierType(Scanner *scanner) {
+  /**
+   * The only exception to the KeySymbol rules has to do with the boolean values.
+   * The reason is that I did not find a non cryptic, easy to read way to represent 
+   * them using symbols for now.
+   * 
+   * They are reusing syntax for calling an assert function as they are closely related
+   * to how this type of function is meant to be used in ijo.
+  */    
+  switch (scanner->start[0])
+  {
+  case 't':
+    if (scanner->current - scanner->start > 1) {
+      switch (scanner->start[1])
+      {
+      case 'r': return checkKeyword(scanner, 2, 2, "ue", TOKEN_TRUE);
+      }
+    }
+  case 'f':
+    if (scanner->current - scanner->start > 1) {
+      switch (scanner->start[1])
+      {
+      case 'a': return checkKeyword(scanner, 2, 3, "lse", TOKEN_FALSE);
+      }
+    }
+    break;
+  
+  case '@': return TOKEN_ASSERT;
+  default: return TOKEN_IDENTIFIER;
+  }
 }
