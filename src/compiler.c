@@ -163,8 +163,8 @@ void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
     parserAdvance(parser);
 
     ParseRule *rule = getRule(parser->previous.type);
-    
-    if ((parser->current.type & rule->acceptedTokens) != parser->current.type) {
+
+    if (!HAS_ENUM(parser->current.type, rule->acceptedTokens)) {
         errorAt(parser, &parser->current, "Invalid token");
         return;
     }
