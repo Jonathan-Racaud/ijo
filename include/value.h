@@ -12,21 +12,21 @@ typedef enum {
     VAL_NUMBER
 } ValueType;
 
-// /**
-//  * @brief Tells what kind of operator are allowed on the type.
-//  * @note Refers to the syntax used in the source code: '%' is not 
-//  * OPERATOR_MODULO but OPERATOR_PERCENT because a Value could have
-//  * an operator defined for this token without being a modulo operation.
-//  */
-// typedef enum {
-//     OPERATOR_NONE,
-//     OPERATOR_PLUS,
-//     OPERATOR_MINUS,
-//     OPERATOR_SLASH,
-//     OPERATOR_PERCENT,
+/**
+ * @brief Tells what kind of operator are allowed on the type.
+ * @note Refers to the syntax used in the source code: '%' is not 
+ * OPERATOR_MODULO but OPERATOR_PERCENT because a Value could have
+ * an operator defined for this token without being a modulo operation.
+ */
+typedef enum {
+    OPERATOR_PLUS,
+    OPERATOR_MINUS,
+    OPERATOR_STAR,
+    OPERATOR_SLASH,
+    OPERATOR_PERCENT,
+} OperatorType;
 
-//     OPERATOR_BASIC_MATH = OPERATOR_PLUS | OPERATOR_MINUS | OPERATOR_SLASH | OPERATOR_PERCENT,
-// } ValueOperator;
+struct ValueOperator;
 
 /**
  * @brief Represents the Value type used by the ijoVM.
@@ -38,8 +38,7 @@ typedef struct {
     /// @note 4 bytes
     ValueType type;
 
-    /// @brief The operators the value accepts
-    // ValueOperator operators;
+    struct ValueOperator *operators;
 
     /// @brief The data stored for the value.
     /// @note 8 bytes
@@ -49,10 +48,25 @@ typedef struct {
     } as;
 } Value;
 
-#define BOOL_VAL(value)     ((Value){VAL_BOOL,   {.boolean = value}})
-#define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}})
-#define SUCCESS_VAL()       ((Value){VAL_RESULT, {.boolean = 0}})
-#define ERROR_VAL()         ((Value){VAL_RESULT, {.boolean = 1}})
+typedef Value (*OperatorInfixFunc)(Value a, Value b);
+typedef Value (*OperatorPrefixFunc)(Value b);
+typedef Value (*OperatorPostfixFunc)(Value b);
+typedef uint8_t Operator ;
+
+typedef struct ValueOperator {
+    OperatorPrefixFunc prefix;
+    OperatorInfixFunc infix;
+    OperatorPostfixFunc postfix;
+} ValueOperator;
+
+extern ValueOperator numberOperators[];
+extern ValueOperator boolOperators[];
+extern ValueOperator resultOperators[];
+
+#define BOOL_VAL(value)     ((Value){VAL_BOOL,   boolOperators,   {.boolean = value}})
+#define NUMBER_VAL(value)   ((Value){VAL_NUMBER, numberOperators, {.number = value}})
+#define SUCCESS_VAL()       ((Value){VAL_RESULT, resultOperators, {.boolean = 0}})
+#define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = 1}})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)
@@ -62,10 +76,6 @@ typedef struct {
 #define IS_RESULT(value)    ((value).type == VAL_RESULT)
 #define IS_BOOL(value)      ((value).type == VAL_BOOL)
 #define IS_NUMBER(value)    ((value).type == VAL_NUMBER)
-
-typedef struct {
-    
-} ValueOperator;
 
 /**
  * @brief Represents a dynamic array of Value.
@@ -112,7 +122,7 @@ void ValuePrint(Value value);
  * @param b The second value.
  * @return The sum of the two values.
  */
-Value ValueAdd(Value a, Value b);
+Value ValueNumberAdd(Value a, Value b);
 
 /**
  * @brief Subtract two value together.
@@ -120,7 +130,7 @@ Value ValueAdd(Value a, Value b);
  * @param b The second value.
  * @return The subtraction of the two values.
  */
-Value ValueSub(Value a, Value b);
+Value ValueNumberSub(Value a, Value b);
 
 /**
  * @brief Multiply two value together.
@@ -128,7 +138,7 @@ Value ValueSub(Value a, Value b);
  * @param b The second value.
  * @return The multiplication of the two values.
  */
-Value ValueMul(Value a, Value b);
+Value ValueNumberMul(Value a, Value b);
 
 /**
  * @brief Divides two value together.
@@ -136,7 +146,7 @@ Value ValueMul(Value a, Value b);
  * @param b The second value.
  * @return The division of the two values.
  */
-Value ValueDiv(Value a, Value b);
+Value ValueNumberDiv(Value a, Value b);
 
 /**
  * @brief Modulo between two values.
@@ -144,7 +154,7 @@ Value ValueDiv(Value a, Value b);
  * @param b The second value.
  * @return The module of the two values.
  */
-Value ValueMod(Value a, Value b);
+Value ValueNumberMod(Value a, Value b);
 
 /**
  * @brief Compare two values together.
@@ -192,5 +202,8 @@ bool ValueLessEqual(Value a, Value b);
  * @return The negated value.
  */
 Value ValueNegate(Value val);
+
+Value ValueError(Value a);
+Value ValueError2(Value a, Value b);
 
 #endif // IJO_VALUE_H

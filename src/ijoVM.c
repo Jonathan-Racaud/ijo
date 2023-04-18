@@ -54,36 +54,42 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         case OP_ADD: {
             Value b = ijoVMStackPop(vm);
             Value a = ijoVMStackPop(vm);
-            ijoVMStackPush(vm, ValueAdd(a, b));
+            Value result = (a.operators[OPERATOR_PLUS]).infix(a, b);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_SUB: {
             Value b = ijoVMStackPop(vm);
             Value a = ijoVMStackPop(vm);
-            ijoVMStackPush(vm, ValueSub(a, b));
+            Value result = (a.operators[OPERATOR_MINUS]).infix(a, b);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_MUL: {
             Value b = ijoVMStackPop(vm);
             Value a = ijoVMStackPop(vm);
-            ijoVMStackPush(vm, ValueMul(a, b));
+            Value result = (a.operators[OPERATOR_STAR]).infix(a, b);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_DIV: {
             Value b = ijoVMStackPop(vm);
             Value a = ijoVMStackPop(vm);
-            ijoVMStackPush(vm, ValueDiv(a, b));
+            Value result = (a.operators[OPERATOR_SLASH]).infix(a, b);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_MOD: {
             Value b = ijoVMStackPop(vm);
             Value a = ijoVMStackPop(vm);
-            ijoVMStackPush(vm, ValueMod(a, b));
+            Value result = (a.operators[OPERATOR_PERCENT]).infix(a, b);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_NEG: {
             Value val = ijoVMStackPop(vm);
-            ijoVMStackPush(vm, ValueNegate(val));
+            Value result = (val.operators[OPERATOR_MINUS]).prefix(val);
+            ijoVMStackPush(vm, result);
             break;
         }
         case OP_PRINT: {

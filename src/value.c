@@ -38,23 +38,23 @@ void ValuePrint(Value value) {
     }
 }
 
-Value ValueAdd(Value a, Value b) {
+Value ValueNumberAdd(Value a, Value b) {
     return NUMBER_VAL(AS_NUMBER(a) + AS_NUMBER(b));
 }
 
-Value ValueSub(Value a, Value b) {
+Value ValueNumberSub(Value a, Value b) {
     return NUMBER_VAL(AS_NUMBER(a)- AS_NUMBER(b));
 }
 
-Value ValueDiv(Value a, Value b) {
+Value ValueNumberDiv(Value a, Value b) {
     return NUMBER_VAL(AS_NUMBER(a) / AS_NUMBER(b));
 }
 
-Value ValueMul(Value a, Value b) {
+Value ValueNumberMul(Value a, Value b) {
     return NUMBER_VAL(AS_NUMBER(a) * AS_NUMBER(b));
 }
 
-Value ValueMod(Value a, Value b) {
+Value ValueNumberMod(Value a, Value b) {
     return NUMBER_VAL((int)AS_NUMBER(a) % (int)AS_NUMBER(b));
 }
 
@@ -78,6 +78,42 @@ bool ValueLessEqual(Value a, Value b) {
     return !ValueGreaterEqual(a, b);
 }
 
-Value ValueNegate(Value val) {
+Value ValueNumberNegate(Value val) {
     return NUMBER_VAL(-AS_NUMBER(val));
 }
+
+Value ValueError(Value b) {
+    return ERROR_VAL();
+}
+
+Value ValueError2(Value a, Value b) {
+    return ERROR_VAL();
+}
+
+/**
+ * @brief Default operators for Number values.
+ * @note ValueOperator | Prefix | Infix | Postfix
+ */
+ValueOperator numberOperators [] = {
+    [OPERATOR_PLUS]     = {ValueError, ValueNumberAdd, ValueError},
+    [OPERATOR_MINUS]    = {ValueNumberNegate, ValueNumberSub, ValueError},
+    [OPERATOR_STAR]     = {ValueError, ValueNumberMul, ValueError},
+    [OPERATOR_SLASH]    = {ValueError, ValueNumberDiv, ValueError},
+    [OPERATOR_PERCENT]  = {ValueError, ValueNumberMod, ValueError},
+};
+
+ValueOperator boolOperators [] = {
+    [OPERATOR_PLUS]     = {ValueError, ValueError2, ValueError},
+    [OPERATOR_MINUS]    = {ValueError, ValueError2, ValueError},
+    [OPERATOR_STAR]     = {ValueError, ValueError2, ValueError},
+    [OPERATOR_SLASH]    = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PERCENT]  = {ValueError, ValueError2, ValueError},
+};
+
+ValueOperator resultOperators [] = {
+    [OPERATOR_PLUS]     = {ValueError, ValueError2, ValueError},
+    [OPERATOR_MINUS]    = {ValueError, ValueError2, ValueError},
+    [OPERATOR_STAR]     = {ValueError, ValueError2, ValueError},
+    [OPERATOR_SLASH]    = {ValueError, ValueError2, ValueError},
+    [OPERATOR_PERCENT]  = {ValueError, ValueError2, ValueError},
+};
