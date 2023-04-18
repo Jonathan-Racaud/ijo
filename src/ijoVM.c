@@ -105,9 +105,50 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             ijoVMStackPush(vm, BOOL_VAL(false));
             break;
         }
+        // !@true
         case OP_NOT: {
             Value val = ijoVMStackPop(vm);
             Value result = (val.operators[OPERATOR_BANG]).prefix(val);
+            ijoVMStackPush(vm, result);
+            break;
+        }
+        // ==
+        case OP_EQ: {
+            Value b = ijoVMStackPop(vm);
+            Value a = ijoVMStackPop(vm);
+            Value result = (a.operators[OPERATOR_EQUAL_EQUAL]).infix(a, b);
+            ijoVMStackPush(vm, result);
+            break;
+        }
+        // <
+        case OP_LT: {
+            Value b = ijoVMStackPop(vm);
+            Value a = ijoVMStackPop(vm);
+            Value result = (a.operators[OPERATOR_CHEVRON_LEFT]).infix(a, b);
+            ijoVMStackPush(vm, result);
+            break;
+        }
+        // <=
+        case OP_LE: {
+            Value b = ijoVMStackPop(vm);
+            Value a = ijoVMStackPop(vm);
+            Value result = (a.operators[OPERATOR_CHEVRON_EQUAL_LEFT]).infix(a, b);
+            ijoVMStackPush(vm, result);
+            break;
+        }
+        // >
+        case OP_GT: {
+            Value b = ijoVMStackPop(vm);
+            Value a = ijoVMStackPop(vm);
+            Value result = (a.operators[OPERATOR_CHEVRON_RIGHT]).infix(a, b);
+            ijoVMStackPush(vm, result);
+            break;
+        }
+        // >=
+        case OP_GE: {
+            Value b = ijoVMStackPop(vm);
+            Value a = ijoVMStackPop(vm);
+            Value result = (a.operators[OPERATOR_CHEVRON_EQUAL_RIGHT]).infix(a, b);
             ijoVMStackPush(vm, result);
             break;
         }

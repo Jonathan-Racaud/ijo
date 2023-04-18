@@ -25,6 +25,11 @@ typedef enum {
     OPERATOR_SLASH,
     OPERATOR_PERCENT,
     OPERATOR_BANG,
+    OPERATOR_EQUAL_EQUAL,
+    OPERATOR_CHEVRON_LEFT,
+    OPERATOR_CHEVRON_RIGHT,
+    OPERATOR_CHEVRON_EQUAL_LEFT,
+    OPERATOR_CHEVRON_EQUAL_RIGHT,
 } OperatorType;
 
 struct ValueOperator;
@@ -170,7 +175,7 @@ Value ValueBoolNot(Value a);
  * @param b The second value.
  * @return True when @p a == @p b>
  */
-bool ValueEqual(Value a, Value b);
+Value ValueNumberEqual(Value a, Value b);
 
 /**
  * @brief Compare two values together.
@@ -178,7 +183,7 @@ bool ValueEqual(Value a, Value b);
  * @param b The second value.
  * @return True when @p a > @p b
  */
-bool ValueGreaterThan(Value a, Value b);
+Value ValueNumberGreaterThan(Value a, Value b);
 
 /**
  * @brief Compare two values together.
@@ -186,7 +191,7 @@ bool ValueGreaterThan(Value a, Value b);
  * @param b The second value.
  * @return True when @p a >= @p b.
  */
-bool ValueGreaterEqual(Value a, Value b);
+Value ValueNumberGreaterEqual(Value a, Value b);
 
 /**
  * @brief Compare two values together.
@@ -194,7 +199,7 @@ bool ValueGreaterEqual(Value a, Value b);
  * @param b The second value.
  * @return True when @p a < @p b.
  */
-bool ValueLessThan(Value a, Value b);
+Value ValueNumberLessThan(Value a, Value b);
 
 /**
  * @brief Compare two values together.
@@ -202,7 +207,7 @@ bool ValueLessThan(Value a, Value b);
  * @param b The second value.
  * @return True when @p a <= @p b.
  */
-bool ValueLessEqual(Value a, Value b);
+Value ValueNumberLessEqual(Value a, Value b);
 
 /**
  * @brief Negate a value.
