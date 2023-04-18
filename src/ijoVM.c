@@ -130,7 +130,7 @@ void ijoVMStackPush(ijoVM *vm, Value value) {
 Value ijoVMStackPop(ijoVM *vm) {
     if (vm->stackTop == vm->stack) {
         LogError("Already at the start of the stack");
-        return 0;
+        return ERROR_VAL();
     }
 
     vm->stackTop--;

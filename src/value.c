@@ -25,39 +25,49 @@ void ValueArrayAppend(ValueArray *array, Value value) {
 }
 
 void ValuePrint(Value value) {
-    ConsoleWrite("%g", value);
+    if (IS_NUMBER(value)) {
+        ConsoleWrite("%g", AS_NUMBER(value));
+    }
+
+    if (IS_BOOL(value)) {
+        ConsoleWrite("%s", AS_BOOL(value) ? "True" : "False");
+    }
+
+    if (IS_RESULT(value)) {
+        ConsoleWrite("%s", AS_SUCCESS(value) ? ":O" : ":X");
+    }
 }
 
 Value ValueAdd(Value a, Value b) {
-    return a + b;
+    return NUMBER_VAL(AS_NUMBER(a) + AS_NUMBER(b));
 }
 
 Value ValueSub(Value a, Value b) {
-    return a - b;
+    return NUMBER_VAL(AS_NUMBER(a)- AS_NUMBER(b));
 }
 
 Value ValueDiv(Value a, Value b) {
-    return a / b;
+    return NUMBER_VAL(AS_NUMBER(a) / AS_NUMBER(b));
 }
 
 Value ValueMul(Value a, Value b) {
-    return a * b;
+    return NUMBER_VAL(AS_NUMBER(a) * AS_NUMBER(b));
 }
 
 Value ValueMod(Value a, Value b) {
-    return (int)a % (int)b;
+    return NUMBER_VAL((int)AS_NUMBER(a) % (int)AS_NUMBER(b));
 }
 
 bool ValueEqual(Value a, Value b) {
-    return a == b;
+    return AS_NUMBER(a) == AS_NUMBER(b);
 }
 
 bool ValueGreaterThan(Value a, Value b) {
-    return a > b;
+    return AS_NUMBER(a) > AS_NUMBER(b);
 }
 
 bool ValueGreaterEqual(Value a, Value b) {
-    return a >= b;
+    return AS_NUMBER(a) >= AS_NUMBER(b);
 }
 
 bool ValueLessThan(Value a, Value b) {
@@ -69,5 +79,5 @@ bool ValueLessEqual(Value a, Value b) {
 }
 
 Value ValueNegate(Value val) {
-    return -val;
+    return NUMBER_VAL(-AS_NUMBER(val));
 }

@@ -12,24 +12,47 @@ typedef enum {
     VAL_NUMBER
 } ValueType;
 
+// /**
+//  * @brief Tells what kind of operator are allowed on the type.
+//  * @note Refers to the syntax used in the source code: '%' is not 
+//  * OPERATOR_MODULO but OPERATOR_PERCENT because a Value could have
+//  * an operator defined for this token without being a modulo operation.
+//  */
+// typedef enum {
+//     OPERATOR_NONE,
+//     OPERATOR_PLUS,
+//     OPERATOR_MINUS,
+//     OPERATOR_SLASH,
+//     OPERATOR_PERCENT,
+
+//     OPERATOR_BASIC_MATH = OPERATOR_PLUS | OPERATOR_MINUS | OPERATOR_SLASH | OPERATOR_PERCENT,
+// } ValueOperator;
+
 /**
  * @brief Represents the Value type used by the ijoVM.
+ * @note
+ * There's 4 bytes of padding between the tag and the value.
  */
 typedef struct {
     /// @brief The tag type for the value.
+    /// @note 4 bytes
     ValueType type;
 
+    /// @brief The operators the value accepts
+    // ValueOperator operators;
+
     /// @brief The data stored for the value.
+    /// @note 8 bytes
     union {
         bool boolean;
         double number;
     } as;
 } Value;
 
-#define BOOL_VAL(value)     ((Value){VAL_BOOL, {.boolean = value}})
+#define BOOL_VAL(value)     ((Value){VAL_BOOL,   {.boolean = value}})
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}})
-#define SUCCESS_VAL(value)  ((Value){VAL_RESULT, {.boolean = 0}})
-#define ERROR_VAL(value)    ((Value){VAL_RESULT, {.boolean = 1}})
+#define SUCCESS_VAL()       ((Value){VAL_RESULT, {.boolean = 0}})
+#define ERROR_VAL()         ((Value){VAL_RESULT, {.boolean = 1}})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)
@@ -39,6 +62,10 @@ typedef struct {
 #define IS_RESULT(value)    ((value).type == VAL_RESULT)
 #define IS_BOOL(value)      ((value).type == VAL_BOOL)
 #define IS_NUMBER(value)    ((value).type == VAL_NUMBER)
+
+typedef struct {
+    
+} ValueOperator;
 
 /**
  * @brief Represents a dynamic array of Value.

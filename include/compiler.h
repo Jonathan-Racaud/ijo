@@ -57,6 +57,9 @@ typedef struct {
 
     /// @brief The precedence of an infix expression that uses that token as an operator.
     Precedence precedence;
+
+    /// @brief The tokens that can be accepted for the rules.
+    TokenType acceptedTokens;
 } ParseRule;
 
 /**

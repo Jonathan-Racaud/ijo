@@ -3,7 +3,10 @@
 
 /// @brief Represents the type of token.
 typedef enum {
-// Single-character tokens.
+  // For when a parsing rule can accept any kind of token.
+  TOKEN_ALL,
+
+  // Single-character tokens.
   TOKEN_LEFT_PAREN, TOKEN_RIGHT_PAREN,
   TOKEN_LEFT_BRACE, TOKEN_RIGHT_BRACE,
   TOKEN_COMMA, TOKEN_DOT, TOKEN_MINUS, TOKEN_PLUS,

@@ -9,6 +9,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#define HAS_ENUM(val, test) ((val & test) == val)
+
 #define LOG_LEVEL_ALL      1
 #define LOG_LEVEL_INFO     0
 #define LOG_LEVEL_DEBUG    0
