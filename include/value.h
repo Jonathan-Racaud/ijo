@@ -4,9 +4,41 @@
 #include "common.h"
 
 /**
+ * @brief Types managed by the ijoVM.
+ */
+typedef enum {
+    VAL_RESULT,
+    VAL_BOOL,
+    VAL_NUMBER
+} ValueType;
+
+/**
  * @brief Represents the Value type used by the ijoVM.
  */
-typedef double Value;
+typedef struct {
+    /// @brief The tag type for the value.
+    ValueType type;
+
+    /// @brief The data stored for the value.
+    union {
+        bool boolean;
+        double number;
+    } as;
+} Value;
+
+#define BOOL_VAL(value)     ((Value){VAL_BOOL, {.boolean = value}})
+#define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}})
+#define SUCCESS_VAL(value)  ((Value){VAL_RESULT, {.boolean = 0}})
+#define ERROR_VAL(value)    ((Value){VAL_RESULT, {.boolean = 1}})
+
+#define AS_BOOL(value)      ((value).as.boolean)
+#define AS_NUMBER(value)    ((value).as.number)
+#define AS_SUCCESS(value)   ((value).as.boolean)
+#define AS_ERROR(value)     ((value).as.boolean)
+
+#define IS_RESULT(value)    ((value).type == VAL_RESULT)
+#define IS_BOOL(value)      ((value).type == VAL_BOOL)
+#define IS_NUMBER(value)    ((value).type == VAL_NUMBER)
 
 /**
  * @brief Represents a dynamic array of Value.
