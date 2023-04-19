@@ -6,7 +6,13 @@ void *Reallocate(void *pointer, uint32_t oldSize, uint32_t newSize) {
         return NULL;
     }
 
+    bool hadEmptyPtr = pointer == NULL;
+
     void *result = realloc(pointer, newSize);
+
+    if (hadEmptyPtr) {
+        memset(result, 0, newSize);
+    }
 
     if (result == NULL) {
         exit(1);

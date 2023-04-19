@@ -25,10 +25,12 @@ bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && (AS_OBJ(value)->type == type);
 }
 
-void ObjectPrint(Value obj) {
-    switch (obj.type)
+void ObjectPrint(Value value) {
+    ijoObj *obj = AS_OBJ(value);
+    
+    switch (obj->type)
     {
-    case OBJ_STRING: ConsoleWrite("%s", AS_CSTRING(obj)); break;
+    case OBJ_STRING: ConsoleWrite("%s", AS_CSTRING(value)); break;
     default: LogError("Unknown type");
         break;
     }
@@ -64,10 +66,13 @@ Value ijoStringConcat(Value a, Value b) {
     
     int length = aString->length + bString->length + 1;
 
-    ijoString *result = ijoStringNew(NULL, length);
-    memcpy(result->chars, aString->chars, aString->length);
-    memcpy(result->chars + aString->length, bString->chars, bString->length);
-    result->chars[length] = '\0';
+    char *chars = NULL;
+    chars = ALLOCATE(char, length + 1);
+    memcpy(chars, aString->chars, aString->length);
+    memcpy(chars + aString->length, bString->chars, bString->length);
+    chars[length] = '\0';
+
+    ijoString *result = ijoStringNew(chars, length);
 
     return OBJ_VAL(result);
 }
