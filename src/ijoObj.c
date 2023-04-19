@@ -16,7 +16,7 @@ ijoObj *ObjectNew(int size, ObjType type) {
 void ObjectDelete(ijoObj *obj) {
     switch (obj->type)
     {
-    case OBJ_STRING: ijoStringDelete(obj); break;
+    case OBJ_STRING: ijoStringDelete((ijoString*)obj); break;
     default: break;
     }
 }

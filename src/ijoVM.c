@@ -2,6 +2,9 @@
 #include "common.h"
 #include "ijoMemory.h"
 #include "log.h"
+#include "gc/naiveGC.h"
+
+extern NaiveGCNode *gc;
 
 #if DEBUG
 #include "debug.h"
@@ -55,6 +58,11 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             Value b = ijoVMStackPop(vm);
             Value a = ijoVMStackPop(vm);
             Value result = (a.operators[OPERATOR_PLUS]).infix(a, b);
+
+            if (result.type == VAL_OBJ) {
+                NaiveGCInsert(&gc, &result);
+            }
+            
             ijoVMStackPush(vm, result);
             break;
         }

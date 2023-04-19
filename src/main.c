@@ -3,6 +3,9 @@
 #include "log.h"
 #include "ijoVM.h"
 #include "compiler.h"
+#include "gc/naiveGC.h"
+
+NaiveGCNode *gc;
 
 InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode) {
   Chunk chunk;
@@ -95,6 +98,8 @@ int main(int argc, char **argv) {
   ijoVM vm;
   ijoVMNew(&vm);
 
+  gc = NaiveGCNodeCreate(NULL);
+
   if (argc == 1) {
     StartRepl(&vm);
   } else if (argc == 2) {
@@ -104,6 +109,8 @@ int main(int argc, char **argv) {
     ijoVMDelete(&vm);
     exit(64);
   }
+
+  NaiveGCClear(gc);
 
   LogInfo("Stopping the ijoVM");
 

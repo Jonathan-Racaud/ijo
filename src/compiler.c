@@ -2,6 +2,9 @@
 #include "scanner.h"
 #include "log.h"
 #include "ijoObj.h"
+#include "gc/naiveGC.h"
+
+extern NaiveGCNode *gc;
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
@@ -184,6 +187,8 @@ void string(Parser *parser, Chunk *chunk) {
     //                             -2 to trim trailing quotation mark.
     Value str = OBJ_VAL(CStringCopy(parser->previous.start + 1, parser->previous.length - 2));
     str.operators = stringOperators;
+
+    NaiveGCInsert(&gc, &str);
 
     emitConstant(parser, chunk, str);
 }

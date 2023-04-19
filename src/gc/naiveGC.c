@@ -1,5 +1,6 @@
 #include "gc/naiveGC.h"
 #include "ijoMemory.h"
+#include "value.h"
 
 // Forward declaration
 
@@ -7,31 +8,38 @@ void ObjectDelete(ijoObj *obj);
 
 // NaiveGC implementation
 
-void NaiveGCInit(NaiveGCNode *gc) {
-    gc->obj = NULL;
-    gc->next = NULL;
-}
-
-NaiveGCNode *NaiveGCNodeCreate(ijoObj *obj) {
+NaiveGCNode *NaiveGCNodeCreate(Value *value) {
     NaiveGCNode *node = (NaiveGCNode*)malloc(sizeof(NaiveGCNode));
-    node->obj = obj;
+    if (value != NULL) {
+        node->obj = AS_OBJ(*value);
+    } else {
+        node->obj = NULL;
+    }
+
     node->next = NULL;
 
     return node;
 }
 
-void NaiveGCInsert(NaiveGCNode **head, ijoObj *obj) {
-    NaiveGCNode *newNode = NaiveGCNodeCreate(obj);
+void NaiveGCInsert(NaiveGCNode **head, Value *value) {
+    NaiveGCNode *newNode = NaiveGCNodeCreate(value);
     newNode->next = *head;
     *head = newNode;
 }
 
 void NaiveGCClear(NaiveGCNode *head) {
-    NaiveGCNode *current = head;
+    NaiveGCNode *current;
 
-    while (current != NULL) {
-        ObjectDelete(current->obj);
-        current->obj = NULL;
-        current = current->next;
+    while (head != NULL) {
+        current = head;
+        
+        if (head->obj != NULL) {
+            ObjectDelete(head->obj);
+            head->obj = NULL;
+        }
+
+        head = head->next;
+
+        free(current);
     }
 }

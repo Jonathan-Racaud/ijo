@@ -1,8 +1,7 @@
 #ifndef IJO_NAIVE_GC_H
 #define IJO_NAIVE_GC_H
 
-// Forward declaration
-typedef struct ijoObj ijoObj;
+#include "value.h"
 
 /// @brief A linked-list that holds the reference to all allocated ijoObj.
 typedef struct NaiveGCNode {
@@ -14,18 +13,18 @@ typedef struct NaiveGCNode {
  * @brief Initializes the NaiveGC.
  * @param gc The GC to initialize.
  */
-void NaiveGCInit(NaiveGCNode *gc);
+NaiveGCNode *NaiveGCNodeCreate(Value *obj);
 
 /**
  * @brief Appends an @p obj to the list of allocated ijoObj
  * @param obj The object to store.
  */
-void NaiveGCAppend(NaiveGCNode *gc, ijoObj *obj);
+void NaiveGCInsert(NaiveGCNode **head, Value *obj);
 
 /**
  * @brief Clears the content of the GC and all of its stored obj.
  * @param gc The gc to clear.
  */
-void NaiveGCClear(NaiveGCNode *gc);
+void NaiveGCClear(NaiveGCNode *head);
 
 #endif // IJO_NAIVE_GC_H
