@@ -64,17 +64,19 @@ Value ijoStringConcat(Value a, Value b) {
     ijoString *aString = AS_STRING(a);
     ijoString *bString = AS_STRING(b);
     
-    int length = aString->length + bString->length + 1;
+    int length = aString->length + bString->length;
 
-    char *chars = NULL;
-    chars = ALLOCATE(char, length + 1);
-    memcpy(chars, aString->chars, aString->length);
-    memcpy(chars + aString->length, bString->chars, bString->length);
-    chars[length] = '\0';
+    char *content = NULL;
+    content = ALLOCATE(char, length + 1);
+    memcpy(content, aString->chars, aString->length);
+    memcpy(content + aString->length, bString->chars, bString->length);
+    content[length] = '\0';
 
-    ijoString *result = ijoStringNew(chars, length);
+    ijoString *result = ijoStringNew(content, length);
+    Value str = OBJ_VAL(result);
+    str.operators = stringOperators;
 
-    return OBJ_VAL(result);
+    return str; 
 }
 
 ijoString *CStringCopy(const char* chars, int size) {
