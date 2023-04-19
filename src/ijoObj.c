@@ -11,7 +11,15 @@ ijoObj *ObjectNew(int size, ObjType type) {
     ijoObj *object = (ijoObj*)Reallocate(NULL, 0, size);
     object->type = type;
     return object;
-} 
+}
+
+void ObjectDelete(ijoObj *obj) {
+    switch (obj->type)
+    {
+    case OBJ_STRING: ijoStringDelete(obj); break;
+    default: break;
+    }
+}
 
 bool isObjType(Value value, ObjType type) {
     return IS_OBJ(value) && (AS_OBJ(value)->type == type);

@@ -43,6 +43,12 @@ bool isObjType(Value value, ObjType type);
 ijoObj *ObjectNew(int size, ObjType type);
 
 /**
+ * @brief Deletes an ijoObj.
+ * @param obj The object to delete.
+ */
+void ObjectDelete(ijoObj *obj);
+
+/**
  * @brief Prints an object to the console.
  * @param obj The object to print.
 */
