@@ -86,6 +86,10 @@ Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key) {
     }
 }
 
+ijoString* TableFindString(Table *table, const char *chars, int length, int hash) {
+    return NULL;
+}
+
 void TableAddAll(Table *from, Table *to) {
     for (int i = 0; i < from->capacity; i++) {
         Entry *entry = &from->entries[i];
