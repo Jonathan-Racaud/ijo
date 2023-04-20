@@ -21,11 +21,14 @@ struct ijoString {
     /// @brief Object header.
     ijoObj obj;
 
-    /// @brief Length of the String
+    /// @brief Length of the String.
     int length;
 
-    /// @brief Content of the String
+    /// @brief Content of the String.
     char *chars;
+
+    /// @brief The hash for this String.
+    uint32_t hash;
 };
 
 // ijoObj related functionalities
@@ -66,7 +69,7 @@ void ObjectPrint(Value obj);
  * @param size The string's length.
  * @return 
  */
-ijoString *ijoStringNew(char *chars, int size);
+ijoString *ijoStringNew(char *chars, int size, uint32_t hash);
 
 /**
  * @brief Initializes an ijoString with @p chars and @p size.
@@ -74,7 +77,7 @@ ijoString *ijoStringNew(char *chars, int size);
  * @param chars The string's content.
  * @param size The string's length.
  */
-void ijoStringInit(ijoString *string, char* chars, int size);
+void ijoStringInit(ijoString *string, char* chars, int size, uint32_t hash);
 
 /**
  * @brief Deletes an ijoString, freeing its payload.

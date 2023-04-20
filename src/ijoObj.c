@@ -36,16 +36,21 @@ void ObjectPrint(Value value) {
     }
 }
 
+// Private ijoString functions forward declaration
+
+uint32_t hashString(const char *str, int length);
+
 // Public ijoString functions implementations
 
-ijoString *ijoStringNew(char *chars, int size) {
+ijoString *ijoStringNew(char *chars, int size, uint32_t hash) {
     ijoString *string = ALLOCATE_OBJ(ijoString, OBJ_STRING);
-    ijoStringInit(string, chars, size);
+    ijoStringInit(string, chars, size, hash);
 }
 
-void ijoStringInit(ijoString *string, char *chars, int size) {
+void ijoStringInit(ijoString *string, char *chars, int size, uint32_t hash) {
     string->chars = chars;
     string->length = size;
+    string->hash = hash;
 }
 
 void ijoStringDelete(ijoString *string) {
@@ -72,7 +77,9 @@ Value ijoStringConcat(Value a, Value b) {
     memcpy(content + aString->length, bString->chars, bString->length);
     content[length] = '\0';
 
-    ijoString *result = ijoStringNew(content, length);
+    uint32_t hash = hashString(content, length);
+
+    ijoString *result = ijoStringNew(content, length, hash);
     Value str = OBJ_VAL(result);
     str.operators = stringOperators;
 
@@ -80,9 +87,25 @@ Value ijoStringConcat(Value a, Value b) {
 }
 
 ijoString *CStringCopy(const char* chars, int size) {
+    uint32_t hash = hashString(chars, size);
     char *heapChars = ALLOCATE(char, size + 1);
     memcpy(heapChars, chars, size);
     heapChars[size] = '\0';
+    
+    return ijoStringNew(heapChars, size, hash);
+}
 
-    return ijoStringNew(heapChars, size);
+/**
+ * @brief Hash the string @p str of length @p length using the FNV-1a algorithm.
+ * @param str The string to hash.
+ * @param length The string's length.
+ * @return The hash value for the string.
+ */
+uint32_t hashString(const char *str, int length) {
+    uint32_t hash = 2166136261u;
+    for (int i = 0; i < length; i++) {
+        hash ^= (uint8_t)str[i];
+        hash *= 16777619;
+    }
+    return hash;
 }
