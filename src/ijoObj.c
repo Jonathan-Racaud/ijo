@@ -3,6 +3,7 @@
 #include "ijoVM.h"
 #include "value.h"
 #include "log.h"
+#include "table.h"
 
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)ObjectNew(sizeof(type), objectType)

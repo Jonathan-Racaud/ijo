@@ -3,6 +3,7 @@
 
 #include "compiler.h"
 #include "value.h"
+#include "table.h"
 
 #define STACK_MAX 256
 
@@ -33,6 +34,9 @@ typedef struct {
 
     /// @brief Pointer to the top of the stack.
     Value *stackTop;
+
+    /// @brief Table of interned Strings.
+    Table strings;
 } ijoVM;
 
 /**

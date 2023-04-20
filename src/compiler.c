@@ -179,8 +179,8 @@ void literal(Parser *parser, Chunk *chunk) {
 }
 
 void string(Parser *parser, Chunk *chunk) {
-    // If ijo supported string escape sequences like \n, 
-    // we’d translate those here. 
+    // If ijo supported string escape sequences like \n,
+    // we’d translate those here.
     // Since it doesn’t, we can take the characters as they are.
 
     // +1 to trim leading quotation mark.

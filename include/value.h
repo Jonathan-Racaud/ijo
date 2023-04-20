@@ -21,7 +21,8 @@ typedef enum {
     /// Special values only used internally by the ijoVM.
     /// DO NOT expose it to ijo users!
     IJO_INTERNAL_EMPTY_ENTRY,
-    IJO_INTERNAL_TOMBSTONE
+    IJO_INTERNAL_TOMBSTONE,
+    IJO_INTERNAL_STRING,
 } ValueType;
 
 /**

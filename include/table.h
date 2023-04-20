@@ -78,6 +78,16 @@ bool TableRemove(Table *table, ijoString *key);
 Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key);
 
 /**
+ * @brief Finds an interned string in the Table @p table.
+ * @param table The table to search.
+ * @param chars The string to look for.
+ * @param length The string's length.
+ * @param hash The string's hash.
+ * @return The found String or NULL.
+ */
+ijoString* TableFindString(Table *table, const char *chars, int length, int hash);
+
+/**
  * @brief Insert into the @p to Table all the entries of the @p from Table. 
  * @param from The original Table to copy.
  * @param to The destination of the copy.
