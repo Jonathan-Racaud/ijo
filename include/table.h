@@ -41,4 +41,47 @@ void TableInit(Table *table);
  */
 void TableDelete(Table *table);
 
+/**
+ * @brief Inserts a @p value into the @p table with the specified @p key.
+ * @param table The table to insert data into.
+ * @param key The key associated with the value.
+ * @param value The value associated with the key.
+ * @return True when the key and value are inserted. False otherwise.
+ */
+bool TableInsert(Table *table, ijoString *key, Value value);
+
+/**
+ * @brief Gets a value from the @p table for the specified @p key.
+ * @param table The table to search.
+ * @param key The key to search.
+ * @param outValue The pointer where the value will be stored.
+ * @return True if an Entry is found. @p outValue will be set to the found value.
+ * @return False if no Entry is found. @p outValue will be set to @error.
+ */
+bool TableGet(Table *table, ijoString *key, Value *outValue);
+
+/**
+ * @brief Removes an Entry with the specified @p key from the @p table.
+ * @param table The table to remove the entry from.
+ * @param key The key to search for.
+ * @return True if removed, False otherwise.
+ */
+bool TableRemove(Table *table, ijoString *key);
+
+/**
+ * @brief Finds an Entry in the list of @p entries for the specified @p key.
+ * @param entries The list of Entry to search.
+ * @param capacity The @p entries' capacity.
+ * @param key The key to search.
+ * @return The corresponding Entry. NULL otherwise.
+ */
+Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key);
+
+/**
+ * @brief Insert into the @p to Table all the entries of the @p from Table. 
+ * @param from The original Table to copy.
+ * @param to The destination of the copy.
+ */
+void TableAddAll(Table *from, Table *to);
+
 #endif // IJO_TABLE_H

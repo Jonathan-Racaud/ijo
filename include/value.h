@@ -16,7 +16,12 @@ typedef enum {
     VAL_RESULT,
     VAL_BOOL,
     VAL_NUMBER,
-    VAL_OBJ
+    VAL_OBJ,
+
+    /// Special values only used internally by the ijoVM.
+    /// DO NOT expose it to ijo users!
+    IJO_INTERNAL_EMPTY_ENTRY,
+    IJO_INTERNAL_TOMBSTONE
 } ValueType;
 
 /**
@@ -85,6 +90,7 @@ extern ValueOperator stringOperators[];
 #define SUCCESS_VAL()       ((Value){VAL_RESULT, resultOperators, {.boolean = true}})
 #define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = false}})
 #define OBJ_VAL(value)      ((Value){VAL_OBJ,    objOperators,    {.obj = (ijoObj*)value }})
+#define IJO_INTERNAL(type)  ((Value){type,       resultOperators, {.boolean = false}})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)
@@ -92,10 +98,11 @@ extern ValueOperator stringOperators[];
 #define AS_ERROR(value)     ((value).as.boolean)
 #define AS_OBJ(value)       ((value).as.obj)
 
-#define IS_RESULT(value)    ((value).type == VAL_RESULT)
-#define IS_BOOL(value)      ((value).type == VAL_BOOL)
-#define IS_NUMBER(value)    ((value).type == VAL_NUMBER)
-#define IS_OBJ(value)       ((value).type == VAL_OBJ)
+#define IS_RESULT(value)       ((value).type == VAL_RESULT)
+#define IS_BOOL(value)         ((value).type == VAL_BOOL)
+#define IS_NUMBER(value)       ((value).type == VAL_NUMBER)
+#define IS_OBJ(value)          ((value).type == VAL_OBJ)
+#define IS_INTERNAL(value, t)  ((value).type == t)
 
 /**
  * @brief Represents a dynamic array of Value.
