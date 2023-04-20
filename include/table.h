@@ -85,7 +85,7 @@ Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key);
  * @param hash The string's hash.
  * @return The found String or NULL.
  */
-ijoString* TableFindString(Table *table, const char *chars, int length, int hash);
+ijoString* TableFindString(Table *table, const char *chars, int length, uint32_t hash);
 
 /**
  * @brief Insert into the @p to Table all the entries of the @p from Table. 

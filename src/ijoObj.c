@@ -60,10 +60,11 @@ void ijoStringDelete(ijoString *string) {
 }
 
 Value ijoStringEqual(Value a, Value b) {
-    ijoString *aString = AS_STRING(a);
-    ijoString *bString = AS_STRING(b);
-    return BOOL_VAL((aString->length == bString->length) && 
-                    (memcmp(aString->chars, bString->chars, aString->length) == 0));
+    return BOOL_VAL(AS_OBJ(a) == AS_OBJ(b));
+    // ijoString *aString = AS_STRING(a);
+    // ijoString *bString = AS_STRING(b);
+    // return BOOL_VAL((aString->length == bString->length) && 
+    //                 (memcmp(aString->chars, bString->chars, aString->length) == 0));
 }
 
 Value ijoStringConcat(Value a, Value b) {

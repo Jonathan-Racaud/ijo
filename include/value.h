@@ -92,6 +92,7 @@ extern ValueOperator stringOperators[];
 #define ERROR_VAL()         ((Value){VAL_RESULT, resultOperators, {.boolean = false}})
 #define OBJ_VAL(value)      ((Value){VAL_OBJ,    objOperators,    {.obj = (ijoObj*)value }})
 #define IJO_INTERNAL(type)  ((Value){type,       resultOperators, {.boolean = false}})
+#define INTERNAL_STR(value) ((Value){IJO_INTERNAL_STRING, stringOperators, {.obj = (ijoObj*)value }})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)

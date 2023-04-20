@@ -3,6 +3,7 @@
 #include "log.h"
 #include "ijoObj.h"
 #include "gc/naiveGC.h"
+#include "ijoMemory.h"
 
 extern NaiveGCNode *gc;
 
@@ -13,13 +14,13 @@ extern NaiveGCNode *gc;
 // Private functions forward declarations
 
 void parserAdvance(Parser *parser);
-void expression(Parser *parser, Chunk *chunk);
-void grouping(Parser *parser, Chunk *chunk);
-void unary(Parser *parser, Chunk *chunk);
-void binary(Parser *parser, Chunk *chunk);
+void expression(Parser *parser, Chunk *chunk, Table *strings);
+void grouping(Parser *parser, Chunk *chunk, Table *strings);
+void unary(Parser *parser, Chunk *chunk, Table *strings);
+void binary(Parser *parser, Chunk *chunk, Table *strings);
 void consume(Parser *parser, TokenType type, const char * message);
 
-void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence);
+void parsePrecedence(Parser *parser, Chunk *chunk, Table *strings, Precedence precedence);
 ParseRule* getRule(TokenType type);
 
 void errorAt(Parser *parser, Token *token, const char *message);
@@ -32,7 +33,7 @@ void endCompiler(Parser *parser, Chunk *chunk);
 
 // Public functions implementations
 
-bool Compile(const char *source, Chunk *chunk, CompileMode mode) {
+bool Compile(const char *source, Chunk *chunk, Table *strings, CompileMode mode) {
     Scanner *scanner = ScannerNew();
     ScannerInit(scanner, source);
 
@@ -40,7 +41,7 @@ bool Compile(const char *source, Chunk *chunk, CompileMode mode) {
     ParserInit(&parser, scanner);
 
     parserAdvance(&parser);
-    expression(&parser, chunk);
+    expression(&parser, chunk, strings);
 
     switch (mode)
     {
@@ -72,20 +73,20 @@ void parserAdvance(Parser *parser) {
     }
 }
 
-void expression(Parser *parser, Chunk *chunk) {
-    parsePrecedence(parser, chunk, PREC_ASSIGNMENT);
+void expression(Parser *parser, Chunk *chunk, Table *strings) {
+    parsePrecedence(parser, chunk, strings, PREC_ASSIGNMENT);
 }
 
-void grouping(Parser *parser, Chunk *chunk) {
-    expression(parser, chunk);
+void grouping(Parser *parser, Chunk *chunk, Table *strings) {
+    expression(parser, chunk, strings);
     consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after expression");
 }
 
-void unary(Parser *parser, Chunk *chunk) {
+void unary(Parser *parser, Chunk *chunk, Table *strings) {
   TokenType operatorType = parser->previous.type;
 
   // Compile the operand.
-  parsePrecedence(parser, chunk, PREC_UNARY);
+  parsePrecedence(parser, chunk, strings, PREC_UNARY);
 
   // Emit the operator instruction.
   switch (operatorType) {
@@ -95,11 +96,11 @@ void unary(Parser *parser, Chunk *chunk) {
   }
 }
 
-void binary(Parser *parser, Chunk *chunk) {
+void binary(Parser *parser, Chunk *chunk, Table *strings) {
     TokenType operatorType = parser->previous.type;
 
     ParseRule *rule = getRule(operatorType);
-    parsePrecedence(parser, chunk, (Precedence)(rule->precedence + 1));
+    parsePrecedence(parser, chunk, strings, (Precedence)(rule->precedence + 1));
 
     switch (operatorType)
     {
@@ -165,12 +166,12 @@ void endCompiler(Parser *parser, Chunk *chunk) {
     #endif
 }
 
-void number(Parser *parser, Chunk *chunk) {
+void number(Parser *parser, Chunk *chunk, Table *strings) {
     double value = strtod(parser->previous.start, NULL);
     emitConstant(parser, chunk, NUMBER_VAL(value));
 }
 
-void literal(Parser *parser, Chunk *chunk) {
+void literal(Parser *parser, Chunk *chunk, Table *strings) {
   switch (parser->previous.type) {
     case TOKEN_FALSE: emitInstruction(parser, chunk, OP_FALSE); break;
     case TOKEN_TRUE: emitInstruction(parser, chunk, OP_TRUE); break;
@@ -178,22 +179,34 @@ void literal(Parser *parser, Chunk *chunk) {
   }
 }
 
-void string(Parser *parser, Chunk *chunk) {
+void string(Parser *parser, Chunk *chunk, Table *strings) {
     // If ijo supported string escape sequences like \n,
     // we’d translate those here.
     // Since it doesn’t, we can take the characters as they are.
 
     // +1 to trim leading quotation mark.
     //                             -2 to trim trailing quotation mark.
-    Value str = OBJ_VAL(CStringCopy(parser->previous.start + 1, parser->previous.length - 2));
-    str.operators = stringOperators;
+    ijoString *copiedStr = CStringCopy(parser->previous.start + 1, parser->previous.length - 2);
 
-    NaiveGCInsert(&gc, &str);
+    ijoString *interned = TableFindString(strings, 
+                                          copiedStr->chars,
+                                          copiedStr->length,
+                                          copiedStr->hash);
 
-    emitConstant(parser, chunk, str);
+    if (interned != NULL) {
+        ijoStringDelete(copiedStr);
+        emitConstant(parser, chunk, INTERNAL_STR(interned));
+    } else {
+        Value internedStr = INTERNAL_STR(copiedStr);
+
+        NaiveGCInsert(&gc, &internedStr);
+        emitConstant(parser, chunk, internedStr);
+        TableInsert(strings, copiedStr, internedStr);
+    }
+
 }
 
-void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
+void parsePrecedence(Parser *parser, Chunk *chunk, Table *strings, Precedence precedence) {
     parserAdvance(parser);
 
     ParseRule *rule = getRule(parser->previous.type);
@@ -208,12 +221,12 @@ void parsePrecedence(Parser *parser, Chunk *chunk, Precedence precedence) {
         return;
     }
 
-    rule->prefix(parser, chunk);
+    rule->prefix(parser, chunk, strings);
 
     while (precedence <= getRule(parser->current.type)->precedence) {
         parserAdvance(parser);
         ParseFunc infixRule = getRule(parser->previous.type)->infix;
-        infixRule(parser, chunk);
+        infixRule(parser, chunk, strings);
     }
 }
 

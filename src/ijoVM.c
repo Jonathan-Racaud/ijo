@@ -55,9 +55,6 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         {
         case OP_CONSTANT: {
             Value constant = READ_CONST();
-            if (IS_STRING(constant)) {
-                TableInsert(&vm->strings, AS_STRING(constant), IJO_INTERNAL(IJO_INTERNAL_STRING));
-            }
             ijoVMStackPush(vm, constant);
             break;
         }
@@ -67,7 +64,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             Value result = (a.operators[OPERATOR_PLUS]).infix(a, b);
 
             if (result.type == VAL_OBJ) {
-                if (AS_OBJ(result)->type == OBJ_STRING) {
+                if (IS_STRING(result)) {
                     TableInsert(&vm->strings, AS_STRING(result), IJO_INTERNAL(IJO_INTERNAL_STRING));
                 }
                 NaiveGCInsert(&gc, &result);

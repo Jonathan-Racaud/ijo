@@ -53,9 +53,10 @@ bool TableInsert(Table *table, ijoString *key, Value value) {
     }
 
     Entry *entry = TableFindEntry(table->entries, table->capacity, key);
-    bool isNewKey = entry == NULL;
 
-    if (isNewKey && IS_INTERNAL(entry->value, IJO_INTERNAL_EMPTY_ENTRY)) {
+    bool isNewKey = IS_INTERNAL(entry->value, IJO_INTERNAL_EMPTY_ENTRY);
+
+    if (isNewKey) {
         table->count++;
     }
 
@@ -73,6 +74,10 @@ Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key) {
         Entry *entry = &entries[index];
 
         if (entry->key == NULL) {
+            if (IS_INTERNAL(entry->value, IJO_INTERNAL_EMPTY_ENTRY)) {
+                return entry;
+            }
+
             if (IS_INTERNAL(entry->value, IJO_INTERNAL_TOMBSTONE)) {
                 return (tombstone != NULL) ? tombstone : entry;
             } else {
@@ -86,8 +91,30 @@ Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key) {
     }
 }
 
-ijoString* TableFindString(Table *table, const char *chars, int length, int hash) {
-    return NULL;
+ijoString* TableFindString(Table *table, const char *chars, int length, uint32_t hash) {
+    if (table->count == 0) {
+        return NULL;
+    }
+
+    uint32_t index = hash % table->capacity;
+
+    for (;;) {
+        Entry* entry = &table->entries[index];
+    
+        if (entry->key == NULL) {
+            // Stop if we find an empty non-tombstone entry.
+            if (!IS_INTERNAL(entry->value, IJO_INTERNAL_TOMBSTONE)) {
+                return NULL; 
+            }
+        } else if (entry->key->length == length &&
+                   entry->key->hash == hash &&
+                   memcmp(entry->key->chars, chars, length) == 0) {
+            // We found it.
+            return entry->key;
+        }
+        
+        index = (index + 1) % table->capacity;
+    }
 }
 
 void TableAddAll(Table *from, Table *to) {
@@ -115,11 +142,15 @@ bool TableGet(Table *table, ijoString *key, Value *outValue) {
 }
 
 bool TableRemove(Table *table, ijoString *key) {
-    if (table->count == 0) return false;
+    if (table->count == 0) {
+        return false;
+    }
 
     Entry *entry = TableFindEntry(table->entries, table->capacity, key);
 
-    if (entry->key == NULL) return false;
+    if (entry->key == NULL) {
+        return false;
+    }
 
     // Place a tombstone in the entry.
     entry->key = NULL;

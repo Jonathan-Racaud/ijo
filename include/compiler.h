@@ -4,6 +4,7 @@
 #include "chunk.h"
 #include "token.h"
 #include "scanner.h"
+#include "table.h"
 
 /// @brief Helps the compiler know what it is it's compiling.
 typedef enum {
@@ -45,7 +46,7 @@ typedef enum {
 } Precedence;
 
 /// @brief Function pointer to a parser function for a given TokenType.
-typedef void (*ParseFunc)(Parser *, Chunk *);
+typedef void (*ParseFunc)(Parser *, Chunk *, Table *);
 
 /// @brief Rule to follow when parsing.
 typedef struct {
@@ -73,8 +74,10 @@ void ParserInit(Parser *parser, Scanner *scanner);
  * @brief Compiles @p source code to a Chunk.
  * @param source The source code to compile.
  * @param chunk The compiled chunk from @p source.
+ * @param strings The interned Strings for the vm.
+ * @param mode The type of compilation that we are doing.
  * @return True when the compilation was successful.
  */
-bool Compile(const char *source, Chunk *chunk, CompileMode mode);
+bool Compile(const char *source, Chunk *chunk, Table *strings, CompileMode mode);
 
 #endif // IJO_COMPILER_H
