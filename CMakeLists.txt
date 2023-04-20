@@ -22,6 +22,7 @@ set(SOURCES
   ${SOURCE_DIR}/scanner.c
   ${SOURCE_DIR}/ijoObj.c
   ${SOURCE_DIR}/gc/naiveGC.c
+  ${SOURCE_DIR}/table.c
 )
 
 # Includes
@@ -39,6 +40,7 @@ set(INCLUDES
   ${INCLUDE_DIR}/token.h
   ${INCLUDE_DIR}/ijoObj.h
   ${INCLUDE_DIR}/gc/naiveGC.h
+  ${INCLUDE_DIR}/table.h
 )
 include_directories(${INCLUDE_DIR})
 
