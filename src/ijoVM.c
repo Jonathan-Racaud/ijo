@@ -19,7 +19,6 @@ void ijoVMNew(ijoVM *vm) {
 
 void ijoVMDelete(ijoVM *vm) {
     TableDelete(&vm->strings);
-    Delete(vm);
 }
 
 InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk, CompileMode mode) {
