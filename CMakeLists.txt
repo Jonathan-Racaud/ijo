@@ -13,34 +13,34 @@ set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(SOURCES
   ${SOURCE_DIR}/main.c
   ${SOURCE_DIR}/ijoMemory.c
-  ${SOURCE_DIR}/chunk.c
-  ${SOURCE_DIR}/debug.c
-  ${SOURCE_DIR}/value.c
-  ${SOURCE_DIR}/log.c
+  ${SOURCE_DIR}/ijoChunk.c
+  ${SOURCE_DIR}/ijoDebug.c
+  ${SOURCE_DIR}/ijoValue.c
+  ${SOURCE_DIR}/ijoLog.c
   ${SOURCE_DIR}/ijoVM.c
-  ${SOURCE_DIR}/compiler.c
-  ${SOURCE_DIR}/scanner.c
+  ${SOURCE_DIR}/ijoCompiler.c
+  ${SOURCE_DIR}/ijoScanner.c
   ${SOURCE_DIR}/ijoObj.c
-  ${SOURCE_DIR}/gc/naiveGC.c
-  ${SOURCE_DIR}/table.c
+  ${SOURCE_DIR}/gc/ijoNaiveGC.c
+  ${SOURCE_DIR}/ijoTable.c
 )
 
 # Includes
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(INCLUDES
-  ${INCLUDE_DIR}/common.h
+  ${INCLUDE_DIR}/ijoCommon.h
   ${INCLUDE_DIR}/ijoMemory.h
-  ${INCLUDE_DIR}/chunk.h
-  ${INCLUDE_DIR}/debug.h
-  ${INCLUDE_DIR}/value.h
-  ${INCLUDE_DIR}/log.h
+  ${INCLUDE_DIR}/ijoChunk.h
+  ${INCLUDE_DIR}/ijoDebug.h
+  ${INCLUDE_DIR}/ijoValue.h
+  ${INCLUDE_DIR}/ijoLog.h
   ${INCLUDE_DIR}/ijoVM.h
-  ${INCLUDE_DIR}/compiler.h
-  ${INCLUDE_DIR}/scanner.h
-  ${INCLUDE_DIR}/token.h
+  ${INCLUDE_DIR}/ijoCompiler.h
+  ${INCLUDE_DIR}/ijoScanner.h
+  ${INCLUDE_DIR}/ijoToken.h
   ${INCLUDE_DIR}/ijoObj.h
-  ${INCLUDE_DIR}/gc/naiveGC.h
-  ${INCLUDE_DIR}/table.h
+  ${INCLUDE_DIR}/gc/ijoNaiveGC.h
+  ${INCLUDE_DIR}/ijoTable.h
 )
 include_directories(${INCLUDE_DIR})
 

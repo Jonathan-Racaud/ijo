@@ -1,9 +1,9 @@
 #include "ijoObj.h"
 #include "ijoMemory.h"
 #include "ijoVM.h"
-#include "value.h"
-#include "log.h"
-#include "table.h"
+#include "ijoValue.h"
+#include "ijoLog.h"
+#include "ijoTable.h"
 
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)ObjectNew(sizeof(type), objectType)

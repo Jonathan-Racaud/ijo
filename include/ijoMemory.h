@@ -1,7 +1,7 @@
 #ifndef IJO_MEMORY_H
 #define IJO_MEMORY_H
 
-#include "common.h"
+#include "ijoCommon.h"
 
 /**
  * @brief Allocates an array of @p type of length @p count.

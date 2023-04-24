@@ -1,14 +1,14 @@
 #include "ijoVM.h"
-#include "common.h"
+#include "ijoCommon.h"
 #include "ijoMemory.h"
-#include "log.h"
-#include "gc/naiveGC.h"
+#include "ijoLog.h"
+#include "gc/ijoNaiveGC.h"
 #include "ijoObj.h"
 
 extern NaiveGCNode *gc;
 
 #if DEBUG
-#include "debug.h"
+#include "ijoDebug.h"
 #endif
 
 void ijoVMNew(ijoVM *vm) {

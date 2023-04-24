@@ -1,9 +1,9 @@
 #ifndef IJO_VM_H
 #define IJO_VM_H
 
-#include "compiler.h"
-#include "value.h"
-#include "table.h"
+#include "ijoCompiler.h"
+#include "ijoValue.h"
+#include "ijoTable.h"
 
 #define STACK_MAX 256
 

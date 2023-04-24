@@ -1,8 +1,8 @@
 #ifndef IJO_OBJ_H
 #define IJO_OBJ_H
 
-#include "common.h"
-#include "value.h"
+#include "ijoCommon.h"
+#include "ijoValue.h"
 
 /// @brief The types of object ijo understands.
 typedef enum {

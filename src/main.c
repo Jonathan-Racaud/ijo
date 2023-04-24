@@ -1,9 +1,9 @@
-#include "common.h"
-#include "chunk.h"
-#include "log.h"
+#include "ijoCommon.h"
+#include "ijoChunk.h"
+#include "ijoLog.h"
 #include "ijoVM.h"
-#include "compiler.h"
-#include "gc/naiveGC.h"
+#include "ijoCompiler.h"
+#include "gc/ijoNaiveGC.h"
 
 NaiveGCNode *gc;
 
