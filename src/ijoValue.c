@@ -31,7 +31,8 @@ void ValuePrint(Value value) {
     case VAL_NUMBER: ConsoleWrite("%g", AS_NUMBER(value)); break;
     case VAL_BOOL:   ConsoleWrite("%s", AS_BOOL(value) ? "@true" : "@false"); break;
     case VAL_RESULT: ConsoleWrite("%g", AS_SUCCESS(value) ? "@success" : "@error"); break;
-    case VAL_OBJ: ObjectPrint(value); break;
+    case VAL_OBJ:
+    case IJO_INTERNAL_STRING: ObjectPrint(value); break;
     }
 }
 
