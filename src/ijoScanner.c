@@ -10,7 +10,7 @@ Token errorToken(Scanner *scanner, const char *message);
 Token scanString(Scanner *scanner);
 Token scanNumber(Scanner *scanner);
 Token scanIdentifier(Scanner *scanner);
-Token varOrKeyword(Scanner *scanner);
+Token constOrKeyword(Scanner *scanner);
 Token boolOrAssert(Scanner *scanner);
 TokenType identifierType();
 
@@ -24,6 +24,7 @@ char peek(Scanner *scanner);
 char peekNext(Scanner *scanner);
 void skipWhitespace(Scanner *scanner);
 #endif // IJO_SCANNER_PRIV_C
+
 // Public functions implementations
 
 Scanner *ScannerNew() {
@@ -86,7 +87,7 @@ Token ScannerScan(Scanner *scanner) {
          * In ijo a 'Keyword' is the combination of '#' + identifier + one of the 
          * symbols used in the switch inside of the varOrKeyword function.
         */
-        case '#': return varOrKeyword(scanner);
+        case '#': return constOrKeyword(scanner);
         case '\n': return makeToken(scanner, TOKEN_EOL);
     }
 
@@ -100,7 +101,26 @@ Token makeToken(Scanner *scanner, TokenType type) {
         type,
         scanner->start,
         (int)(scanner->current - scanner->start),
+        NULL,
+        0,
         scanner->line
+    };
+
+    return token;
+}
+
+Token makeComplexeToken(
+  Scanner *scanner,
+  TokenType type,
+  const char *identifierStart,
+  int identifierLength) {
+    Token token = {
+      type,
+      scanner->start,
+      (int)(scanner->current - scanner->start),
+      identifierStart,
+      identifierLength,
+      scanner->line
     };
 
     return token;
@@ -113,6 +133,8 @@ Token errorToken(Scanner *scanner, const char *message) {
         TOKEN_ERROR,
         message,
         (int)strlen(message),
+        NULL,
+        0,
         scanner->line
     };
 
@@ -151,12 +173,21 @@ Token scanIdentifier(Scanner *scanner) {
   return makeToken(scanner, identifierType(scanner));
 }
 
-Token varOrKeyword(Scanner *scanner) {
+Token constOrKeyword(Scanner *scanner) {
     char c;
 
+    // We ignore whitespace that may be between '#' and the identifier.
+    while (isWhitespace(peek(scanner))) {
+      if (isAtEnd(scanner)) return errorToken(scanner, "Unexpected character");
+      
+      scannerAdvance(scanner);
+    }
+
+    // We parse the identifier
+    const char *identifierStart = scanner->current;
+    int identifierLength = 0;
     while (isAlpha(peek(scanner)) ||
-           isDigit(peek(scanner)) ||
-           isWhitespace(peek(scanner))) {
+           isDigit(peek(scanner))) {
 
         /**
          * The following syntax is accepted:
@@ -184,20 +215,33 @@ Token varOrKeyword(Scanner *scanner) {
          * #HashMap
          * <String, String>
          */
-        if (peek(scanner) == '\n') continue;
+        if (isWhitespace(peek(scanner) || (peek(scanner) == '\n'))) break;
 
         if (isAtEnd(scanner)) return errorToken(scanner, "Unexpected character");
         
         c = scannerAdvance(scanner);
+        identifierLength++;
     }
+
+    // We ignore whitespace that may be between the identifier and the first char that define what
+    // we are scanning.
+    while (isWhitespace(peek(scanner))) {
+      if (isAtEnd(scanner)) return errorToken(scanner, "Unexpected character");
+      
+      scannerAdvance(scanner);
+    }
+
+    // We consume the current char so we can select what to do.
+    c = scannerAdvance(scanner);
 
     switch (c)
     {
-    case '{': return makeToken(scanner, TOKEN_STRUCT);
-    case '[': return makeToken(scanner, TOKEN_ARRAY);
-    case '<': return makeToken(scanner, TOKEN_MAP);
-    case '|': return makeToken(scanner, TOKEN_ENUM);
-    case '%': return makeToken(scanner, TOKEN_MODULE);
+    case '{': return makeComplexeToken(scanner, TOKEN_STRUCT, identifierStart, identifierLength);
+    case '[': return makeComplexeToken(scanner, TOKEN_ARRAY, identifierStart, identifierLength);
+    case '<': return makeComplexeToken(scanner, TOKEN_MAP, identifierStart, identifierLength);
+    case '|': return makeComplexeToken(scanner, TOKEN_ENUM, identifierStart, identifierLength);
+    case '%': return makeComplexeToken(scanner, TOKEN_MODULE, identifierStart, identifierLength);
+    case '=': return makeComplexeToken(scanner, TOKEN_CONST, identifierStart, identifierLength);
     default:
         break;
     }

@@ -78,6 +78,13 @@ typedef struct {
     /// @brief Length of the token.
     int length;
 
+    /// @brief Start of the identifier. This is used only for const, struct, functions, assertions,
+    /// arrays or map.
+    const char *identifierStart;
+
+    /// @brief The length of the identifier.
+    int identifierLength;
+
     /// @brief Line where the token is located.
     int line;
 } Token;
