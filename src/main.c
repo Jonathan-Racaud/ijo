@@ -11,7 +11,7 @@ InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode) {
   Chunk chunk;
   ChunkNew(&chunk);
 
-  if (!Compile(source, &chunk, &vm->strings, mode)) {
+  if (!Compile(source, &chunk, &vm->interned, mode)) {
     ChunkDelete(&chunk);
     return INTERPRET_COMPILE_ERROR;
   }

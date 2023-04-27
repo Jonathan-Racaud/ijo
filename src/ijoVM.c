@@ -14,11 +14,11 @@ extern NaiveGCNode *gc;
 void ijoVMNew(ijoVM *vm) {
     ijoVMStackReset(vm);
     
-    TableInit(&vm->strings);
+    TableInit(&vm->interned);
 }
 
 void ijoVMDelete(ijoVM *vm) {
-    TableDelete(&vm->strings);
+    TableDelete(&vm->interned);
 }
 
 InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk, CompileMode mode) {
@@ -64,7 +64,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
 
             if (result.type == VAL_OBJ) {
                 if (IS_STRING(result)) {
-                    TableInsert(&vm->strings, AS_STRING(result), IJO_INTERNAL(IJO_INTERNAL_STRING));
+                    TableInsert(&vm->interned, AS_STRING(result), IJO_INTERNAL(IJO_INTERNAL_STRING));
                 }
                 NaiveGCInsert(&gc, &result);
             }

@@ -35,8 +35,8 @@ typedef struct {
     /// @brief Pointer to the top of the stack.
     Value *stackTop;
 
-    /// @brief Table of interned Strings.
-    Table strings;
+    /// @brief Table of interned Strings and Constants.
+    Table interned;
 } ijoVM;
 
 /**
