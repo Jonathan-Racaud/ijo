@@ -4,6 +4,7 @@ add_rules("mode.debug", "mode.release")
 ijolib_include = "ijolib/include"
 
 target("ijolib")
+    set_filename("libijo.so")
     set_kind("shared")
     add_includedirs(ijolib_include)
     add_files("ijolib/src/**.c")
