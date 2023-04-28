@@ -20,5 +20,6 @@
 
 #define DEBUG_PRINT_CODE      0
 #define DEBUG_TRACE_EXECUTION 0
+#define DEBUG_VM_CONSTANTS    1
 
 #endif // IJO_COMMON_H

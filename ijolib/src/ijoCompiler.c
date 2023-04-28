@@ -48,26 +48,7 @@ bool Compile(const char *source, Chunk *chunk, Table *interned, CompileMode mode
 
     parserAdvance(&parser);
 
-    TokenType endToken;
-
-    switch (mode)
-    {
-    case COMPILE_FILE:
-        endToken = TOKEN_EOF;
-        break;
-    case COMPILE_REPL:
-        endToken = TOKEN_EOL;
-        break;
-    default:
-        LogError("Unknown compile mode\n");
-        parser.hadError = true;
-        endToken = TOKEN_ERROR;
-    }
-
-    while (true) {
-        if (match(&parser, endToken)) break;
-        if (parser.hadError && match(&parser, TOKEN_EOF)) break;
-        
+    while (!match(&parser, TOKEN_EOF)) {
         declaration(&parser, chunk, interned);
     }
 
@@ -95,16 +76,31 @@ void expression(Parser *parser, Chunk *chunk, Table *interned) {
 }
 
 void constDeclaration(Parser *parser, Chunk *chunk, Table *interned) {
-    ijoString *varName = CStringCopy(parser->previous.identifierStart, parser->previous.identifierLength);
+    ijoString *varName = CStringCopy(parser->previous.identifierStart,
+                                     parser->previous.identifierLength);
+
+    if (TableFindString(interned, varName->chars, varName->length, varName->hash)) {
+        errorAtCurrent(parser, "Constant already declared.");
+        return;
+    }
+    
+    Chunk tempChunk;
+    ChunkNew(&tempChunk);
+
+    expression(parser, &tempChunk, interned);
+    Value value = tempChunk.constants.values[0];
+    
     consume(parser, TOKEN_EOL, "Only 1 expression accepted per line.");
 
-    // TableInsert(interned, varName, value);
+    TableInsertInternal(interned, varName, value);
     return;
 }
 
 void declaration(Parser *parser, Chunk *chunk, Table *interned) {
     if (match(parser, TOKEN_CONST)) {
         constDeclaration(parser, chunk, interned);
+    } else if (match(parser, TOKEN_EOL)) {
+        // Do Nothing
     } else {
         statement(parser, chunk, interned);
     }

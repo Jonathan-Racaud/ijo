@@ -66,6 +66,53 @@ bool TableInsert(Table *table, ijoString *key, Value value) {
     return isNewKey;
 }
 
+Entry *TableFindInternalEntry(Entry *entries, int capacity, ijoString *key) {
+    uint32_t index = key->hash % capacity;
+    Entry *tombstone = NULL;
+
+    for (;;) {
+        Entry *entry = &entries[index];
+
+        if (entry->key == NULL) {
+            if (IS_INTERNAL(entry->value, IJO_INTERNAL_EMPTY_ENTRY)) {
+                return entry;
+            }
+
+            if (IS_INTERNAL(entry->value, IJO_INTERNAL_TOMBSTONE)) {
+                return (tombstone != NULL) ? tombstone : entry;
+            } else {
+                if (tombstone == NULL) tombstone = entry;
+            }
+        } else if (entry->key->length == key->length &&
+                   entry->key->hash == key->hash &&
+                   memcmp(entry->key->chars, key->chars, key->length) == 0) {
+            return entry;
+        }
+
+        index = (index + 1) % capacity;
+    }
+}
+
+bool TableInsertInternal(Table *table, ijoString *key, Value value) {
+    if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
+        int capacity = GROW_CAPACITY(table->capacity);
+        TableAdjustCapacity(table, capacity);
+    }
+
+    Entry *entry = TableFindInternalEntry(table->entries, table->capacity, key);
+
+    bool isNewKey = IS_INTERNAL(entry->value, IJO_INTERNAL_EMPTY_ENTRY);
+
+    if (isNewKey) {
+        table->count++;
+    }
+
+    entry->key = key;
+    entry->value = value;
+
+    return isNewKey;
+}
+
 Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key) {
     uint32_t index = key->hash % capacity;
     Entry *tombstone = NULL;

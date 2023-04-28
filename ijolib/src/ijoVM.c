@@ -33,7 +33,21 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
 #define READ_CONST() (vm->chunk->constants.values[READ_BYTE()])
 
 #if DEBUG_TRACE_EXECUTION
-    LogDebug(" == Stack evolution ==");
+    LogDebug(" == Stack evolution ==\n");
+#endif
+
+#if DEBUG_VM_CONSTANTS
+    LogDebug(" == VM Constants  ==\n");
+
+    for (uint32_t i = 0; i < vm->interned.capacity; i++) {
+        Entry *entry = &vm->interned.entries[i];
+
+        if (entry->key == NULL && entry->value.type == IJO_INTERNAL_EMPTY_ENTRY) continue;
+
+        LogDebug("%s = ", entry->key->chars);
+        ValuePrint(entry->value);
+        ConsoleWriteLine("");
+    }
 #endif
 
     OpCode lastOpCode;
@@ -216,7 +230,10 @@ void ijoVMStackPush(ijoVM *vm, Value value) {
 
 Value ijoVMStackPop(ijoVM *vm) {
     if (vm->stackTop == vm->stack) {
-        LogError("Already at the start of the stack");
+        #if DEBUG_TRACE_EXECUTION
+            LogError("Already at the start of the stack");
+        #endif
+
         return ERROR_VAL();
     }
 

@@ -51,6 +51,16 @@ void TableDelete(Table *table);
 bool TableInsert(Table *table, ijoString *key, Value value);
 
 /**
+ * @brief Inserts a @p value into the @p table with the specified @p key.
+ * @param table The table to insert data into.
+ * @param key The key associated with the value.
+ * @param value The value associated with the key.
+ * @return True when the key and value are inserted. False otherwise.
+ */
+bool TableInsertInternal(Table *table, ijoString *key, Value value);
+
+
+/**
  * @brief Gets a value from the @p table for the specified @p key.
  * @param table The table to search.
  * @param key The key to search.
@@ -67,6 +77,25 @@ bool TableGet(Table *table, ijoString *key, Value *outValue);
  * @return True if removed, False otherwise.
  */
 bool TableRemove(Table *table, ijoString *key);
+
+/**
+ * @brief Finds an Entry in the list of @p entries for the specified @p key.
+ * @param entries The list of Entry to search.
+ * @param capacity The @p entries' capacity.
+ * @param key The key to search.
+ * @return The corresponding Entry. NULL otherwise.
+ */
+Entry *TableFindEntry(Entry *entries, int capacity, ijoString *key);
+
+/**
+ * @brief Finds an Entry in the list of @p entries for the specified @p key.
+ * @param entries The list of Entry to search.
+ * @param capacity The @p entries' capacity.
+ * @param key The key to search.
+ * @return The corresponding Entry. NULL otherwise.
+ */
+Entry *TableFindInternalEntry(Entry *entries, int capacity, ijoString *key);
+
 
 /**
  * @brief Finds an Entry in the list of @p entries for the specified @p key.
