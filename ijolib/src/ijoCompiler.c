@@ -93,6 +93,8 @@ void expression(Parser *parser, Chunk *chunk, Table *interned) {
 
 void declaration(Parser *parser, Chunk *chunk, Table *interned) {
     statement(parser, chunk, interned);
+
+    if (parser->panicMode) synchronize(parser);
 }
 
 void statement(Parser *parser, Chunk *chunk, Table *interned) {
@@ -307,6 +309,31 @@ void errorAt(Parser *parser, Token *token, const char *message) {
 
 void errorAtCurrent(Parser *parser) {
     errorAt(parser, &parser->previous, parser->current.start);
+}
+
+void synchronize(Parser *parser) {
+    parser->panicMode = false;
+
+    while (parser->current.type != TOKEN_EOF) {
+        if (parser->previous.type == TOKEN_EOL) return; 
+
+        switch (parser.current.type) {
+        case TOKEN_STRUCT:
+        case TOKEN_FUNC:
+        case TOKEN_CONST:
+        case TOKEN_FOR:
+        case TOKEN_IF:
+        case TOKEN_WHILE:
+        case TOKEN_PRINT:
+        case TOKEN_RETURN:
+            return;
+
+        default:
+            ; // Do nothing.
+        }
+
+        advance();
+    }
 }
 
 // Parser public functions implementations
