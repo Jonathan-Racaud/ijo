@@ -3,7 +3,6 @@
 void Log(const char *prefix, const char *message, va_list args) {
     printf(prefix);
     vprintf(message, args);
-    printf("\n");
 }
 
 void LogInfo(const char *message, ...) {

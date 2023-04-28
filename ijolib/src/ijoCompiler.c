@@ -30,7 +30,7 @@ ParseRule* getRule(TokenType type);
 bool match(Parser *parser, TokenType type);
 
 void errorAt(Parser *parser, Token *token, const char *message);
-void errorAtCurrent(Parser *parser);
+void errorAtCurrent(Parser *parser, const char *message);
 
 void emitInstruction(Parser *parser, Chunk *chunk, uint32_t instruction);
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2);
@@ -59,12 +59,15 @@ bool Compile(const char *source, Chunk *chunk, Table *interned, CompileMode mode
         endToken = TOKEN_EOL;
         break;
     default:
-        LogError("Unknown compile mode");
+        LogError("Unknown compile mode\n");
         parser.hadError = true;
         endToken = TOKEN_ERROR;
     }
 
-    while (!match(&parser, endToken)) {
+    while (true) {
+        if (match(&parser, endToken)) break;
+        if (parser.hadError && match(&parser, TOKEN_EOF)) break;
+        
         declaration(&parser, chunk, interned);
     }
 
@@ -83,7 +86,7 @@ void parserAdvance(Parser *parser) {
         parser->current = ScannerScan(parser->scanner);
         if (parser->current.type != TOKEN_ERROR) break;
 
-        errorAtCurrent(parser);
+        errorAtCurrent(parser, "");
     }
 }
 
@@ -91,8 +94,20 @@ void expression(Parser *parser, Chunk *chunk, Table *interned) {
     parsePrecedence(parser, chunk, interned, PREC_ASSIGNMENT);
 }
 
+void constDeclaration(Parser *parser, Chunk *chunk, Table *interned) {
+    ijoString *varName = CStringCopy(parser->previous.identifierStart, parser->previous.identifierLength);
+    consume(parser, TOKEN_EOL, "Only 1 expression accepted per line.");
+
+    // TableInsert(interned, varName, value);
+    return;
+}
+
 void declaration(Parser *parser, Chunk *chunk, Table *interned) {
-    statement(parser, chunk, interned);
+    if (match(parser, TOKEN_CONST)) {
+        constDeclaration(parser, chunk, interned);
+    } else {
+        statement(parser, chunk, interned);
+    }
 
     if (parser->panicMode) synchronize(parser);
 }
@@ -158,7 +173,7 @@ void consume(Parser *parser, TokenType type, const char * message) {
         return;
     }
 
-    errorAtCurrent(parser);
+    errorAtCurrent(parser, message);
 }
 
 uint32_t makeConstant(Chunk *chunk, Value value) {
@@ -238,17 +253,6 @@ void string(Parser *parser, Chunk *chunk, Table *strings) {
     }
 }
 
-/**
- * @brief Parses expression such as #const = 42.
- * @param parser 
- * @param chunk 
- * @param interned 
- */
-void constant(Parser *parser, Chunk *chunk, Table *interned) {
-    
-    return;
-}
-
 void parsePrecedence(Parser *parser, Chunk *chunk, Table *interned, Precedence precedence) {
     parserAdvance(parser);
 
@@ -295,29 +299,30 @@ void errorAt(Parser *parser, Token *token, const char *message) {
     LogError("line %d", token->line);
 
     if (token->type == TOKEN_EOF) {
-        LogError(" at end");
+        ConsoleWrite(" at end");
     } else if (token->type == TOKEN_ERROR) {
         // Nothing.
     } else {
-        LogError(" at '%.*s'", token->length, token->start);
+        ConsoleWrite(" at '%.*s'", token->length, token->start);
     }
 
-    LogError(": %s\n", message);
+    ConsoleWrite(" %s\n", message);
     
     parser->hadError = true;
 }
 
-void errorAtCurrent(Parser *parser) {
+void errorAtCurrent(Parser *parser, const char *message) {
+    LogError("%s\n", message);
     errorAt(parser, &parser->previous, parser->current.start);
 }
 
 void synchronize(Parser *parser) {
     parser->panicMode = false;
 
-    while (parser->current.type != TOKEN_EOF) {
+    while ((parser->current.type != TOKEN_EOF) || parser->current.type != TOKEN_EOL) {
         if (parser->previous.type == TOKEN_EOL) return; 
 
-        switch (parser.current.type) {
+        switch (parser->current.type) {
         case TOKEN_STRUCT:
         case TOKEN_FUNC:
         case TOKEN_CONST:
@@ -332,7 +337,7 @@ void synchronize(Parser *parser) {
             ; // Do nothing.
         }
 
-        advance();
+        parserAdvance(parser);
     }
 }
 
@@ -385,7 +390,6 @@ ParseRule rules[] = {
     [TOKEN_ARRAY]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_ASSERT]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_STRUCT]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
-    [TOKEN_CONST]         = {constant, NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_ENUM]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE,       TOKEN_ALL},

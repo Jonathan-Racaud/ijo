@@ -94,7 +94,7 @@ void RunFile(ijoVM *vm, char *path) {
 }
 
 int main(int argc, char **argv) {
-  LogInfo("Creating a new ijoVM...");
+  LogInfo("Creating a new ijoVM...\n");
   ijoVM vm;
   ijoVMNew(&vm);
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
   NaiveGCClear(gc);
   ijoVMDelete(&vm);
 
-  LogInfo("Stopping the ijoVM");
+  LogInfo("Stopping the ijoVM\n");
 
   return 0;
 }
