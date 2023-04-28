@@ -2,6 +2,8 @@
 #include "ijoMemory.h"
 
 void ChunkNew(Chunk *chunk) {
+    if (!chunk) return;
+
     chunk->count = 0;
     chunk->capacity = 0;
     chunk->code = NULL;

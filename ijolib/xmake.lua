@@ -1,0 +1,5 @@
+target("ijolib")
+    set_kind("shared")
+    set_basename("ijo")
+    add_includedirs("include")
+    add_files("src/**.c")

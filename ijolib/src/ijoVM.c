@@ -12,6 +12,8 @@ extern NaiveGCNode *gc;
 #endif
 
 void ijoVMNew(ijoVM *vm) {
+    if (!vm) return;
+
     ijoVMStackReset(vm);
     
     TableInit(&vm->interned);
