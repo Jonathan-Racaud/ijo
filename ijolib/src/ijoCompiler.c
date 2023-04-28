@@ -14,14 +14,20 @@ extern NaiveGCNode *gc;
 // Private functions forward declarations
 
 void parserAdvance(Parser *parser);
-void expression(Parser *parser, Chunk *chunk, Table *strings);
-void grouping(Parser *parser, Chunk *chunk, Table *strings);
-void unary(Parser *parser, Chunk *chunk, Table *strings);
-void binary(Parser *parser, Chunk *chunk, Table *strings);
+void expression(Parser *parser, Chunk *chunk, Table *interned);
+void declaration(Parser *parser, Chunk *chunk, Table *interned);
+void grouping(Parser *parser, Chunk *chunk, Table *interned);
+void unary(Parser *parser, Chunk *chunk, Table *interned);
+void binary(Parser *parser, Chunk *chunk, Table *interned);
 void consume(Parser *parser, TokenType type, const char * message);
+
+void statement(Parser *parser, Chunk *chunk, Table *interned);
+void printStatement(Parser *parser, Chunk *chunk, Table *interned);
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Table *strings, Precedence precedence);
 ParseRule* getRule(TokenType type);
+
+bool match(Parser *parser, TokenType type);
 
 void errorAt(Parser *parser, Token *token, const char *message);
 void errorAtCurrent(Parser *parser);
@@ -41,20 +47,28 @@ bool Compile(const char *source, Chunk *chunk, Table *interned, CompileMode mode
     ParserInit(&parser, scanner);
 
     parserAdvance(&parser);
-    expression(&parser, chunk, interned);
+
+    TokenType endToken;
 
     switch (mode)
     {
     case COMPILE_FILE:
-        consume(&parser, TOKEN_EOF, "Expected end of expression");
+        endToken = TOKEN_EOF;
         break;
     case COMPILE_REPL:
-        consume(&parser, TOKEN_EOL, "Expected end of expression");
+        endToken = TOKEN_EOL;
         break;
     default:
         LogError("Unknown compile mode");
         parser.hadError = true;
+        endToken = TOKEN_ERROR;
     }
+
+    while (!match(&parser, endToken)) {
+        declaration(&parser, chunk, interned);
+    }
+
+    consume(&parser, TOKEN_EOF, "Expected end of expression");
 
     ScannerDelete(scanner);
 
@@ -75,6 +89,23 @@ void parserAdvance(Parser *parser) {
 
 void expression(Parser *parser, Chunk *chunk, Table *interned) {
     parsePrecedence(parser, chunk, interned, PREC_ASSIGNMENT);
+}
+
+void declaration(Parser *parser, Chunk *chunk, Table *interned) {
+    statement(parser, chunk, interned);
+}
+
+void statement(Parser *parser, Chunk *chunk, Table *interned) {
+    if (match(parser, TOKEN_PRINT)) {
+        return printStatement(parser, chunk, interned);
+    }
+
+    expression(parser, chunk, interned);
+}
+
+void printStatement(Parser *parser, Chunk *chunk, Table *interned) {
+    expression(parser, chunk, interned);
+    emitInstruction(parser, chunk, OP_PRINT);
 }
 
 void grouping(Parser *parser, Chunk *chunk, Table *interned) {
@@ -159,7 +190,7 @@ void emitReturn(Parser* parser, Chunk *chunk) {
 void endCompiler(Parser *parser, Chunk *chunk) {
     emitReturn(parser, chunk);
 
-    #ifdef DEBUG_PRINT_CODE
+    #if DEBUG_PRINT_CODE
     if (!parser->hadError) {
         DisassembleChunk(chunk, "Code");
     }
@@ -238,6 +269,20 @@ void parsePrecedence(Parser *parser, Chunk *chunk, Table *interned, Precedence p
         ParseFunc infixRule = getRule(parser->previous.type)->infix;
         infixRule(parser, chunk, interned);
     }
+}
+
+bool check(Parser *parser, TokenType type) {
+    return parser->current.type == type;
+}
+
+bool match(Parser *parser, TokenType type) {
+    if (!check(parser, type)) {
+        return false;
+    }
+
+    parserAdvance(parser);
+
+    return true;
 }
 
 void errorAt(Parser *parser, Token *token, const char *message) {

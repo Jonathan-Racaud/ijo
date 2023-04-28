@@ -2,9 +2,7 @@
 #include "ijoMemory.h"
 #include "ijoLog.h"
 
-// Private function forward declaration
-#ifndef IJO_SCANNER_PRIV_C
-#define IJO_SCANNER_PRIV_C
+// Private functions
 Token makeToken(Scanner *scanner, TokenType);
 Token errorToken(Scanner *scanner, const char *message);
 Token scanString(Scanner *scanner);
@@ -18,12 +16,11 @@ bool isAlpha(char c);
 bool isDigit(char c);
 bool isWhitespace(char c);
 bool isAtEnd(Scanner *scanner);
-bool match(Scanner* scanner, char expected);
+bool matchChar(Scanner* scanner, char expected);
 char scannerAdvance(Scanner *scanner);
 char peek(Scanner *scanner);
 char peekNext(Scanner *scanner);
 void skipWhitespace(Scanner *scanner);
-#endif // IJO_SCANNER_PRIV_C
 
 // Public functions implementations
 
@@ -70,16 +67,22 @@ Token ScannerScan(Scanner *scanner) {
 
         case '!':
             return makeToken(scanner,
-                match(scanner, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+                matchChar(scanner, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '=':
             return makeToken(scanner,
-                match(scanner, '=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+                matchChar(scanner, '=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
         case '<':
             return makeToken(scanner,
-                match(scanner, '=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+                matchChar(scanner, '=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
         case '>':
             return makeToken(scanner,
-                match(scanner, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+                matchChar(scanner, '=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+        
+        case '%':
+            if (matchChar(scanner, '>')) {
+              return makeToken(scanner, TOKEN_PRINT);
+            }
+            return errorToken(scanner, "Unexpected character");
 
         case '"': return scanString(scanner);
 
@@ -241,6 +244,8 @@ Token constOrKeyword(Scanner *scanner) {
     case '<': return makeComplexeToken(scanner, TOKEN_MAP, identifierStart, identifierLength);
     case '|': return makeComplexeToken(scanner, TOKEN_ENUM, identifierStart, identifierLength);
     case '%': return makeComplexeToken(scanner, TOKEN_MODULE, identifierStart, identifierLength);
+    case '(': return makeComplexeToken(scanner, TOKEN_FUNC, identifierStart, identifierLength);
+    case '@': return makeComplexeToken(scanner, TOKEN_ASSERT, identifierStart, identifierLength);
     case '=': return makeComplexeToken(scanner, TOKEN_CONST, identifierStart, identifierLength);
     default:
         break;
@@ -280,7 +285,7 @@ char peekNext(Scanner *scanner) {
   return scanner->current[1];
 }
 
-bool match(Scanner* scanner, char expected) {
+bool matchChar(Scanner* scanner, char expected) {
   if (isAtEnd(scanner)) return false;
   if (*scanner->current != expected) return false;
   scanner->current++;

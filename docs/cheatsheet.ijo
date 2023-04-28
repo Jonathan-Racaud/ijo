@@ -7,9 +7,9 @@
 
 #function (externalParamName internalParamName: Type, param: Enum) -> String {
     ?(internalParamName.isTrue) {
-        << "This evaluated to True"
+        %> "This evaluated to True"
     } ?() {
-        << "This is an Else clause"
+        %> "This is an Else clause"
     }
 
     ~($i = 0; i < internalParamName.count; i++) {

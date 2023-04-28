@@ -36,6 +36,8 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
     LogDebug(" == Stack evolution ==");
 #endif
 
+    OpCode lastOpCode;
+
     for(;;) {
         #if DEBUG_TRACE_EXECUTION
         ConsoleWrite("          ");
@@ -175,7 +177,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             break;
         }
         case OP_RETURN: {
-            if (mode == COMPILE_REPL)
+            if (mode == COMPILE_REPL && (lastOpCode != OP_PRINT))
             {
                 #if DEBUG_TRACE_EXECUTION
                     LogDebug(" == Stack evolution ==");
@@ -190,6 +192,8 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         default:
             return INTERPRET_RUNTIME_ERROR;
         }
+
+        lastOpCode = instruction;
     }
 
 #undef READ_CONST

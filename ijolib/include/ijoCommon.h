@@ -18,7 +18,7 @@
 #define LOG_LEVEL_ERROR    0
 #define LOG_LEVEL_CRITICAL 0
 
-#define DEBUG_PRINT_CODE      1
-#define DEBUG_TRACE_EXECUTION 1
+#define DEBUG_PRINT_CODE      0
+#define DEBUG_TRACE_EXECUTION 0
 
 #endif // IJO_COMMON_H
