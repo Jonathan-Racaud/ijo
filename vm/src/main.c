@@ -82,7 +82,7 @@ void RunFile(ijoVM *vm, char *path) {
   char *source = ReadFile(path);
 
   if (source == NULL) {
-    ijoVMDelete(vm);
+    ijoVMDeinit(vm);
     exit(74);
   }
 
@@ -96,7 +96,7 @@ void RunFile(ijoVM *vm, char *path) {
 int main(int argc, char **argv) {
   LogInfo("Creating a new ijoVM...\n");
   ijoVM vm;
-  ijoVMNew(&vm);
+  ijoVMInit(&vm);
 
   gc = NaiveGCNodeCreate(NULL);
 
@@ -106,12 +106,12 @@ int main(int argc, char **argv) {
     RunFile(&vm, argv[1]);
   } else {
     ConsoleWriteLine("Usage: ijoVM [path]");
-    ijoVMDelete(&vm);
+    ijoVMDeinit(&vm);
     exit(64);
   }
 
   NaiveGCClear(gc);
-  ijoVMDelete(&vm);
+  ijoVMDeinit(&vm);
 
   LogInfo("Stopping the ijoVM\n");
 

@@ -1,0 +1,66 @@
+[
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoCompiler.c.o", "ijolib/src/ijoCompiler.c"],
+  "file": "ijolib/src/ijoCompiler.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoChunk.c.o", "ijolib/src/ijoChunk.c"],
+  "file": "ijolib/src/ijoChunk.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoObj.c.o", "ijolib/src/ijoObj.c"],
+  "file": "ijolib/src/ijoObj.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoDebug.c.o", "ijolib/src/ijoDebug.c"],
+  "file": "ijolib/src/ijoDebug.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoValue.c.o", "ijolib/src/ijoValue.c"],
+  "file": "ijolib/src/ijoValue.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/gc/ijoNaiveGC.c.o", "ijolib/src/gc/ijoNaiveGC.c"],
+  "file": "ijolib/src/gc/ijoNaiveGC.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoLog.c.o", "ijolib/src/ijoLog.c"],
+  "file": "ijolib/src/ijoLog.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoTable.c.o", "ijolib/src/ijoTable.c"],
+  "file": "ijolib/src/ijoTable.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoScanner.c.o", "ijolib/src/ijoScanner.c"],
+  "file": "ijolib/src/ijoScanner.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoVM.c.o", "ijolib/src/ijoVM.c"],
+  "file": "ijolib/src/ijoVM.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fPIC", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijolib/linux/x86_64/debug/ijolib/src/ijoMemory.c.o", "ijolib/src/ijoMemory.c"],
+  "file": "ijolib/src/ijoMemory.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijo/linux/x86_64/debug/vm/src/main.c.o", "vm/src/main.c"],
+  "file": "vm/src/main.c"
+},
+{
+  "directory": "/home/jracaud/Projects/ijo/Dev/ijoLang",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-g", "-O0", "-Iijolib/include", "-o", "build/.objs/ijotests/linux/x86_64/debug/tests/test_ijo.c.o", "tests/test_ijo.c"],
+  "file": "tests/test_ijo.c"
+}]

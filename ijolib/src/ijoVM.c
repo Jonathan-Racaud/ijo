@@ -4,6 +4,7 @@
 #include "ijoLog.h"
 #include "gc/ijoNaiveGC.h"
 #include "ijoObj.h"
+#include "ijoValue.h"
 
 extern NaiveGCNode *gc;
 
@@ -11,7 +12,7 @@ extern NaiveGCNode *gc;
 #include "ijoDebug.h"
 #endif
 
-void ijoVMNew(ijoVM *vm) {
+void ijoVMInit(ijoVM *vm) {
     if (!vm) return;
 
     ijoVMStackReset(vm);
@@ -19,8 +20,11 @@ void ijoVMNew(ijoVM *vm) {
     TableInit(&vm->interned);
 }
 
-void ijoVMDelete(ijoVM *vm) {
+void ijoVMDeinit(ijoVM *vm) {
+    if (!vm) return;
+
     TableDelete(&vm->interned);
+    ijoVMInit(vm);
 }
 
 InterpretResult ijoVMInterpret(ijoVM *vm, Chunk *chunk, CompileMode mode) {
@@ -217,10 +221,14 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
 }
 
 void ijoVMStackReset(ijoVM *vm) {
+    if (!vm) return;
+
     vm->stackTop = vm->stack;
 }
 
 void ijoVMStackPush(ijoVM *vm, Value value) {
+    if (!vm) return;
+
     if ((int)(vm->stackTop - vm->stack) >= STACK_MAX) {
         LogError("Stack full");
         return;
@@ -231,6 +239,8 @@ void ijoVMStackPush(ijoVM *vm, Value value) {
 }
 
 Value ijoVMStackPop(ijoVM *vm) {
+    if (!vm) return ERROR_VAL();
+
     if (vm->stackTop == vm->stack) {
         #if DEBUG_TRACE_EXECUTION
             LogError("Already at the start of the stack");

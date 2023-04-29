@@ -43,12 +43,12 @@ typedef struct {
  * @brief Instantiate a new ijoVM.
  * @return A pointer to the ijoVM.
  */
-void ijoVMNew(ijoVM *vm);
+void ijoVMInit(ijoVM *vm);
 
 /**
  * @brief Deletes an @p ijoVM.
  */
-void ijoVMDelete(ijoVM *vm);
+void ijoVMDeinit(ijoVM *vm);
 
 /**
  * @brief Interprets a chunk of code.
