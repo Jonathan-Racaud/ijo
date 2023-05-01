@@ -36,6 +36,7 @@ void emitInstruction(Parser *parser, Chunk *chunk, uint32_t instruction);
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2);
 void emitReturn(Parser *parser, Chunk *chunk);
 void endCompiler(Parser *parser, Chunk *chunk);
+void synchronize(Parser *parser);
 
 // Public functions implementations
 

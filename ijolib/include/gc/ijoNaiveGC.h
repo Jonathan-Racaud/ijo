@@ -27,4 +27,6 @@ void NaiveGCInsert(NaiveGCNode **head, Value *obj);
  */
 void NaiveGCClear(NaiveGCNode *head);
 
+extern NaiveGCNode *gc;
+
 #endif // IJO_NAIVE_GC_H

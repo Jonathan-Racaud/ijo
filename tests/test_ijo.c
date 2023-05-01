@@ -7,7 +7,6 @@
 #include "test_ijoVM.h"
 
 #include "gc/ijoNaiveGC.h"
-NaiveGCNode *gc;
 
 TEST_LIST = {
 	IJOVM_TESTS,

@@ -17,7 +17,7 @@ static inline void test_ijoVMInit_GivenVMPtr_InitializesCorrectly(void) {
 	TEST_CHECK(sut.chunk == NULL);
 	TEST_CHECK(sut.ip == NULL);
 	TEST_CHECK(sut.stack != NULL);
-	TEST_CHECK(sut.stackTop = sut.stack);
+	TEST_CHECK(sut.stackTop == sut.stack);
 	TEST_CHECK(sut.interned.count == 0);
 }
 
@@ -36,7 +36,7 @@ static inline void test_ijoVMDeinit_GivenVMPtr_FreeResources(void) {
 	TEST_CHECK(sut.chunk == NULL);
 	TEST_CHECK(sut.ip == NULL);
 	TEST_CHECK(sut.stack != NULL);
-	TEST_CHECK(sut.stackTop = sut.stack);
+	TEST_CHECK(sut.stackTop == sut.stack);
 	TEST_CHECK(sut.interned.count == 0);
 }
 

@@ -5,8 +5,6 @@
 #include "ijoCompiler.h"
 #include "gc/ijoNaiveGC.h"
 
-NaiveGCNode *gc;
-
 InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode) {
   Chunk chunk;
   ChunkNew(&chunk);

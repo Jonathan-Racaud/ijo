@@ -3,7 +3,7 @@
 #include "ijoValue.h"
 
 // Forward declaration
-
+NaiveGCNode *gc;
 void ObjectDelete(ijoObj *obj);
 
 // NaiveGC implementation
