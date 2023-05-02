@@ -14,3 +14,6 @@ build/
 *.sublime-project
 
 .idea
+
+# XMake generated files and folder
+vsxmake*
