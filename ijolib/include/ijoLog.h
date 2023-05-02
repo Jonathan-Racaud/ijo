@@ -3,6 +3,10 @@
 
 #include "ijoCommon.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * @brief Logs a @p message with @p prefix to the console.
  * 
@@ -82,5 +86,9 @@ void ConsoleWrite(const char * message, ...);
  * @param ... The va_args parameters.
  */
 void ConsoleWriteLine(const char * message, ...);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_LOG_H

@@ -34,6 +34,8 @@ void StartRepl(ijoVM *vm) {
       break;
     }
 
+    line[strcspn(line, "\r\n")] = '\n';
+
     if (0 == strcmp(line, "exit\n")) {
       break;
     }
@@ -43,7 +45,7 @@ void StartRepl(ijoVM *vm) {
 
 }
 
-char *ReadFile(const char *path) {
+char *ReadSourceFile(const char *path) {
   FILE *file = fopen(path, "rb");
 
   if (file == NULL) {
@@ -77,7 +79,7 @@ char *ReadFile(const char *path) {
 }
 
 void RunFile(ijoVM *vm, char *path) {
-  char *source = ReadFile(path);
+  char *source = ReadSourceFile(path);
 
   if (source == NULL) {
     ijoVMDeinit(vm);

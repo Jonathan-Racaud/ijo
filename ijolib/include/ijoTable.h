@@ -4,6 +4,10 @@
 #include "ijoCommon.h"
 #include "ijoValue.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * @brief An entry for the ijo HashTable
  */
@@ -122,5 +126,9 @@ ijoString* TableFindString(Table *table, const char *chars, int length, uint32_t
  * @param to The destination of the copy.
  */
 void TableAddAll(Table *from, Table *to);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_TABLE_H

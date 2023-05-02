@@ -4,6 +4,10 @@
 #include "ijoCommon.h"
 #include "ijoChunk.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * @brief Disassemble the @p chunk with associated @p name.
  * @param chunk The chunk to disassemble.
@@ -44,5 +48,9 @@ uint32_t DisassembleSimpleInstruction(const char *name, Chunk *chunk, uint32_t o
  * @return The offset to the next instruction.
  */
 uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t offset);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_DEBUG_H

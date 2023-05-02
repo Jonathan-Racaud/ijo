@@ -3,14 +3,14 @@
 #include "ijoLog.h"
 
 // Private functions
-Token makeToken(Scanner *scanner, TokenType);
+Token makeToken(Scanner *scanner, TokType);
 Token errorToken(Scanner *scanner, const char *message);
 Token scanString(Scanner *scanner);
 Token scanNumber(Scanner *scanner);
 Token scanIdentifier(Scanner *scanner);
 Token constOrKeyword(Scanner *scanner);
 Token boolOrAssert(Scanner *scanner);
-TokenType identifierType();
+TokType identifierType();
 
 bool isAlpha(char c);
 bool isDigit(char c);
@@ -99,7 +99,7 @@ Token ScannerScan(Scanner *scanner) {
 
 // Private functions implementations
 
-Token makeToken(Scanner *scanner, TokenType type) {
+Token makeToken(Scanner *scanner, TokType type) {
     Token token = {
         type,
         scanner->start,
@@ -114,7 +114,7 @@ Token makeToken(Scanner *scanner, TokenType type) {
 
 Token makeComplexeToken(
   Scanner *scanner,
-  TokenType type,
+  TokType type,
   const char *identifierStart,
   int identifierLength) {
     Token token = {
@@ -252,12 +252,12 @@ Token constOrKeyword(Scanner *scanner) {
     }
 }
 
-TokenType checkKeyword(
+TokType checkKeyword(
   Scanner* scanner,
   int start,
   int length,
   const char* rest,
-  TokenType type
+  TokType type
 ) {
   if (scanner->current - scanner->start == start + length &&
       memcmp(scanner->start + start, rest, length) == 0) {
@@ -329,7 +329,7 @@ bool isWhitespace(char c) {
     return (c == ' ' || c == '\r' || c == '\t');
 }
 
-TokenType identifierType(Scanner *scanner) {
+TokType identifierType(Scanner *scanner) {
   /**
    * The only exception to the KeySymbol rules has to do with the boolean values.
    * The reason is that I did not find a non cryptic, easy to read way to represent 

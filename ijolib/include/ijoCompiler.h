@@ -6,6 +6,10 @@
 #include "ijoScanner.h"
 #include "ijoTable.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /// @brief Helps the compiler know what it is it's compiling.
 typedef enum {
   COMPILE_FILE,
@@ -60,7 +64,7 @@ typedef struct {
     Precedence precedence;
 
     /// @brief The tokens that can be accepted for the rules.
-    TokenType acceptedTokens;
+    TokType acceptedTokens;
 } ParseRule;
 
 /**
@@ -79,5 +83,9 @@ void ParserInit(Parser *parser, Scanner *scanner);
  * @return True when the compilation was successful.
  */
 bool Compile(const char *source, Chunk *chunk, Table *strings, CompileMode mode);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_COMPILER_H

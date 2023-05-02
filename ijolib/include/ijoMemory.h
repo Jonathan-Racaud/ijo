@@ -3,6 +3,10 @@
 
 #include "ijoCommon.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /**
  * @brief Allocates an array of @p type of length @p count.
 */
@@ -41,5 +45,9 @@ void *Reallocate(void *pointer, uint32_t oldSize, uint32_t newSize);
  * @param ptr The pointer to free and nullify.
  */
 void Delete(void *ptr);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_MEMORY_H

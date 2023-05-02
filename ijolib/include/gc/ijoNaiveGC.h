@@ -3,6 +3,10 @@
 
 #include "ijoValue.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /// @brief A linked-list that holds the reference to all allocated ijoObj.
 typedef struct NaiveGCNode {
     ijoObj *obj;
@@ -28,5 +32,9 @@ void NaiveGCInsert(NaiveGCNode **head, Value *obj);
 void NaiveGCClear(NaiveGCNode *head);
 
 extern NaiveGCNode *gc;
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_NAIVE_GC_H

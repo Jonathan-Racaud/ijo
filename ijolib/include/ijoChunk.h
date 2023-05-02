@@ -4,6 +4,10 @@
 #include "ijoCommon.h"
 #include "ijoValue.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /// @brief The different Operation Code the ijoVM understands.
 typedef enum {
     OP_CONSTANT,
@@ -75,5 +79,9 @@ void ChunkWriteCode(Chunk *chunk, uint32_t code, uint32_t line);
 //
 /// @retval The index of the added constant.
 uint32_t ChunkAddConstant(Chunk *chunk, Value value);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_CHUNK_H

@@ -19,15 +19,16 @@ void declaration(Parser *parser, Chunk *chunk, Table *interned);
 void grouping(Parser *parser, Chunk *chunk, Table *interned);
 void unary(Parser *parser, Chunk *chunk, Table *interned);
 void binary(Parser *parser, Chunk *chunk, Table *interned);
-void consume(Parser *parser, TokenType type, const char * message);
+void noop(Parser *parser, Chunk *chunk, Table *strings);
+void consume(Parser *parser, TokType type, const char * message);
 
 void statement(Parser *parser, Chunk *chunk, Table *interned);
 void printStatement(Parser *parser, Chunk *chunk, Table *interned);
 
 void parsePrecedence(Parser *parser, Chunk *chunk, Table *strings, Precedence precedence);
-ParseRule* getRule(TokenType type);
+ParseRule* getRule(TokType type);
 
-bool match(Parser *parser, TokenType type);
+bool match(Parser *parser, TokType type);
 
 void errorAt(Parser *parser, Token *token, const char *message);
 void errorAtCurrent(Parser *parser, const char *message);
@@ -128,7 +129,7 @@ void grouping(Parser *parser, Chunk *chunk, Table *interned) {
 }
 
 void unary(Parser *parser, Chunk *chunk, Table *interned) {
-  TokenType operatorType = parser->previous.type;
+  TokType operatorType = parser->previous.type;
 
   // Compile the operand.
   parsePrecedence(parser, chunk, interned, PREC_UNARY);
@@ -142,7 +143,7 @@ void unary(Parser *parser, Chunk *chunk, Table *interned) {
 }
 
 void binary(Parser *parser, Chunk *chunk, Table *interned) {
-    TokenType operatorType = parser->previous.type;
+    TokType operatorType = parser->previous.type;
 
     ParseRule *rule = getRule(operatorType);
     parsePrecedence(parser, chunk, interned, (Precedence)(rule->precedence + 1));
@@ -164,7 +165,7 @@ void binary(Parser *parser, Chunk *chunk, Table *interned) {
     }
 }
 
-void consume(Parser *parser, TokenType type, const char * message) {
+void consume(Parser *parser, TokType type, const char * message) {
     if (parser->current.type == type) {
         parserAdvance(parser);
         return;
@@ -270,15 +271,16 @@ void parsePrecedence(Parser *parser, Chunk *chunk, Table *interned, Precedence p
     while (precedence <= getRule(parser->current.type)->precedence) {
         parserAdvance(parser);
         ParseFunc infixRule = getRule(parser->previous.type)->infix;
+
         infixRule(parser, chunk, interned);
     }
 }
 
-bool check(Parser *parser, TokenType type) {
+bool check(Parser *parser, TokType type) {
     return parser->current.type == type;
 }
 
-bool match(Parser *parser, TokenType type) {
+bool match(Parser *parser, TokType type) {
     if (!check(parser, type)) {
         return false;
     }
@@ -346,11 +348,13 @@ void ParserInit(Parser *parser, Scanner *scanner) {
     parser->scanner = scanner;
 }
 
+void noop(Parser *parser, Chunk *chunk, Table *strings) {}
+
 /**
- * @brief Rules for parsing based on the TokenType.
+ * @brief Rules for parsing based on the TokType.
  * 
  * @note
- * TokenType | Prefix ParseFunc | Infix ParseFunc | Precedence
+ * TokType | Prefix ParseFunc | Infix ParseFunc | Precedence
  */
 ParseRule rules[] = {
     // Single-character tokens.
@@ -407,9 +411,10 @@ ParseRule rules[] = {
     [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     
     [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
-    [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
+    [TOKEN_EOL]           = {noop,     noop,   PREC_NONE,       TOKEN_ALL},
+    [TOKEN_EOF]           = {noop,     noop,   PREC_NONE,       TOKEN_ALL},
 };
 
-ParseRule* getRule(TokenType type) {
+ParseRule* getRule(TokType type) {
     return &rules[type];
 }

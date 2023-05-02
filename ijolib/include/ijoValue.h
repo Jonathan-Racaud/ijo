@@ -3,6 +3,10 @@
 
 #include "ijoCommon.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 // Forward declaration of types inside of ijoObj.h
 // We can't include it as it also includes ijoValue.h
 
@@ -249,5 +253,9 @@ Value ValueNegate(Value val);
 
 Value ValueError(Value a);
 Value ValueError2(Value a, Value b);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_VALUE_H

@@ -9,6 +9,10 @@
 #include <stdarg.h>
 #include <string.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define HAS_ENUM(val, test) ((val & test) != 0)
 
 #define LOG_LEVEL_ALL      1
@@ -21,5 +25,9 @@
 #define DEBUG_PRINT_CODE      0
 #define DEBUG_TRACE_EXECUTION 0
 #define DEBUG_VM_CONSTANTS    1
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_COMMON_H

@@ -1,4 +1,5 @@
 target("tests")
+	set_languages("c17")
 	add_files("*.c")
 	add_includedirs("../ijolib/include")
 	add_deps("ijolib")

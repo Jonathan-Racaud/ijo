@@ -3,6 +3,10 @@
 
 #include "ijoToken.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /// @brief Represents a Scanner.
 typedef struct {
     /// @brief Marks the beginning of the current lexem.
@@ -39,5 +43,9 @@ void ScannerInit(Scanner *scanner, const char *source);
  * @return The token scanned.
  */
 Token ScannerScan(Scanner *scanner);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_SCANNER_H

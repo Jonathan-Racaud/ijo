@@ -1,6 +1,10 @@
 #ifndef IJO_TOKEN_H
 #define IJO_TOKEN_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /// @brief Represents the type of token.
 typedef enum {
   TOKEN_ERROR,
@@ -65,12 +69,12 @@ typedef enum {
   // For when a parsing rule can accept any kind of token.
   // Except the TOKEN_ERROR and TOKEN_EOF.
   TOKEN_ALL = ~((1 << TOKEN_ERROR) | (1 << TOKEN_EOF))
-} TokenType;
+} TokType;
 
 /// @brief Represents a token
 typedef struct {
     /// @brief The type of token.
-    TokenType type;
+    TokType type;
 
     /// @brief Start of the token in the source code.
     const char *start;
@@ -88,5 +92,9 @@ typedef struct {
     /// @brief Line where the token is located.
     int line;
 } Token;
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_TOKEN_H

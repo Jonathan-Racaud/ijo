@@ -5,6 +5,10 @@
 #include "ijoValue.h"
 #include "ijoTable.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #define STACK_MAX 256
 
 /// @brief The result of interpreting a Chunk of code.
@@ -84,5 +88,9 @@ void ijoVMStackPush(ijoVM *vm, Value value);
  * @return The popped value.
  */
 Value ijoVMStackPop(ijoVM *vm);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_VM_H

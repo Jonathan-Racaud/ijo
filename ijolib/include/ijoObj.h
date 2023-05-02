@@ -4,6 +4,10 @@
 #include "ijoCommon.h"
 #include "ijoValue.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /// @brief The types of object ijo understands.
 typedef enum {
     OBJ_STRING,
@@ -114,5 +118,9 @@ void ijoStringPrint(ijoString *string);
  * @return The copy of @p chars as an ijoString.
  */
 ijoString* CStringCopy(const char* chars, int size);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif // IJO_OBJ_H
