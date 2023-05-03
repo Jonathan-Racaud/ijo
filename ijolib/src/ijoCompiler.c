@@ -19,7 +19,8 @@ void declaration(Parser *parser, Chunk *chunk, Table *interned);
 void grouping(Parser *parser, Chunk *chunk, Table *interned);
 void unary(Parser *parser, Chunk *chunk, Table *interned);
 void binary(Parser *parser, Chunk *chunk, Table *interned);
-void noop(Parser *parser, Chunk *chunk, Table *strings);
+void noop(Parser *parser, Chunk *chunk, Table *interned);
+void identifier(Parser *parser, Chunk *chunk, Table *interned);
 void consume(Parser *parser, TokType type, const char * message);
 
 void statement(Parser *parser, Chunk *chunk, Table *interned);
@@ -35,6 +36,7 @@ void errorAtCurrent(Parser *parser, const char *message);
 
 void emitInstruction(Parser *parser, Chunk *chunk, uint32_t instruction);
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2);
+void emitConstant(Parser *parser, Chunk *chunk, Value value);
 void emitReturn(Parser *parser, Chunk *chunk);
 void endCompiler(Parser *parser, Chunk *chunk);
 void synchronize(Parser *parser);
@@ -119,7 +121,8 @@ void declaration(Parser *parser, Chunk *chunk, Table *interned) {
 
 void statement(Parser *parser, Chunk *chunk, Table *interned) {
     if (match(parser, TOKEN_PRINT)) {
-        return printStatement(parser, chunk, interned);
+        printStatement(parser, chunk, interned);
+        return;
     }
 
     expression(parser, chunk, interned);
@@ -170,6 +173,17 @@ void binary(Parser *parser, Chunk *chunk, Table *interned) {
     case TOKEN_LESS_EQUAL:    emitInstruction(parser, chunk, OP_LE); break;
     default: return;
     }
+}
+
+void identifier(Parser *parser, Chunk *chunk, Table *interned) {
+    ijoString* key = CStringCopy(parser->previous.start, parser->previous.length);
+    Entry *entry = TableFindInternalEntry(interned->entries, interned->capacity, key);
+
+    if (entry) {
+        emitConstant(parser, chunk, entry->value);
+    }
+
+    ijoStringDelete(key);
 }
 
 void consume(Parser *parser, TokType type, const char * message) {
@@ -389,7 +403,7 @@ ParseRule rules[] = {
     [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON, TOKEN_ALL},
 
     // Literals.
-    [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
+    [TOKEN_IDENTIFIER]    = {identifier,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE,       TOKEN_ALL},
 
