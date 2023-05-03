@@ -82,6 +82,7 @@ void constDeclaration(Parser *parser, Chunk *chunk, Table *interned) {
                                      parser->previous.identifierLength);
 
     if (TableFindString(interned, varName->chars, varName->length, varName->hash)) {
+        ijoStringDelete(varName);
         errorAtCurrent(parser, "Constant already declared.");
         return;
     }
@@ -95,6 +96,12 @@ void constDeclaration(Parser *parser, Chunk *chunk, Table *interned) {
     consume(parser, TOKEN_EOL, "Only 1 expression accepted per line.");
 
     TableInsertInternal(interned, varName, value);
+
+    if (IS_OBJ(value)) {
+        NaiveGCInsert(&gc, &value);
+    }
+
+    NaiveGCInsert(&gc, &INTERNAL_STR(varName));
     return;
 }
 

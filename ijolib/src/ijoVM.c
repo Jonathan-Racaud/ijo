@@ -43,7 +43,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
 #endif
 
 #if DEBUG_VM_CONSTANTS
-    LogDebug(" == VM Constants  ==\n");
+    LogDebug(" == VM Constants and Interned Strings ==\n");
 
     for (uint32_t i = 0; i < vm->interned.capacity; i++) {
         Entry *entry = &vm->interned.entries[i];
@@ -54,6 +54,8 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         ValuePrint(entry->value);
         ConsoleWriteLine("");
     }
+
+    LogDebug(" == VM Constants and Interned Strings ==\n");
 #endif
 
     OpCode lastOpCode;
