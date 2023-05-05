@@ -455,6 +455,7 @@ void parsePrecedence(Parser *parser, Compiler *compiler, Chunk *chunk, Table *in
         return;
     }
 
+    parser->precedence = rule->precedence;
     rule->prefix(parser, compiler, chunk, interned);
 
     while (precedence <= getRule(parser->current.type)->precedence) {

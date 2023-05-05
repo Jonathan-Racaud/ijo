@@ -1,18 +1,6 @@
-#drinkingAge = 18
 {
-    $myAge = 16
+    $age = 18
+    age = 20
 
-    %> "Drinking age: "
-    %>> drinkingAge
-    %> "Your age: "
-    %>> myAge
-    %>> myAge
-    %>> myAge
-    %>> myAge
-    %>> "You cannot drink"
-
-    myAge = 19
-    %> "Your age: "
-    %>> myAge
-    %>> "You can now drink. Enjoy\n"
+    %>> 20
 }

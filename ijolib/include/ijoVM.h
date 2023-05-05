@@ -89,6 +89,14 @@ void ijoVMStackPush(ijoVM *vm, Value value);
  */
 Value ijoVMStackPop(ijoVM *vm);
 
+/**
+ * @brief Peeks the value from the top of the stack + offset
+ * 
+ * @param offset 
+ * @return Value 
+ */
+Value ijoVMStackPeek(ijoVM *vm, int offset);
+
 #if defined(__cplusplus)
 }
 #endif

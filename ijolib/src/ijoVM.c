@@ -215,7 +215,8 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         }
         case OP_SET_LOCAL: {
             uint32_t slot = READ_BYTE();
-            vm->stack[slot] = *vm->stackTop;
+            Value value = ijoVMStackPeek(vm, 0);
+            vm->stack[slot] = value;
             break;
         }
         case OP_RETURN: {
@@ -273,4 +274,10 @@ Value ijoVMStackPop(ijoVM *vm) {
 
     vm->stackTop--;
     return *vm->stackTop;
+}
+
+Value ijoVMStackPeek(ijoVM *vm, int offset) {
+     if (!vm) return ERROR_VAL();
+
+     return vm->stackTop[-1 - offset];
 }
