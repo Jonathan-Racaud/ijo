@@ -67,7 +67,7 @@ char *ReadSourceFile(const char *path) {
   size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
 
   if (bytesRead < fileSize) {
-    LogError("Could not read file \"%s\".", path);
+    LogError("Could not read file \"%s\".\n", path);
     return NULL;
   }
 
@@ -103,6 +103,10 @@ int main(int argc, char **argv) {
   if (argc == 1) {
     StartRepl(&vm);
   } else if (argc == 2) {
+    // char cwd[1024];
+    // if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    //     printf("Current working directory: %s\n", cwd);
+    // }
     RunFile(&vm, argv[1]);
   } else {
     ConsoleWriteLine("Usage: ijoVM [path]");

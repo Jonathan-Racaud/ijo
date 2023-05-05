@@ -134,6 +134,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             Value val = ijoVMStackPop(vm);
             ValuePrint(val);
             ConsoleWriteLine("");
+            break;
         }
         case OP_TRUE: {
             ijoVMStackPush(vm, BOOL_VAL(true));
@@ -200,14 +201,17 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         }
         case OP_POP: {
             ijoVMStackPop(vm);
+            break;
         }
         case OP_GET_LOCAL: {
             uint32_t slot = READ_BYTE();
             ijoVMStackPush(vm, vm->stack[slot]);
+            break;
         }
         case OP_SET_LOCAL: {
             uint32_t slot = READ_BYTE();
             vm->stack[slot] = *vm->stackTop;
+            break;
         }
         case OP_RETURN: {
             if (mode == COMPILE_REPL && (lastOpCode != OP_PRINT))

@@ -229,6 +229,7 @@ void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned
         beginScope(compiler);
         block(parser, compiler, chunk, interned);
         endScope(parser, compiler, chunk);
+        return;
     }
 
     expression(parser, compiler, chunk, interned);
@@ -617,7 +618,7 @@ void endScope(Parser *parser, Compiler *compiler, Chunk *chunk) {
     if (!compiler) return;
 
     while ((compiler->localCount > 0) &&
-           (compiler->locals[compiler->localCount - 1].depth > compiler->scopeDepth)) {
+           (compiler->locals[compiler->localCount - 1].depth >= compiler->scopeDepth)) {
         // An optimization would be to have an OP_POPN which takes the number of pop operation to do
         emitInstruction(parser, chunk, OP_POP);
         compiler->localCount--;
