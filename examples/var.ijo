@@ -1,26 +1,18 @@
-{
-    $a = 4
-    $b = 6
-    
-    %> a + b
-
-    a = 6
-
-    %> a - b
-}
-
 #drinkingAge = 18
 {
     $myAge = 16
 
     %> "Drinking age: "
-    %> drinkingAge
+    %>> drinkingAge
     %> "Your age: "
-    %> myAge
-    %> "You cannot drink"
+    %>> myAge
+    %>> myAge
+    %>> myAge
+    %>> myAge
+    %>> "You cannot drink"
 
     myAge = 19
     %> "Your age: "
-    %> myAge
-    %> "You can now drink. Enjoy\n"
+    %>> myAge
+    %>> "You can now drink. Enjoy\n"
 }
