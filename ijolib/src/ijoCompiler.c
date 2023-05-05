@@ -222,7 +222,7 @@ void declaration(Parser *parser, Compiler *compiler, Chunk *chunk, Table *intern
 }
 
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
-    if (match(parser, TOKEN_PRINT)) {
+    if (match(parser, TOKEN_PRINT) || match(parser, TOKEN_PRINTLN)) {
         printStatement(parser, compiler, chunk, interned);
         return;
     } else if (match(parser, TOKEN_LEFT_BRACE)) {
@@ -236,8 +236,15 @@ void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned
 }
 
 void printStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
-    expression(parser, compiler, chunk, interned);
-    emitInstruction(parser, chunk, OP_PRINT);
+    OpCode op = (parser->previous.type == TOKEN_PRINT) ? OP_PRINT : OP_PRINTLN;
+
+    if (!match(parser, TOKEN_EOL)) {
+        expression(parser, compiler, chunk, interned);
+    } else {
+        emitConstant(parser, chunk, NOOP_VAL());
+    }
+
+    emitInstruction(parser, chunk, op);
 }
 
 void block(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {

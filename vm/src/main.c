@@ -57,7 +57,7 @@ char *ReadSourceFile(const char *path) {
   size_t fileSize = ftell(file);
   rewind(file);
 
-  char *buffer = (char*)malloc(fileSize + 1);
+  char *buffer = (char*)malloc(fileSize + 2);
 
   if (buffer == NULL) {
     LogError("Could not allocate memory for reading file \"%s\".", path);
@@ -71,7 +71,8 @@ char *ReadSourceFile(const char *path) {
     return NULL;
   }
 
-  buffer[bytesRead] = '\0';
+  buffer[bytesRead] = '\n';
+  buffer[bytesRead + 1] = '\0';
 
   fclose(file);
 
@@ -103,10 +104,6 @@ int main(int argc, char **argv) {
   if (argc == 1) {
     StartRepl(&vm);
   } else if (argc == 2) {
-    // char cwd[1024];
-    // if (getcwd(cwd, sizeof(cwd)) != NULL) {
-    //     printf("Current working directory: %s\n", cwd);
-    // }
     RunFile(&vm, argv[1]);
   } else {
     ConsoleWriteLine("Usage: ijoVM [path]");

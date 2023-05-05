@@ -80,6 +80,9 @@ Token ScannerScan(Scanner *scanner) {
         
         case '%':
             if (matchChar(scanner, '>')) {
+              if (matchChar(scanner, '>')) {
+                return makeToken(scanner, TOKEN_PRINTLN);
+              }
               return makeToken(scanner, TOKEN_PRINT);
             }
             return errorToken(scanner, "Unexpected character");

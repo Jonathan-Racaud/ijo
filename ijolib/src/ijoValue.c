@@ -33,6 +33,7 @@ void ValuePrint(Value value) {
     case VAL_RESULT: ConsoleWrite("%s", AS_SUCCESS(value) ? "@success" : "@error"); break;
     case VAL_OBJ:
     case IJO_INTERNAL_STRING: ObjectPrint(value); break;
+    case IJO_NOOP: break;
     }
 }
 

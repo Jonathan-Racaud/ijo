@@ -133,6 +133,11 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
         case OP_PRINT: {
             Value val = ijoVMStackPop(vm);
             ValuePrint(val);
+            break;
+        }
+        case OP_PRINTLN: {
+            Value val = ijoVMStackPop(vm);
+            ValuePrint(val);
             ConsoleWriteLine("");
             break;
         }

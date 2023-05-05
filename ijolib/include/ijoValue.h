@@ -27,6 +27,7 @@ typedef enum {
     IJO_INTERNAL_EMPTY_ENTRY,
     IJO_INTERNAL_TOMBSTONE,
     IJO_INTERNAL_STRING,
+    IJO_NOOP,
 } ValueType;
 
 /**
@@ -97,6 +98,7 @@ extern ValueOperator stringOperators[];
 #define OBJ_VAL(value)      ((Value){VAL_OBJ,    objOperators,    {.obj = (ijoObj*)value }})
 #define IJO_INTERNAL(type)  ((Value){type,       resultOperators, {.boolean = false}})
 #define INTERNAL_STR(value) ((Value){IJO_INTERNAL_STRING, stringOperators, {.obj = (ijoObj*)value }})
+#define NOOP_VAL()          ((Value){IJO_NOOP, resultOperators, {.boolean = false}})
 
 #define AS_BOOL(value)      ((value).as.boolean)
 #define AS_NUMBER(value)    ((value).as.number)

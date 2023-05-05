@@ -1,2 +1,6 @@
-#age = 18
-%> age
+#age = 42
+#name = "Bob"
+%> name
+%> " is "
+%>> age
+%>>

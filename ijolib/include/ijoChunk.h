@@ -35,6 +35,7 @@ typedef enum {
     OP_NOT,
 
     OP_PRINT,
+    OP_PRINTLN,
 
     OP_MODULE,
 
