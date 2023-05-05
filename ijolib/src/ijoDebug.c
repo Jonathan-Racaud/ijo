@@ -55,7 +55,12 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
         return DisassembleSimpleInstruction("OP_MODULE", chunk, offset);
     case OP_NOT:
         return DisassembleSimpleInstruction("OP_NOT", chunk, offset);
-
+    case OP_POP:
+        return DisassembleSimpleInstruction("OP_POP", chunk, offset);
+    case OP_GET_LOCAL:
+        return DisassembleArgInstruction("OP_GET_LOCAL", chunk, offset);
+    case OP_SET_LOCAL:
+        return DisassembleArgInstruction("OP_GET_LOCAL", chunk, offset);
     default:
         return DisassembleUnknownInstruction(chunk, instruction);
     }
@@ -79,4 +84,10 @@ uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t
     ConsoleWriteLine("");
 
     return offset + 2;
+}
+
+uint32_t DisassembleArgInstruction(const char *name, Chunk *chunk, uint32_t offset) {
+    uint32_t slot = chunk->code[offset + 1];
+    ConsoleWriteLine("%-16s %4d", name, slot);
+    return offset + 2; 
 }

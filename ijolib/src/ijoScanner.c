@@ -91,6 +91,7 @@ Token ScannerScan(Scanner *scanner) {
          * symbols used in the switch inside of the varOrKeyword function.
         */
         case '#': return constOrKeyword(scanner);
+        case '$': return makeToken(scanner, TOKEN_VAR);
         case '\n': return makeToken(scanner, TOKEN_EOL);
     }
 

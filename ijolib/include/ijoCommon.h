@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+#define UINT8_COUNT (UINT8_MAX + 1)
+
 #define HAS_ENUM(val, test) ((val & test) != 0)
 
 #define LOG_LEVEL_ALL      1

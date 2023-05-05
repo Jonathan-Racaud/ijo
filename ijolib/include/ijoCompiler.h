@@ -16,6 +16,21 @@ typedef enum {
   COMPILE_REPL
 } CompileMode;
 
+/// @brief Define the levels of precedences from lowest to highest.
+typedef enum {
+  PREC_NONE,
+  PREC_ASSIGNMENT,  // =
+  PREC_OR,          // or
+  PREC_AND,         // and
+  PREC_EQUALITY,    // == !=
+  PREC_COMPARISON,  // < > <= >=
+  PREC_TERM,        // + -
+  PREC_FACTOR,      // * /
+  PREC_UNARY,       // ! -
+  PREC_CALL,        // . ()
+  PREC_PRIMARY
+} Precedence;
+
 /// @brief The Parser struct for the ijoVM.
 typedef struct {
     /// @brief The current Token.
@@ -32,25 +47,25 @@ typedef struct {
 
     /// @brief The scanner associated with this Parser.
     Scanner *scanner;
+
+    /// @brief The current precedence.
+    Precedence precedence;
 } Parser;
 
-/// @brief Define the levels of precedences from lowest to highest.
-typedef enum {
-  PREC_NONE,
-  PREC_ASSIGNMENT,  // =
-  PREC_OR,          // or
-  PREC_AND,         // and
-  PREC_EQUALITY,    // == !=
-  PREC_COMPARISON,  // < > <= >=
-  PREC_TERM,        // + -
-  PREC_FACTOR,      // * /
-  PREC_UNARY,       // ! -
-  PREC_CALL,        // . ()
-  PREC_PRIMARY
-} Precedence;
+typedef struct {
+  Token name;
+  int depth;
+  bool constant;
+} Local;
+
+typedef struct {
+  Local locals[UINT8_COUNT];
+  int localCount;
+  int scopeDepth;
+} Compiler;
 
 /// @brief Function pointer to a parser function for a given TokenType.
-typedef void (*ParseFunc)(Parser *, Chunk *, Table *);
+typedef void (*ParseFunc)(Parser *, Compiler *, Chunk *, Table *);
 
 /// @brief Rule to follow when parsing.
 typedef struct {
@@ -83,6 +98,13 @@ void ParserInit(Parser *parser, Scanner *scanner);
  * @return True when the compilation was successful.
  */
 bool Compile(const char *source, Chunk *chunk, Table *strings, CompileMode mode);
+
+/**
+ * @brief Initializes a Compiler struct.
+ * 
+ * @param compiler The compiler to initialize.
+ */
+void CompilerInit(Compiler *compiler);
 
 #if defined(__cplusplus)
 }

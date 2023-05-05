@@ -37,6 +37,11 @@ typedef enum {
     OP_PRINT,
 
     OP_MODULE,
+
+    OP_GET_LOCAL,
+    OP_SET_LOCAL,
+
+    OP_POP,
     OP_RETURN,
 } OpCode;
 
