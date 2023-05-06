@@ -1,14 +1,5 @@
-#drinkingAge = 18
-
 {
-    $age = 17
-    %> "You are "
-    %> age
-    %>> ", that's too young too drink!"
-
-    age = age + 1
-    %> "I just got my birthday, and I'm now "
-    %>> age
-
-    %>> "You can drink now!"
+    $a = 1
+    a = a + 1
+    %>> a
 }

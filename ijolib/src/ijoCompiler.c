@@ -165,7 +165,6 @@ void declareVariable(Parser *parser, Compiler *compiler, bool isConst) {
 
         if (identifierEqual(name, &local->name)) {
             errorAtCurrent(parser, "A variable with this name already exist in this scope.");
-            return;
         }
     }
 
@@ -176,7 +175,7 @@ uint32_t parseVariable(Parser *parser, Compiler *compiler, Chunk *chunk, bool is
     consume(parser, TOKEN_IDENTIFIER, message);
 
     declareVariable(parser, compiler, isConst);
-    if (compiler->scopeDepth == 0) return 0;
+    if (compiler->scopeDepth > 0) return 0;
 
     return identifierConstant(&parser->previous, chunk);
 }
@@ -221,6 +220,12 @@ void declaration(Parser *parser, Compiler *compiler, Chunk *chunk, Table *intern
     if (parser->panicMode) synchronize(parser);
 }
 
+void expressionStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
+    expression(parser, compiler, chunk, interned);
+    consume(parser, TOKEN_EOL, "Only one expression per line accepted.");
+    emitInstruction(parser, chunk, OP_POP);
+}
+
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
     if (match(parser, TOKEN_PRINT) || match(parser, TOKEN_PRINTLN)) {
         printStatement(parser, compiler, chunk, interned);
@@ -232,7 +237,7 @@ void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned
         return;
     }
 
-    expression(parser, compiler, chunk, interned);
+    expressionStatement(parser, compiler, chunk, interned);
 }
 
 void printStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
@@ -624,13 +629,12 @@ void beginScope(Compiler *compiler) {
 
 void endScope(Parser *parser, Compiler *compiler, Chunk *chunk) {
     if (!compiler) return;
+    compiler->scopeDepth--;
 
     while ((compiler->localCount > 0) &&
-           (compiler->locals[compiler->localCount - 1].depth >= compiler->scopeDepth)) {
+           (compiler->locals[compiler->localCount - 1].depth > compiler->scopeDepth)) {
         // An optimization would be to have an OP_POPN which takes the number of pop operation to do
         emitInstruction(parser, chunk, OP_POP);
         compiler->localCount--;
     }
-
-    compiler->scopeDepth--;
 }
