@@ -1,0 +1,13 @@
+{
+    $age = 17
+
+    ?(age < 18) {
+        %>> "Cannot drink"
+    }
+
+    age = 40
+    
+    ?(age > 21) {
+        %>> "Enjoy!"
+    }
+}

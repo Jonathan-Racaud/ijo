@@ -65,6 +65,10 @@ Token ScannerScan(Scanner *scanner) {
         case '/': return makeToken(scanner, TOKEN_SLASH);
         case '*': return makeToken(scanner, TOKEN_STAR);
 
+        case '?':
+            return matchChar(scanner, '(') ? makeToken(scanner, TOKEN_IF) : errorToken(scanner, "Unknown token");
+        case '~':
+          return matchChar(scanner, '(') ? makeToken(scanner, TOKEN_LOOP) : errorToken(scanner, "Unknown token");
         case '!':
             return makeToken(scanner,
                 matchChar(scanner, '=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
@@ -95,7 +99,9 @@ Token ScannerScan(Scanner *scanner) {
         */
         case '#': return constOrKeyword(scanner);
         case '$': return makeToken(scanner, TOKEN_VAR);
-        case '\n': return makeToken(scanner, TOKEN_EOL);
+        case '\n': 
+          scanner->line++;
+          return makeToken(scanner, TOKEN_EOL);
     }
 
     return errorToken(scanner, "Unexpected character");

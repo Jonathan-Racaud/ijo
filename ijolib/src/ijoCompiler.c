@@ -40,6 +40,7 @@ void emitInstruction(Parser *parser, Chunk *chunk, uint32_t instruction);
 void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint32_t instruction2);
 void emitConstant(Parser *parser, Chunk *chunk, Value value);
 void emitReturn(Parser *parser, Chunk *chunk);
+uint32_t emitJump(Parser *parser, Chunk *chunk, uint32_t instruction);
 void endCompiler(Parser *parser, Chunk *chunk);
 void synchronize(Parser *parser);
 uint32_t makeConstant(Chunk *chunk, Value value);
@@ -226,9 +227,31 @@ void expressionStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table
     emitInstruction(parser, chunk, OP_POP);
 }
 
+void patchJump(Chunk *chunk, uint32_t offset) {
+    chunk->code[offset + 1] = chunk->count - offset - 1;
+}
+
+void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
+    // consume(parser, TOKEN_LEFT_PAREN, "Expected condition to be inside parentheses");
+    expression(parser, compiler, chunk, interned);
+    consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after condition.");
+
+    uint32_t thenJump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+    // consume(parser, TOKEN_LEFT_BRACE, "Expected '{'");
+    statement(parser, compiler, chunk, interned);
+    // consume(parser, TOKEN_RIGHT_BRACE, "Expected '}'");
+
+    patchJump(chunk, thenJump);
+}
+
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
+    if (match(parser, TOKEN_EOL)) return;
+
     if (match(parser, TOKEN_PRINT) || match(parser, TOKEN_PRINTLN)) {
         printStatement(parser, compiler, chunk, interned);
+        return;
+    } else if (match(parser, TOKEN_IF)) {
+        ifStatement(parser, compiler, chunk, interned);
         return;
     } else if (match(parser, TOKEN_LEFT_BRACE)) {
         beginScope(compiler);
@@ -392,8 +415,15 @@ void emitConstant(Parser *parser, Chunk *chunk, Value value) {
     emitInstructions(parser, chunk, OP_CONSTANT, makeConstant(chunk, value));
 }
 
-void emitReturn(Parser* parser, Chunk *chunk) {
+void emitReturn(Parser *parser, Chunk *chunk) {
     ChunkWriteCode(chunk, OP_RETURN, parser->previous.line);
+}
+
+uint32_t emitJump(Parser *parser, Chunk *chunk, uint32_t instruction) {
+    uint32_t current = chunk->count;
+    emitInstructions(parser, chunk, instruction, 0);
+
+    return current;
 }
 
 void endCompiler(Parser *parser, Chunk *chunk) {
@@ -520,9 +550,8 @@ void synchronize(Parser *parser) {
         case TOKEN_STRUCT:
         case TOKEN_FUNC:
         case TOKEN_CONST:
-        case TOKEN_FOR:
         case TOKEN_IF:
-        case TOKEN_WHILE:
+        case TOKEN_LOOP:
         case TOKEN_PRINT:
         case TOKEN_RETURN:
             return;
@@ -589,7 +618,6 @@ ParseRule rules[] = {
     [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_ENUM]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_FALSE]         = {literal,  NULL,   PREC_NONE,       TOKEN_ALL},
-    [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_FUNC]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_MAP]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
@@ -603,7 +631,7 @@ ParseRule rules[] = {
     [TOKEN_THIS]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_VAR]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
-    [TOKEN_WHILE]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
+    [TOKEN_LOOP]          = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     
     [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_EOL]           = {noop,     noop,   PREC_NONE,       TOKEN_ALL},

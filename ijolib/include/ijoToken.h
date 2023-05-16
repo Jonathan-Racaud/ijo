@@ -47,7 +47,6 @@ typedef enum {
   TOKEN_ELSE,
   TOKEN_ENUM,
   TOKEN_FALSE,
-  TOKEN_FOR,
   TOKEN_FUNC,
   TOKEN_IF,
   TOKEN_MAP,
@@ -62,7 +61,7 @@ typedef enum {
   TOKEN_THIS,
   TOKEN_TRUE,
   TOKEN_VAR,
-  TOKEN_WHILE,
+  TOKEN_LOOP,
   
   // Acts like ';' in other languages. Kind of.
   TOKEN_EOL,

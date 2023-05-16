@@ -63,6 +63,8 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
         return DisassembleArgInstruction("OP_GET_LOCAL", chunk, offset);
     case OP_SET_LOCAL:
         return DisassembleArgInstruction("OP_SET_LOCAL", chunk, offset);
+    case OP_JUMP_IF_FALSE:
+        return DisassembleArgInstruction("OP_JUMP_IF_FALSE", chunk, offset);
     default:
         return DisassembleUnknownInstruction(chunk, instruction);
     }
