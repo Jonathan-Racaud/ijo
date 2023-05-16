@@ -232,16 +232,19 @@ void patchJump(Chunk *chunk, uint32_t offset) {
 }
 
 void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
-    // consume(parser, TOKEN_LEFT_PAREN, "Expected condition to be inside parentheses");
     expression(parser, compiler, chunk, interned);
     consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after condition.");
 
     uint32_t thenJump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
-    // consume(parser, TOKEN_LEFT_BRACE, "Expected '{'");
     statement(parser, compiler, chunk, interned);
-    // consume(parser, TOKEN_RIGHT_BRACE, "Expected '}'");
 
+    uint32_t elseJump = emitJump(parser, chunk, OP_JUMP);
     patchJump(chunk, thenJump);
+
+    if (match(parser, TOKEN_ELSE)) {
+        statement(parser, compiler, chunk, interned);
+    }
+    patchJump(chunk, elseJump);
 }
 
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {

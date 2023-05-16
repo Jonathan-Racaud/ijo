@@ -37,6 +37,7 @@ typedef enum {
     OP_PRINT,
     OP_PRINTLN,
 
+    OP_JUMP,
     OP_JUMP_IF_FALSE,
 
     OP_MODULE,

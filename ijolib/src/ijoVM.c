@@ -219,6 +219,11 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode) {
             vm->stack[slot] = value;
             break;
         }
+        case OP_JUMP: {
+            uint32_t offset = READ_BYTE();
+            vm->ip += offset;
+            break;
+        }
         case OP_JUMP_IF_FALSE: {
             Value value = ijoVMStackPop(vm);
             uint32_t offset = READ_BYTE();

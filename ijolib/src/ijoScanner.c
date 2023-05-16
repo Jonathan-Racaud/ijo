@@ -66,7 +66,13 @@ Token ScannerScan(Scanner *scanner) {
         case '*': return makeToken(scanner, TOKEN_STAR);
 
         case '?':
-            return matchChar(scanner, '(') ? makeToken(scanner, TOKEN_IF) : errorToken(scanner, "Unknown token");
+            if (matchChar(scanner, '(')) {
+              if (matchChar(scanner, ')')) {
+                return makeToken(scanner, TOKEN_ELSE);
+              }
+              return makeToken(scanner, TOKEN_IF);
+            }
+            return errorToken(scanner, "Unknown token");
         case '~':
           return matchChar(scanner, '(') ? makeToken(scanner, TOKEN_LOOP) : errorToken(scanner, "Unknown token");
         case '!':
