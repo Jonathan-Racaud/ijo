@@ -228,7 +228,7 @@ void expressionStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table
 }
 
 void patchJump(Chunk *chunk, uint32_t offset) {
-    chunk->code[offset + 1] = chunk->count - offset - 1;
+    chunk->code[offset + 1] = chunk->count - offset - 2;
 }
 
 void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
