@@ -6,3 +6,4 @@ ijolib_include = "ijolib/include"
 add_subdirs("ijolib")
 add_subdirs("vm")
 add_subdirs("tests")
+add_subdirs("playground")

@@ -1,11 +1,13 @@
 #include "ijoLog.h"
 
-void Log(const char *prefix, const char *message, va_list args) {
+void Log(const char *prefix, const char *message, va_list args)
+{
     printf(prefix);
     vprintf(message, args);
 }
 
-void LogInfo(const char *message, ...) {
+void LogInfo(const char *message, ...)
+{
 #if LOG_LEVEL_INFO || LOG_LEVEL_ALL
     va_list args;
     va_start(args, message);
@@ -14,7 +16,8 @@ void LogInfo(const char *message, ...) {
 #endif
 }
 
-void LogDebug(const char *message, ...) {
+void LogDebug(const char *message, ...)
+{
 #if LOG_LEVEL_DEBUG || LOG_LEVEL_ALL
     va_list args;
     va_start(args, message);
@@ -23,7 +26,8 @@ void LogDebug(const char *message, ...) {
 #endif
 }
 
-void LogWarning(const char *message, ...) {
+void LogWarning(const char *message, ...)
+{
 #if LOG_LEVEL_WARNING || LOG_LEVEL_ALL
     va_list args;
     va_start(args, message);
@@ -32,7 +36,8 @@ void LogWarning(const char *message, ...) {
 #endif
 }
 
-void LogError(const char *message, ...) {
+void LogError(const char *message, ...)
+{
 #if LOG_LEVEL_ERROR || LOG_LEVEL_ALL
     va_list args;
     va_start(args, message);
@@ -41,7 +46,8 @@ void LogError(const char *message, ...) {
 #endif
 }
 
-void LogCritical(const char *message, ...) {
+void LogCritical(const char *message, ...)
+{
 #if LOG_LEVEL_CRITICAL || LOG_LEVEL_ALL
     va_list args;
     va_start(args, message);
@@ -50,17 +56,38 @@ void LogCritical(const char *message, ...) {
 #endif
 }
 
-void ConsoleWrite(const char *message, ...) {
+void OutputWrite(FILE *stream, const char *message, ...)
+{
     va_list args;
-    
+
+    va_start(args, message);
+    vprintf(stream, message, args);
+    va_end(args);
+}
+
+void OutputWriteLine(FILE *stream, const char *message, ...)
+{
+    va_list args;
+
+    va_start(args, message);
+    vprintf(stream, message, args);
+    va_end(args);
+    fprintf(stream, "\n");
+}
+
+void ConsoleWrite(const char *message, ...)
+{
+    va_list args;
+
     va_start(args, message);
     vprintf(message, args);
     va_end(args);
 }
 
-void ConsoleWriteLine(const char *message, ...) {
+void ConsoleWriteLine(const char *message, ...)
+{
     va_list args;
-    
+
     va_start(args, message);
     vprintf(message, args);
     va_end(args);

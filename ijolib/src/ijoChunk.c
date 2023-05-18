@@ -1,8 +1,10 @@
 #include "ijoChunk.h"
 #include "ijoMemory.h"
 
-void ChunkNew(Chunk *chunk) {
-    if (!chunk) return;
+void ChunkNew(Chunk *chunk)
+{
+    if (!chunk)
+        return;
 
     chunk->count = 0;
     chunk->capacity = 0;
@@ -11,14 +13,20 @@ void ChunkNew(Chunk *chunk) {
     ValueArrayNew(&(*chunk).constants);
 }
 
-void ChunkDelete(Chunk *chunk) {
+void ChunkDelete(Chunk *chunk)
+{
+    if (!chunk)
+        return;
+
     FREE_ARRAY(uint32_t, chunk->code, chunk->capacity);
     FREE_ARRAY(uint32_t, chunk->lines, chunk->capacity);
     ValueArrayDelete(&chunk->constants);
 }
 
-void ChunkWriteCode(Chunk *chunk, uint32_t code, uint32_t line) {
-    if (chunk->capacity < chunk->count + 1) {
+void ChunkWriteCode(Chunk *chunk, uint32_t code, uint32_t line)
+{
+    if (chunk->capacity < chunk->count + 1)
+    {
         int oldCapacity = chunk->capacity;
         chunk->capacity = GROW_CAPACITY(oldCapacity);
         chunk->code = GROW_ARRAY(uint32_t, chunk->code, oldCapacity, chunk->capacity);
@@ -30,7 +38,8 @@ void ChunkWriteCode(Chunk *chunk, uint32_t code, uint32_t line) {
     chunk->count += 1;
 }
 
-uint32_t ChunkAddConstant(Chunk *chunk, Value value) {
+uint32_t ChunkAddConstant(Chunk *chunk, Value value)
+{
     ValueArrayAppend(&chunk->constants, value);
     return chunk->constants.count - 1;
 }

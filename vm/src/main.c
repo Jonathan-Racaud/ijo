@@ -1,15 +1,17 @@
-#include "ijoCommon.h"
+#include "gc/ijoNaiveGC.h"
 #include "ijoChunk.h"
+#include "ijoCommon.h"
+#include "ijoCompiler.h"
 #include "ijoLog.h"
 #include "ijoVM.h"
-#include "ijoCompiler.h"
-#include "gc/ijoNaiveGC.h"
 
-InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode) {
+InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode)
+{
   Chunk chunk;
   ChunkNew(&chunk);
 
-  if (!Compile(source, &chunk, &vm->interned, mode)) {
+  if (!Compile(source, &chunk, &vm->interned, mode))
+  {
     ChunkDelete(&chunk);
     return INTERPRET_COMPILE_ERROR;
   }
@@ -17,38 +19,43 @@ InterpretResult Interpret(ijoVM *vm, char *source, CompileMode mode) {
   vm->chunk = &chunk;
   vm->ip = vm->chunk->code;
 
-  InterpretResult result = ijoVMRun(vm, mode);
+  InterpretResult result = ijoVMRun(vm, mode, stdout);
   ChunkDelete(&chunk);
 
   return result;
 }
 
-void StartRepl(ijoVM *vm) {
+void StartRepl(ijoVM *vm)
+{
   char line[1024];
 
-  for(;;) {
+  for (;;)
+  {
     ConsoleWrite("> ");
 
-    if (!fgets(line, sizeof(line), stdin)) {
+    if (!fgets(line, sizeof(line), stdin))
+    {
       ConsoleWriteLine("");
       break;
     }
 
     line[strcspn(line, "\r\n")] = '\n';
 
-    if (0 == strcmp(line, "exit\n")) {
+    if (0 == strcmp(line, "exit\n"))
+    {
       break;
     }
 
     Interpret(vm, line, COMPILE_REPL);
   }
-
 }
 
-char *ReadSourceFile(const char *path) {
+char *ReadSourceFile(const char *path)
+{
   FILE *file = fopen(path, "rb");
 
-  if (file == NULL) {
+  if (file == NULL)
+  {
     LogError("Could not open file \"%s\".", path);
     return NULL;
   }
@@ -57,16 +64,18 @@ char *ReadSourceFile(const char *path) {
   size_t fileSize = ftell(file);
   rewind(file);
 
-  char *buffer = (char*)malloc(fileSize + 2);
+  char *buffer = (char *)malloc(fileSize + 2);
 
-  if (buffer == NULL) {
+  if (buffer == NULL)
+  {
     LogError("Could not allocate memory for reading file \"%s\".", path);
     return NULL;
   }
 
   size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
 
-  if (bytesRead < fileSize) {
+  if (bytesRead < fileSize)
+  {
     LogError("Could not read file \"%s\".\n", path);
     return NULL;
   }
@@ -79,10 +88,12 @@ char *ReadSourceFile(const char *path) {
   return buffer;
 }
 
-void RunFile(ijoVM *vm, char *path) {
+void RunFile(ijoVM *vm, char *path)
+{
   char *source = ReadSourceFile(path);
 
-  if (source == NULL) {
+  if (source == NULL)
+  {
     ijoVMDeinit(vm);
     exit(74);
   }
@@ -90,22 +101,30 @@ void RunFile(ijoVM *vm, char *path) {
   InterpretResult result = Interpret(vm, source, COMPILE_FILE);
   free(source);
 
-  if (result == INTERPRET_COMPILE_ERROR) exit(65);
-  if (result == INTERPRET_RUNTIME_ERROR) exit(70);
+  if (result == INTERPRET_COMPILE_ERROR)
+    exit(65);
+  if (result == INTERPRET_RUNTIME_ERROR)
+    exit(70);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   LogInfo("Creating a new ijoVM...\n");
   ijoVM vm;
   ijoVMInit(&vm);
 
   gc = NaiveGCNodeCreate(NULL);
 
-  if (argc == 1) {
+  if (argc == 1)
+  {
     StartRepl(&vm);
-  } else if (argc == 2) {
+  }
+  else if (argc == 2)
+  {
     RunFile(&vm, argv[1]);
-  } else {
+  }
+  else
+  {
     ConsoleWriteLine("Usage: ijoVM [path]");
     ijoVMDeinit(&vm);
     exit(64);

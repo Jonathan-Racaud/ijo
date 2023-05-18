@@ -1,16 +1,19 @@
 #include "ijoDebug.h"
 #include "ijoLog.h"
 
-void DisassembleChunk(Chunk *chunk, const char *name) {
+void DisassembleChunk(Chunk *chunk, const char *name)
+{
     LogDebug("== %s - Start ==", name);
 
-    for (uint32_t offset = 0; offset < chunk->count;) {
+    for (uint32_t offset = 0; offset < chunk->count;)
+    {
         offset = DisassembleInstruction(chunk, offset);
     }
     LogDebug("== %s - End ==", name);
 }
 
-uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
+uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset)
+{
     ConsoleWrite("%04d ", offset);
 
     uint32_t instruction = chunk->code[offset];
@@ -72,28 +75,32 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset) {
     }
 }
 
-uint32_t DisassembleUnknownInstruction(Chunk *chunk, uint32_t offset) {
+uint32_t DisassembleUnknownInstruction(Chunk *chunk, uint32_t offset)
+{
     ConsoleWriteLine("Unknown instruction: %04d", offset);
     return offset + 1;
 }
 
-uint32_t DisassembleSimpleInstruction(const char *name, Chunk *chunk, uint32_t offset) {
+uint32_t DisassembleSimpleInstruction(const char *name, Chunk *chunk, uint32_t offset)
+{
     ConsoleWriteLine("%s", name);
     return offset + 1;
 }
 
-uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t offset) {
+uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t offset)
+{
     uint32_t constant = chunk->code[offset + 1];
-    
+
     ConsoleWrite("%-16s %4d '", name, constant);
-    ValuePrint(chunk->constants.values[constant]);
+    ValuePrint(stdout, chunk->constants.values[constant]);
     ConsoleWriteLine("");
 
     return offset + 2;
 }
 
-uint32_t DisassembleArgInstruction(const char *name, Chunk *chunk, uint32_t offset) {
+uint32_t DisassembleArgInstruction(const char *name, Chunk *chunk, uint32_t offset)
+{
     uint32_t slot = chunk->code[offset + 1];
     ConsoleWriteLine("%-16s %4d", name, slot);
-    return offset + 2; 
+    return offset + 2;
 }
