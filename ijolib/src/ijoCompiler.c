@@ -26,6 +26,9 @@ void consume(Parser *parser, TokType type, const char * message);
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned);
 void printStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned);
 void block(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned);
+void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned);
+void and(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned);
+void or(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned);
 
 void parsePrecedence(Parser *parser, Compiler *compiler, Chunk *chunk, Table *strings, Precedence precedence);
 ParseRule* getRule(TokType type);
@@ -245,6 +248,26 @@ void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *intern
         statement(parser, compiler, chunk, interned);
     }
     patchJump(chunk, elseJump);
+}
+
+void and(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
+    uint32_t endJump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+    
+    emitInstruction(parser, chunk, OP_POP);
+    parsePrecedence(parser, compiler, chunk, interned, PREC_AND);
+
+    patchJump(chunk, endJump);
+}
+
+void or(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
+    uint32_t elseJump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+    uint32_t endJump = emitJump(parser, chunk, OP_JUMP);
+
+    patchJump(chunk, elseJump);
+    emitInstruction(parser, chunk, OP_POP);
+
+    parsePrecedence(parser, compiler, chunk, interned, PREC_OR);
+    patchJump(chunk, endJump);
 }
 
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned) {
@@ -614,7 +637,7 @@ ParseRule rules[] = {
     [TOKEN_STRING]        = {string,   NULL,   PREC_NONE,       TOKEN_ALL},
 
     // KeySymbols. They act like keywords, but use symbols instead.
-    [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
+    [TOKEN_AND]           = {NULL,     and,    PREC_AND,        TOKEN_ALL},
     [TOKEN_ARRAY]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_ASSERT]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_STRUCT]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
@@ -626,7 +649,7 @@ ParseRule rules[] = {
     [TOKEN_MAP]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_MODULE]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_NIL]           = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
-    [TOKEN_OR]            = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
+    [TOKEN_OR]            = {NULL,     or,     PREC_OR,         TOKEN_ALL},
     [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
     [TOKEN_STRUCT]        = {NULL,     NULL,   PREC_NONE,       TOKEN_ALL},
