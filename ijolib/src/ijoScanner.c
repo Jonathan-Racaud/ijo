@@ -1,6 +1,6 @@
 #include "ijoScanner.h"
-#include "ijoMemory.h"
 #include "ijoLog.h"
+#include "ijoMemory.h"
 
 // Private functions
 Token makeToken(Scanner *scanner, TokType);
@@ -76,7 +76,7 @@ Token ScannerScan(Scanner *scanner)
   case '.':
     return makeToken(scanner, TOKEN_DOT);
   case '-':
-    return makeToken(scanner, TOKEN_MINUS);
+    return matchChar(scanner, '>') ? makeToken(scanner, TOKEN_RETURN) : makeToken(scanner, TOKEN_MINUS);
   case '+':
     return makeToken(scanner, TOKEN_PLUS);
   case '/':
