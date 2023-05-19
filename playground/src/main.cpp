@@ -21,6 +21,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_internal.h"
 #include <stdio.h>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -104,7 +105,7 @@ void ImGuiInit(GLFWwindow *window)
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable; // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable;
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
@@ -119,63 +120,7 @@ bool SourceCodeEditor(TextEditor &editor)
 {
   auto cpos = editor.GetCursorPosition();
 
-  ImGui::Begin("ijo - Source Code", nullptr, ImGuiWindowFlags_MenuBar);
-  if (ImGui::BeginMenuBar())
-  {
-    if (ImGui::BeginMenu("File"))
-    {
-      if (ImGui::MenuItem("Save", "Ctrl-S", nullptr))
-      {
-        auto textToSave = editor.GetText();
-        /// save text....
-      }
-      if (ImGui::MenuItem("Quit", "Alt-F4"))
-        return true;
-      ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Edit"))
-    {
-      bool ro = editor.IsReadOnly();
-      if (ImGui::MenuItem("Read-only mode", nullptr, &ro))
-        editor.SetReadOnly(ro);
-      ImGui::Separator();
-
-      if (ImGui::MenuItem("Undo", "ALT-Backspace", nullptr, !ro && editor.CanUndo()))
-        editor.Undo();
-      if (ImGui::MenuItem("Redo", "Ctrl-Y", nullptr, !ro && editor.CanRedo()))
-        editor.Redo();
-
-      ImGui::Separator();
-
-      if (ImGui::MenuItem("Copy", "Ctrl-C", nullptr, editor.HasSelection()))
-        editor.Copy();
-      if (ImGui::MenuItem("Cut", "Ctrl-X", nullptr, !ro && editor.HasSelection()))
-        editor.Cut();
-      if (ImGui::MenuItem("Delete", "Del", nullptr, !ro && editor.HasSelection()))
-        editor.Delete();
-      if (ImGui::MenuItem("Paste", "Ctrl-V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
-        editor.Paste();
-
-      ImGui::Separator();
-
-      if (ImGui::MenuItem("Select all", nullptr, nullptr))
-        editor.SetSelection(TextEditor::Coordinates(), TextEditor::Coordinates(editor.GetTotalLines(), 0));
-
-      ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu("View"))
-    {
-      if (ImGui::MenuItem("Dark palette"))
-        editor.SetPalette(TextEditor::GetDarkPalette());
-      if (ImGui::MenuItem("Light palette"))
-        editor.SetPalette(TextEditor::GetLightPalette());
-      if (ImGui::MenuItem("Retro blue palette"))
-        editor.SetPalette(TextEditor::GetRetroBluePalette());
-      ImGui::EndMenu();
-    }
-    ImGui::EndMenuBar();
-  }
+  ImGui::Begin("Source Code");
 
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
               editor.IsOverwrite() ? "Ovr" : "Ins",
@@ -233,9 +178,124 @@ int main()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::Begin("Dock", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+
+    // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+    // because it would be confusing to have two docking targets within each others.
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar;
+
+    // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+      window_flags |= ImGuiWindowFlags_NoBackground;
+
+    // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+    // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+    // all active windows docked into it will lose their parent and become undocked.
+    // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+    // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("DockSpace", nullptr, window_flags);
+
+    if (ImGui::BeginMenuBar())
+    {
+      if (ImGui::BeginMenu("File"))
+      {
+        if (ImGui::MenuItem("Save", "Ctrl-S", nullptr))
+        {
+          auto textToSave = editor.GetText();
+          /// save text....
+        }
+        if (ImGui::MenuItem("Quit", "Alt-F4"))
+          return true;
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("Edit"))
+      {
+        bool ro = editor.IsReadOnly();
+        if (ImGui::MenuItem("Read-only mode", nullptr, &ro))
+          editor.SetReadOnly(ro);
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Undo", "ALT-Backspace", nullptr, !ro && editor.CanUndo()))
+          editor.Undo();
+        if (ImGui::MenuItem("Redo", "Ctrl-Y", nullptr, !ro && editor.CanRedo()))
+          editor.Redo();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Copy", "Ctrl-C", nullptr, editor.HasSelection()))
+          editor.Copy();
+        if (ImGui::MenuItem("Cut", "Ctrl-X", nullptr, !ro && editor.HasSelection()))
+          editor.Cut();
+        if (ImGui::MenuItem("Delete", "Del", nullptr, !ro && editor.HasSelection()))
+          editor.Delete();
+        if (ImGui::MenuItem("Paste", "Ctrl-V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
+          editor.Paste();
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Select all", nullptr, nullptr))
+          editor.SetSelection(TextEditor::Coordinates(), TextEditor::Coordinates(editor.GetTotalLines(), 0));
+
+        ImGui::EndMenu();
+      }
+
+      if (ImGui::BeginMenu("View"))
+      {
+        if (ImGui::MenuItem("Dark palette"))
+          editor.SetPalette(TextEditor::GetDarkPalette());
+        if (ImGui::MenuItem("Light palette"))
+          editor.SetPalette(TextEditor::GetLightPalette());
+        if (ImGui::MenuItem("Retro blue palette"))
+          editor.SetPalette(TextEditor::GetRetroBluePalette());
+        ImGui::EndMenu();
+      }
+      ImGui::EndMenuBar();
+    }
+
+    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
+
+    // DockSpace
+    ImGuiIO &io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+    {
+      ImGuiID dockspace_id = ImGui::GetID("DockSpace");
+      ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+      static auto first_time = true;
+      if (first_time)
+      {
+        first_time = false;
+
+        ImGui::DockBuilderRemoveNode(dockspace_id); // clear any previous layout
+        ImGui::DockBuilderAddNode(dockspace_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
+
+        // split the dockspace into 2 nodes -- DockBuilderSplitNode takes in the following args in the following order
+        //   window ID to split, direction, fraction (between 0 and 1), the final two setting let's us choose which id we want (which ever one we DON'T set as NULL, will be returned by the function)
+        //                                                              out_id_at_dir is the id of the node in the direction we specified earlier, out_id_at_opposite_dir is in the opposite direction
+        auto dock_id_left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.5f, nullptr, &dockspace_id);
+        auto dock_id_center = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.3f, nullptr, &dockspace_id);
+
+        // we now dock our windows into the docking node we made above
+        ImGui::DockBuilderDockWindow("Source Code", dock_id_left);
+        ImGui::DockBuilderDockWindow("ByteCode", dock_id_center);
+        ImGui::DockBuilderDockWindow("Result", dockspace_id);
+        ImGui::DockBuilderFinish(dockspace_id);
+      }
+    }
+
     ImGui::End();
 
     // Returns true when the quit menu item is clicked
@@ -255,6 +315,7 @@ int main()
     ImGui::Begin("Build & Run", nullptr, ImGuiWindowFlags_NoCollapse);
     if (ImGui::Button("Generate ByteCode"))
     {
+      SourceCodeMultiTextBoxText = editor.GetText();
       BuildButton(&vm);
     }
 
@@ -264,7 +325,6 @@ int main()
     }
     ImGui::End();
 
-    // Rendering
     ImGui::Render();
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);

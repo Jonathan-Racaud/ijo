@@ -14,7 +14,7 @@ void DisassembleChunk(Chunk *chunk, const char *name, FILE *stream)
 
 uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset, FILE *stream)
 {
-    ConsoleWrite("%04d ", offset);
+    OutputWrite(stream, "%04d ", offset);
 
     uint32_t instruction = chunk->code[offset];
 
