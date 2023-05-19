@@ -60,7 +60,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode, FILE *stream)
 
         LogDebug("%s = ", entry->key->chars);
         ValuePrint(stream, entry->value);
-        ConsoleWriteLine("");
+        OutputWriteLine(stream, "");
     }
 
     LogDebug(" == VM Constants and Interned Strings ==\n");
@@ -71,15 +71,15 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode, FILE *stream)
     for (;;)
     {
 #if DEBUG_TRACE_EXECUTION
-        ConsoleWrite("          ");
+        OutputWrite(stream, "          ");
         for (Value *slot = vm->stack; slot < vm->stackTop; slot++)
         {
-            ConsoleWrite("[ ");
+            OutputWrite(stream, "[ ");
             ValuePrint(stream, *slot);
-            ConsoleWrite(" ]");
+            OutputWrite(stream, " ]");
         }
-        ConsoleWriteLine("");
-        DisassembleInstruction(vm->chunk, (uint32_t)(vm->ip - vm->chunk->code));
+        OutputWriteLine(stream, "");
+        DisassembleInstruction(vm->chunk, (uint32_t)(vm->ip - vm->chunk->code), stream);
 #endif
 
         uint32_t instruction;

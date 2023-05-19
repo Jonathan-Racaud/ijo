@@ -18,6 +18,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <stdio.h>
 #include <string>
@@ -26,10 +27,9 @@
 #include "ijoChunk.h"
 #include "ijoCommon.h"
 #include "ijoCompiler.h"
+#include "ijoDebug.h"
 #include "ijoLog.h"
 #include "ijoVM.h"
-
-#include "disassembler.h"
 
 //----------------------------------------------------------------------------------
 // Controls Functions Declaration
@@ -37,7 +37,7 @@
 static InterpretResult BuildButton(ijoVM *vm);
 static InterpretResult RunButton(ijoVM *vm);
 
-std::string SourceCodeMultiTextBoxText = "";
+char SourceCodeMultiTextBoxText[1024] = "";
 std::string ByteCodeTextBoxText = "";
 std::string ResultTextBoxText = "";
 
@@ -111,15 +111,15 @@ int main()
     // raygui: controls drawing
     //----------------------------------------------------------------------------------
     GuiLabel({anchor.x + 0, anchor.y + 0, 120, 24}, sourceCodeLabelText);
-    if (GuiTextBoxMulti({24, 48, 312, 480}, (char *)SourceCodeMultiTextBoxText.c_str(), 128, SourceCodeMultiTextBoxEditMode))
+    if (GuiTextBoxMulti({24, 48, 312, 480}, SourceCodeMultiTextBoxText, 1024, SourceCodeMultiTextBoxEditMode))
     {
       SourceCodeMultiTextBoxEditMode = !SourceCodeMultiTextBoxEditMode;
     }
 
     GuiLabel({360, 24, 120, 24}, ByteCodeLabelText);
-    if (GuiTextBox({360, 48, 288, 480}, (char *)ByteCodeTextBoxText.c_str(), 128, false))
-    {
-    }
+    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 1);
+    GuiTextBox({360, 48, 288, 480}, (char *)ByteCodeTextBoxText.c_str(), 128, false);
+    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 0);
 
     if (GuiButton({672, 48, 192, 24}, BuildButtonText))
     {
@@ -134,7 +134,7 @@ int main()
       }
     }
 
-    if (GuiButton({672, 80, 192, 24}, RunButtonText))
+    if ((ByteCodeTextBoxText != "") && GuiButton({672, 80, 192, 24}, RunButtonText))
     {
       switch (RunButton(&vm))
       {
@@ -146,9 +146,9 @@ int main()
       }
     }
 
-    if (GuiTextBox({672, 112, 192, 416}, (char *)ResultTextBoxText.c_str(), 128, false))
-    {
-    }
+    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 1);
+    GuiTextBox({672, 112, 192, 416}, (char *)ResultTextBoxText.c_str(), 128, false);
+    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 0);
     //----------------------------------------------------------------------------------
 
     EndDrawing();
@@ -175,18 +175,32 @@ static InterpretResult BuildButton(ijoVM *vm)
   ChunkDelete(vm->chunk);
   ChunkNew(vm->chunk);
 
-  if (!Compile(SourceCodeMultiTextBoxText.c_str(), vm->chunk, &vm->interned, COMPILE_FILE))
+  // This ensure a conform program.
+  size_t len = strlen(SourceCodeMultiTextBoxText);
+  if (len < 1024 && len > 0)
+  {
+    SourceCodeMultiTextBoxText[len] = '\n';
+    SourceCodeMultiTextBoxText[len + 1] = '\0';
+  }
+
+  if (!Compile(SourceCodeMultiTextBoxText, vm->chunk, &vm->interned, COMPILE_REPL))
   {
     ChunkDelete(vm->chunk);
     return INTERPRET_COMPILE_ERROR;
   }
 
-  std::ostringstream ss;
-  DisassembleChunk(vm->chunk, ss);
+  FILE *tmpfile = std::tmpfile();
+  DisassembleChunk(vm->chunk, "Playground", tmpfile);
+
+  // rewind the file pointer so that we can read it
+  std::rewind(tmpfile);
+
+  // read the file contents into a string
+  std::ifstream filestream(tmpfile);
+  std::string byteCodeStr((std::istreambuf_iterator<char>(filestream)), std::istreambuf_iterator<char>());
+  ByteCodeTextBoxText = byteCodeStr;
 
   vm->ip = vm->chunk->code;
-
-  ByteCodeTextBoxText = ss.str();
 
   return INTERPRET_OK;
 }
