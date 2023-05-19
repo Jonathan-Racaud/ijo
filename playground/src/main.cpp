@@ -11,17 +11,24 @@
  *   usage in any other form by expresely written permission.
  *
  **********************************************************************************************/
-#include "raylib.h"
-
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
-
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdio.h>
 #include <string>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include <stdio.h>
+#define GL_SILENCE_DEPRECATION
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <GLES2/gl2.h>
+#endif
+#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+
+#include "TextEditor.h"
 
 #include "gc/ijoNaiveGC.h"
 #include "ijoChunk.h"
@@ -31,30 +38,155 @@
 #include "ijoLog.h"
 #include "ijoVM.h"
 
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+const char *glsl_version = "#version 100";
+#elif defined(__APPLE__)
+const char *glsl_version = "#version 150";
+#else
+const char *glsl_version = "#version 130";
+#endif
+
 //----------------------------------------------------------------------------------
 // Controls Functions Declaration
 //----------------------------------------------------------------------------------
 static InterpretResult BuildButton(ijoVM *vm);
 static InterpretResult RunButton(ijoVM *vm);
 
-char SourceCodeMultiTextBoxText[1024] = "";
+std::string SourceCodeMultiTextBoxText = "";
 std::string ByteCodeTextBoxText = "";
 std::string ResultTextBoxText = "";
 
-bool GuiTextBoxMulti(Rectangle bounds, char *text, int bufferSize, bool editMode)
+static void glfw_error_callback(int error, const char *description)
 {
-  bool pressed = false;
+  fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
 
-  GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 1);
-  GuiSetStyle(TEXTBOX, TEXT_MULTILINE, 1);
+GLFWwindow *GLFWInit()
+{
+  glfwSetErrorCallback(glfw_error_callback);
+  if (!glfwInit())
+    return nullptr;
 
-  // TODO: Implement methods to calculate cursor position properly
-  pressed = GuiTextBox(bounds, text, bufferSize, editMode);
+    // Decide GL+GLSL versions
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+  // GL ES 2.0 + GLSL 100
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+#elif defined(__APPLE__)
+  // GL 3.2 + GLSL 150
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
+#else
+  // GL 3.0 + GLSL 130
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+  // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+#endif
 
-  GuiSetStyle(TEXTBOX, TEXT_MULTILINE, 0);
-  GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 0);
+  // Create window with graphics context
+  GLFWwindow *window = glfwCreateWindow(1280, 720, "ijo - Playground", nullptr, nullptr);
+  if (window == nullptr)
+    return nullptr;
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1); // Enable vsync
 
-  return pressed;
+  return window;
+}
+
+void ImGuiInit(GLFWwindow *window)
+{
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_DockingEnable; // Enable Keyboard Controls
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+  // ImGui::StyleColorsLight();
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+bool SourceCodeEditor(TextEditor &editor)
+{
+  auto cpos = editor.GetCursorPosition();
+
+  ImGui::Begin("ijo - Source Code", nullptr, ImGuiWindowFlags_MenuBar);
+  if (ImGui::BeginMenuBar())
+  {
+    if (ImGui::BeginMenu("File"))
+    {
+      if (ImGui::MenuItem("Save", "Ctrl-S", nullptr))
+      {
+        auto textToSave = editor.GetText();
+        /// save text....
+      }
+      if (ImGui::MenuItem("Quit", "Alt-F4"))
+        return true;
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Edit"))
+    {
+      bool ro = editor.IsReadOnly();
+      if (ImGui::MenuItem("Read-only mode", nullptr, &ro))
+        editor.SetReadOnly(ro);
+      ImGui::Separator();
+
+      if (ImGui::MenuItem("Undo", "ALT-Backspace", nullptr, !ro && editor.CanUndo()))
+        editor.Undo();
+      if (ImGui::MenuItem("Redo", "Ctrl-Y", nullptr, !ro && editor.CanRedo()))
+        editor.Redo();
+
+      ImGui::Separator();
+
+      if (ImGui::MenuItem("Copy", "Ctrl-C", nullptr, editor.HasSelection()))
+        editor.Copy();
+      if (ImGui::MenuItem("Cut", "Ctrl-X", nullptr, !ro && editor.HasSelection()))
+        editor.Cut();
+      if (ImGui::MenuItem("Delete", "Del", nullptr, !ro && editor.HasSelection()))
+        editor.Delete();
+      if (ImGui::MenuItem("Paste", "Ctrl-V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
+        editor.Paste();
+
+      ImGui::Separator();
+
+      if (ImGui::MenuItem("Select all", nullptr, nullptr))
+        editor.SetSelection(TextEditor::Coordinates(), TextEditor::Coordinates(editor.GetTotalLines(), 0));
+
+      ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("View"))
+    {
+      if (ImGui::MenuItem("Dark palette"))
+        editor.SetPalette(TextEditor::GetDarkPalette());
+      if (ImGui::MenuItem("Light palette"))
+        editor.SetPalette(TextEditor::GetLightPalette());
+      if (ImGui::MenuItem("Retro blue palette"))
+        editor.SetPalette(TextEditor::GetRetroBluePalette());
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
+
+  ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
+              editor.IsOverwrite() ? "Ovr" : "Ins",
+              editor.CanUndo() ? "*" : " ",
+              editor.GetLanguageDefinition().mName.c_str(), "playground.ijo");
+
+  editor.Render("TextEditor");
+
+  ImGui::End();
+
+  return false;
 }
 
 //------------------------------------------------------------------------------------
@@ -62,103 +194,95 @@ bool GuiTextBoxMulti(Rectangle bounds, char *text, int bufferSize, bool editMode
 //------------------------------------------------------------------------------------
 int main()
 {
-  // VM Initialization
-  //---------------------------------------------------------------------------------------
-  ijoVM vm;
-  ijoVMInit(&vm);
+  auto window = GLFWInit();
+  if (!window)
+  {
+    return 1;
+  }
 
-  Chunk chunk;
-  vm.chunk = &chunk;
+  ImGuiInit(window);
 
-  gc = NaiveGCNodeCreate(NULL);
+  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-  // GUI Initialization
-  //---------------------------------------------------------------------------------------
-  int screenWidth = 900;
-  int screenHeight = 550;
-
-  InitWindow(screenWidth, screenHeight, "ijo - Playground");
-
-  // ijo - Playground: controls initialization
-  //----------------------------------------------------------------------------------
   const char *sourceCodeLabelText = "Source Code";
   const char *ByteCodeLabelText = "ByteCode";
   const char *BuildButtonText = "Generate ByteCode";
   const char *RunButtonText = "Run";
 
-  Vector2 anchor = {24, 24};
-
   bool SourceCodeMultiTextBoxEditMode = false;
-  //----------------------------------------------------------------------------------
 
-  SetTargetFPS(60);
-  //--------------------------------------------------------------------------------------
+  TextEditor editor;
+  auto lang = TextEditor::LanguageDefinition::ijo();
+  editor.SetLanguageDefinition(lang);
+  editor.SetText(SourceCodeMultiTextBoxText);
 
-  // Main game loop
-  while (!WindowShouldClose()) // Detect window close button or ESC key
+  ijoVM vm;
+  ijoVMInit(&vm);
+
+  Chunk chunk;
+  ChunkNew(&chunk);
+  vm.chunk = &chunk;
+
+  gc = NaiveGCNodeCreate(NULL);
+
+  while (!glfwWindowShouldClose(window))
   {
-    // Update
-    //----------------------------------------------------------------------------------
-    // TODO: Implement required update logic
-    //----------------------------------------------------------------------------------
+    glfwPollEvents();
 
-    // Draw
-    //----------------------------------------------------------------------------------
-    BeginDrawing();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
-    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::Begin("Dock", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
+    ImGui::End();
 
-    // raygui: controls drawing
-    //----------------------------------------------------------------------------------
-    GuiLabel({anchor.x + 0, anchor.y + 0, 120, 24}, sourceCodeLabelText);
-    if (GuiTextBoxMulti({24, 48, 312, 480}, SourceCodeMultiTextBoxText, 1024, SourceCodeMultiTextBoxEditMode))
+    // Returns true when the quit menu item is clicked
+    if (SourceCodeEditor(editor))
     {
-      SourceCodeMultiTextBoxEditMode = !SourceCodeMultiTextBoxEditMode;
+      break;
     }
 
-    GuiLabel({360, 24, 120, 24}, ByteCodeLabelText);
-    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 1);
-    GuiTextBox({360, 48, 288, 480}, (char *)ByteCodeTextBoxText.c_str(), 128, false);
-    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 0);
+    ImGui::Begin("ByteCode", nullptr, ImGuiWindowFlags_NoCollapse);
+    ImGui::Text(ByteCodeTextBoxText.c_str());
+    ImGui::End();
 
-    if (GuiButton({672, 48, 192, 24}, BuildButtonText))
+    ImGui::Begin("Result", nullptr, ImGuiWindowFlags_NoCollapse);
+    ImGui::Text(ResultTextBoxText.c_str());
+    ImGui::End();
+
+    ImGui::Begin("Build & Run", nullptr, ImGuiWindowFlags_NoCollapse);
+    if (ImGui::Button("Generate ByteCode"))
     {
-      switch (BuildButton(&vm))
-      {
-      case INTERPRET_OK:
-        ResultTextBoxText = "Build OK";
-        break;
-      case INTERPRET_COMPILE_ERROR:
-        ResultTextBoxText = "Build Error";
-        break;
-      }
+      BuildButton(&vm);
     }
 
-    if ((ByteCodeTextBoxText != "") && GuiButton({672, 80, 192, 24}, RunButtonText))
+    if (!ByteCodeTextBoxText.empty() && ImGui::Button("Run"))
     {
-      switch (RunButton(&vm))
-      {
-      case INTERPRET_OK:
-        break;
-      case INTERPRET_RUNTIME_ERROR:
-        ResultTextBoxText = "Error running code";
-        break;
-      }
+      RunButton(&vm);
     }
+    ImGui::End();
 
-    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 1);
-    GuiTextBox({672, 112, 192, 416}, (char *)ResultTextBoxText.c_str(), 128, false);
-    GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT_VERTICAL, 0);
-    //----------------------------------------------------------------------------------
+    // Rendering
+    ImGui::Render();
+    int display_w, display_h;
+    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    EndDrawing();
-    //----------------------------------------------------------------------------------
+    glfwSwapBuffers(window);
   }
 
-  // De-Initialization
-  //--------------------------------------------------------------------------------------
-  CloseWindow(); // Close window and OpenGL context
-  //--------------------------------------------------------------------------------------
+  // Cleanup
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+
+  glfwDestroyWindow(window);
+  glfwTerminate();
 
   ChunkDelete(vm.chunk);
   NaiveGCClear(gc);
@@ -176,14 +300,9 @@ static InterpretResult BuildButton(ijoVM *vm)
   ChunkNew(vm->chunk);
 
   // This ensure a conform program.
-  size_t len = strlen(SourceCodeMultiTextBoxText);
-  if (len < 1024 && len > 0)
-  {
-    SourceCodeMultiTextBoxText[len] = '\n';
-    SourceCodeMultiTextBoxText[len + 1] = '\0';
-  }
+  SourceCodeMultiTextBoxText.append("\n");
 
-  if (!Compile(SourceCodeMultiTextBoxText, vm->chunk, &vm->interned, COMPILE_REPL))
+  if (!Compile(SourceCodeMultiTextBoxText.c_str(), vm->chunk, &vm->interned, COMPILE_REPL))
   {
     ChunkDelete(vm->chunk);
     return INTERPRET_COMPILE_ERROR;
