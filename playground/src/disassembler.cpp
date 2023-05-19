@@ -91,8 +91,8 @@ uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t
 {
   uint32_t constant = chunk->code[offset + 1];
 
-  ss << std::left << std::setw(16) << std::string_view(name) << std::right << std::setw(4) << constant << "\n";
-  // ValuePrint(chunk->constants.values[constant]);
+  ss << std::left << std::setw(16) << std::string_view(name) << " " << std::right << std::setw(4) << constant << "\n";
+  ValuePrint(stdout, chunk->constants.values[constant]);
 
   return offset + 2;
 }

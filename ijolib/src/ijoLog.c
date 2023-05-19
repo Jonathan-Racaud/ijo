@@ -61,7 +61,7 @@ void OutputWrite(FILE *stream, const char *message, ...)
     va_list args;
 
     va_start(args, message);
-    vprintf(stream, message, args);
+    vfprintf(stream, message, args);
     va_end(args);
 }
 
@@ -70,7 +70,7 @@ void OutputWriteLine(FILE *stream, const char *message, ...)
     va_list args;
 
     va_start(args, message);
-    vprintf(stream, message, args);
+    vfprintf(stream, message, args);
     va_end(args);
     fprintf(stream, "\n");
 }

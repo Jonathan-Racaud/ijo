@@ -175,7 +175,7 @@ static InterpretResult BuildButton(ijoVM *vm)
   ChunkDelete(vm->chunk);
   ChunkNew(vm->chunk);
 
-  if (!Compile(SourceCodeMultiTextBoxText.c_str(), vm->chunk, &vm->interned, COMPILE_REPL))
+  if (!Compile(SourceCodeMultiTextBoxText.c_str(), vm->chunk, &vm->interned, COMPILE_FILE))
   {
     ChunkDelete(vm->chunk);
     return INTERPRET_COMPILE_ERROR;
@@ -191,12 +191,14 @@ static InterpretResult BuildButton(ijoVM *vm)
   return INTERPRET_OK;
 }
 
+#include "ijoLog.h"
+
 static InterpretResult RunButton(ijoVM *vm)
 {
   // create a temporary file
   FILE *tmpfile = std::tmpfile();
 
-  InterpretResult result = ijoVMRun(vm, COMPILE_REPL, tmpfile);
+  InterpretResult result = ijoVMRun(vm, COMPILE_FILE, tmpfile);
 
   // rewind the file pointer so that we can read it
   std::rewind(tmpfile);
@@ -210,5 +212,6 @@ static InterpretResult RunButton(ijoVM *vm)
   // close and delete the temporary file
   std::fclose(tmpfile);
 
-  return result;
+  // return result;
+  return INTERPRET_OK;
 }

@@ -278,7 +278,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode, FILE *stream)
 #endif
 
                 ValuePrint(stream, ijoVMStackPop(vm));
-                ConsoleWriteLine("");
+                OutputWriteLine(stream, "");
             }
             return INTERPRET_OK;
         }
