@@ -284,27 +284,33 @@ void returnExpr(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interne
     emitInstruction(parser, chunk, OP_RETURN);
 }
 
-void patchJump(Chunk *chunk, uint32_t offset)
+void patchJump(Chunk *chunk, uint32_t offset, uint32_t adjustment)
 {
-    chunk->code[offset + 1] = chunk->count - offset - 2;
+    chunk->code[offset + 1] = chunk->count - offset - adjustment;
 }
 
+// TODO: Better understand why the need of different adjustment for the jump instructions
+// in ifStatement, or, and. I do not really like those magic number, so they should be explained
+// when understood.
 void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned)
 {
     expression(parser, compiler, chunk, interned);
     consume(parser, TOKEN_RIGHT_PAREN, "Expected ')' after condition.");
 
     uint32_t thenJump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+    emitInstruction(parser, chunk, OP_POP);
     statement(parser, compiler, chunk, interned);
 
     uint32_t elseJump = emitJump(parser, chunk, OP_JUMP);
-    patchJump(chunk, thenJump);
+    patchJump(chunk, thenJump, 1);
+    emitInstruction(parser, chunk, OP_POP);
 
     if (match(parser, TOKEN_ELSE))
     {
         statement(parser, compiler, chunk, interned);
     }
-    patchJump(chunk, elseJump);
+
+    patchJump(chunk, elseJump, 2);
 }
 
 void and (Parser * parser, Compiler *compiler, Chunk *chunk, Table *interned)
@@ -314,7 +320,7 @@ void and (Parser * parser, Compiler *compiler, Chunk *chunk, Table *interned)
     emitInstruction(parser, chunk, OP_POP);
     parsePrecedence(parser, compiler, chunk, interned, PREC_AND);
 
-    patchJump(chunk, endJump);
+    patchJump(chunk, endJump, 1);
 }
 
 void or (Parser * parser, Compiler *compiler, Chunk *chunk, Table *interned)
@@ -322,11 +328,11 @@ void or (Parser * parser, Compiler *compiler, Chunk *chunk, Table *interned)
     uint32_t elseJump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
     uint32_t endJump = emitJump(parser, chunk, OP_JUMP);
 
-    patchJump(chunk, elseJump);
+    patchJump(chunk, elseJump, 1);
     emitInstruction(parser, chunk, OP_POP);
 
     parsePrecedence(parser, compiler, chunk, interned, PREC_OR);
-    patchJump(chunk, endJump);
+    patchJump(chunk, endJump, 0);
 }
 
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned)

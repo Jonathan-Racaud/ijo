@@ -56,6 +56,16 @@ extern "C"
    */
   uint32_t DisassembleConstantInstruction(const char *name, Chunk *chunk, uint32_t offset, FILE *stream);
 
+  /**
+   * @brief Disassemble an instruction that takes an argument at the specified @p offset for the associated @p chunk to the specified @p stream.
+   * @param name The name of the instruction.
+   * @param chunk The chunk to use for printing the instruction's information.
+   * @param offset The offset for the instruction to disassemble.
+   * @param stream The stream to write into.
+   * @return The offset to the next instruction.
+   */
+  uint32_t DisassembleArgInstruction(const char *name, Chunk *chunk, uint32_t offset, FILE *stream);
+
 #if defined(__cplusplus)
 }
 #endif

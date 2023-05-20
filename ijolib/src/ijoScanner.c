@@ -97,7 +97,7 @@ Token ScannerScan(Scanner *scanner)
   case '&':
     return matchChar(scanner, '&') ? makeToken(scanner, TOKEN_AND) : errorToken(scanner, "Unknown token");
   case '|':
-    return matchChar(scanner, '|') ? makeToken(scanner, TOKEN_AND) : errorToken(scanner, "Unknown token");
+    return matchChar(scanner, '|') ? makeToken(scanner, TOKEN_OR) : errorToken(scanner, "Unknown token");
   case '~':
     return matchChar(scanner, '(') ? makeToken(scanner, TOKEN_LOOP) : errorToken(scanner, "Unknown token");
   case '!':
@@ -320,7 +320,7 @@ Token constOrKeyword(Scanner *scanner)
   case '=':
     return makeComplexeToken(scanner, TOKEN_CONST, identifierStart, identifierLength);
   default:
-    break;
+    return errorToken(scanner, "Unexpected character");
   }
 }
 
@@ -443,7 +443,7 @@ TokType identifierType(Scanner *scanner)
         return checkKeyword(scanner, 2, 4, "alse", TOKEN_FALSE);
       }
     }
-    break;
+    return TOKEN_ERROR;
 
   default:
     return TOKEN_IDENTIFIER;

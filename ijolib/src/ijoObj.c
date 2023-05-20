@@ -57,6 +57,7 @@ ijoString *ijoStringNew(char *chars, int size, uint32_t hash)
 {
     ijoString *string = ALLOCATE_OBJ(ijoString, OBJ_STRING);
     ijoStringInit(string, chars, size, hash);
+    return string;
 }
 
 void ijoStringInit(ijoString *string, char *chars, int size, uint32_t hash)
