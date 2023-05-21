@@ -115,18 +115,48 @@ void ImGuiInit(GLFWwindow *window)
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
+void SaveSourceCode(TextEditor &editor)
+{
+  SourceCodeMultiTextBoxText = editor.GetText();
+}
+
+void ClearTextBoxes()
+{
+  SourceCodeMultiTextBoxText.clear();
+  ByteCodeTextBoxText.clear();
+  ResultTextBoxText.clear();
+}
+
+void Shortcuts(TextEditor &editor)
+{
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S))
+  {
+    SaveSourceCode(editor);
+  }
+
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L))
+  {
+    ClearTextBoxes();
+  }
+
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_R))
+  {
+    Run();
+  }
+}
+
 void SourceCodeEditor(TextEditor &editor)
 {
   auto cpos = editor.GetCursorPosition();
 
   ImGui::Begin("Source Code");
-
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
               editor.IsOverwrite() ? "Ovr" : "Ins",
               editor.CanUndo() ? "*" : " ",
               editor.GetLanguageDefinition().mName.c_str(), "playground.ijo");
-
   editor.Render("TextEditor");
+
+  Shortcuts(editor);
 
   ImGui::End();
 }
@@ -166,6 +196,8 @@ int main()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    Shortcuts(editor);
+
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
@@ -194,17 +226,17 @@ int main()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin("DockSpace", nullptr, window_flags);
 
-    if (ImGui::BeginMenuBar())
+    if (ImGui::BeginMainMenuBar())
     {
       if (ImGui::BeginMenu("File"))
       {
-        if (ImGui::MenuItem("Save", "Ctrl-S", nullptr))
+        if (ImGui::MenuItem("Save", "Ctrl+S", nullptr))
         {
-          SourceCodeMultiTextBoxText = editor.GetText();
+          SaveSourceCode(editor);
         }
-        if (ImGui::MenuItem("Clear", "Ctrl-L"))
+        if (ImGui::MenuItem("Clear", "Ctrl+L") || ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_L))
         {
-          SourceCodeMultiTextBoxText.clear();
+          ClearTextBoxes();
         }
         ImGui::EndMenu();
       }
@@ -217,32 +249,38 @@ int main()
 
         if (ImGui::MenuItem("Undo", "ALT-Backspace", nullptr, !ro && editor.CanUndo()))
           editor.Undo();
-        if (ImGui::MenuItem("Redo", "Ctrl-Y", nullptr, !ro && editor.CanRedo()))
+        if (ImGui::MenuItem("Redo", "Ctrl+Y", nullptr, !ro && editor.CanRedo()))
           editor.Redo();
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Copy", "Ctrl-C", nullptr, editor.HasSelection()))
+        if (ImGui::MenuItem("Copy", "Ctrl+C", nullptr, editor.HasSelection()))
           editor.Copy();
-        if (ImGui::MenuItem("Cut", "Ctrl-X", nullptr, !ro && editor.HasSelection()))
+        if (ImGui::MenuItem("Cut", "Ctrl+X", nullptr, !ro && editor.HasSelection()))
           editor.Cut();
         if (ImGui::MenuItem("Delete", "Del", nullptr, !ro && editor.HasSelection()))
           editor.Delete();
-        if (ImGui::MenuItem("Paste", "Ctrl-V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
+        if (ImGui::MenuItem("Paste", "Ctrl+V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
           editor.Paste();
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem("Select all", nullptr, nullptr))
+        if (ImGui::MenuItem("Select all", "Ctrl+A", nullptr))
           editor.SetSelection(TextEditor::Coordinates(), TextEditor::Coordinates(editor.GetTotalLines(), 0));
 
         ImGui::EndMenu();
       }
-      if (ImGui::MenuItem("Run"))
+
+      ImGui::Spacing();
+
+      if (ImGui::MenuItem("Run", "Ctrl+R"))
       {
         Run();
       }
-      ImGui::EndMenuBar();
+
+      Shortcuts(editor);
+
+      ImGui::EndMainMenuBar();
     }
 
     ImGui::PopStyleVar();
@@ -284,10 +322,12 @@ int main()
     SourceCodeEditor(editor);
 
     ImGui::Begin("ByteCode", nullptr, ImGuiWindowFlags_NoCollapse);
+    Shortcuts(editor);
     ImGui::Text(ByteCodeTextBoxText.c_str());
     ImGui::End();
 
     ImGui::Begin("Result", nullptr, ImGuiWindowFlags_NoCollapse);
+    Shortcuts(editor);
     ImGui::Text(ResultTextBoxText.c_str());
     ImGui::End();
 
