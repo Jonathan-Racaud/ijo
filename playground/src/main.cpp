@@ -50,8 +50,7 @@ const char *glsl_version = "#version 130";
 //----------------------------------------------------------------------------------
 // Controls Functions Declaration
 //----------------------------------------------------------------------------------
-static InterpretResult BuildButton(ijoVM *vm);
-static InterpretResult RunButton(ijoVM *vm);
+void Run();
 
 std::string SourceCodeMultiTextBoxText = "";
 std::string ByteCodeTextBoxText = "";
@@ -116,7 +115,7 @@ void ImGuiInit(GLFWwindow *window)
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-bool SourceCodeEditor(TextEditor &editor)
+void SourceCodeEditor(TextEditor &editor)
 {
   auto cpos = editor.GetCursorPosition();
 
@@ -130,8 +129,6 @@ bool SourceCodeEditor(TextEditor &editor)
   editor.Render("TextEditor");
 
   ImGui::End();
-
-  return false;
 }
 
 //------------------------------------------------------------------------------------
@@ -160,15 +157,6 @@ int main()
   auto lang = TextEditor::LanguageDefinition::ijo();
   editor.SetLanguageDefinition(lang);
   editor.SetText(SourceCodeMultiTextBoxText);
-
-  ijoVM vm;
-  ijoVMInit(&vm);
-
-  Chunk chunk;
-  ChunkNew(&chunk);
-  vm.chunk = &chunk;
-
-  gc = NaiveGCNodeCreate(NULL);
 
   while (!glfwWindowShouldClose(window))
   {
@@ -212,11 +200,12 @@ int main()
       {
         if (ImGui::MenuItem("Save", "Ctrl-S", nullptr))
         {
-          auto textToSave = editor.GetText();
-          /// save text....
+          SourceCodeMultiTextBoxText = editor.GetText();
         }
-        if (ImGui::MenuItem("Quit", "Alt-F4"))
-          return true;
+        if (ImGui::MenuItem("Clear", "Ctrl-L"))
+        {
+          SourceCodeMultiTextBoxText.clear();
+        }
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("Edit"))
@@ -249,16 +238,9 @@ int main()
 
         ImGui::EndMenu();
       }
-
-      if (ImGui::BeginMenu("View"))
+      if (ImGui::MenuItem("Run"))
       {
-        if (ImGui::MenuItem("Dark palette"))
-          editor.SetPalette(TextEditor::GetDarkPalette());
-        if (ImGui::MenuItem("Light palette"))
-          editor.SetPalette(TextEditor::GetLightPalette());
-        if (ImGui::MenuItem("Retro blue palette"))
-          editor.SetPalette(TextEditor::GetRetroBluePalette());
-        ImGui::EndMenu();
+        Run();
       }
       ImGui::EndMenuBar();
     }
@@ -299,10 +281,7 @@ int main()
     ImGui::End();
 
     // Returns true when the quit menu item is clicked
-    if (SourceCodeEditor(editor))
-    {
-      break;
-    }
+    SourceCodeEditor(editor);
 
     ImGui::Begin("ByteCode", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::Text(ByteCodeTextBoxText.c_str());
@@ -310,19 +289,6 @@ int main()
 
     ImGui::Begin("Result", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::Text(ResultTextBoxText.c_str());
-    ImGui::End();
-
-    ImGui::Begin("Build & Run", nullptr, ImGuiWindowFlags_NoCollapse);
-    if (ImGui::Button("Generate ByteCode"))
-    {
-      SourceCodeMultiTextBoxText = editor.GetText();
-      BuildButton(&vm);
-    }
-
-    if (!ByteCodeTextBoxText.empty() && ImGui::Button("Run"))
-    {
-      RunButton(&vm);
-    }
     ImGui::End();
 
     ImGui::Render();
@@ -344,32 +310,16 @@ int main()
   glfwDestroyWindow(window);
   glfwTerminate();
 
-  ChunkDelete(vm.chunk);
-  NaiveGCClear(gc);
-  ijoVMDeinit(&vm);
-
   return 0;
 }
 
 //------------------------------------------------------------------------------------
 // Controls Functions Definitions (local)
 //------------------------------------------------------------------------------------
-static InterpretResult BuildButton(ijoVM *vm)
+void PrintByteCode(Chunk *chunk)
 {
-  ChunkDelete(vm->chunk);
-  ChunkNew(vm->chunk);
-
-  // This ensure a conform program.
-  SourceCodeMultiTextBoxText.append("\n");
-
-  if (!Compile(SourceCodeMultiTextBoxText.c_str(), vm->chunk, &vm->interned, COMPILE_REPL))
-  {
-    ChunkDelete(vm->chunk);
-    return INTERPRET_COMPILE_ERROR;
-  }
-
   FILE *tmpfile = std::tmpfile();
-  DisassembleChunk(vm->chunk, "Playground", tmpfile);
+  DisassembleChunk(chunk, "Playground", tmpfile);
 
   // rewind the file pointer so that we can read it
   std::rewind(tmpfile);
@@ -379,19 +329,48 @@ static InterpretResult BuildButton(ijoVM *vm)
   std::string byteCodeStr((std::istreambuf_iterator<char>(filestream)), std::istreambuf_iterator<char>());
   ByteCodeTextBoxText = byteCodeStr;
 
-  vm->ip = vm->chunk->code;
-
-  return INTERPRET_OK;
+  std::fclose(tmpfile);
 }
 
-#include "ijoLog.h"
-
-static InterpretResult RunButton(ijoVM *vm)
+void ResetTextBoxes()
 {
-  // create a temporary file
+  ByteCodeTextBoxText = "";
+  ResultTextBoxText = "";
+}
+
+void Run()
+{
+  ResetTextBoxes();
+
+  ijoVM vm;
+  ijoVMInit(&vm);
+
+  gc = NaiveGCNodeCreate(NULL);
+
+  Chunk chunk;
+  ChunkNew(&chunk);
+
+  // This ensure a conform program.
+  SourceCodeMultiTextBoxText.append("\n");
+
+  if (!Compile(SourceCodeMultiTextBoxText.c_str(), &chunk, &vm.interned, COMPILE_FILE))
+  {
+    ChunkDelete(&chunk);
+    ByteCodeTextBoxText = "[ERROR]\n";
+    return;
+  }
+
+  PrintByteCode(&chunk);
+
+  vm.chunk = &chunk;
+  vm.ip = vm.chunk->code;
+
   FILE *tmpfile = std::tmpfile();
 
-  InterpretResult result = ijoVMRun(vm, COMPILE_FILE, tmpfile);
+  if (ijoVMRun(&vm, COMPILE_FILE, tmpfile) != INTERPRET_OK)
+  {
+    ResultTextBoxText = "[ERROR]\n";
+  }
 
   // rewind the file pointer so that we can read it
   std::rewind(tmpfile);
@@ -400,11 +379,13 @@ static InterpretResult RunButton(ijoVM *vm)
   std::ifstream filestream(tmpfile);
   std::string programOutput((std::istreambuf_iterator<char>(filestream)), std::istreambuf_iterator<char>());
 
-  ResultTextBoxText = programOutput;
+  ResultTextBoxText.append(programOutput);
 
   // close and delete the temporary file
   std::fclose(tmpfile);
 
-  // return result;
-  return INTERPRET_OK;
+  ChunkDelete(&chunk);
+
+  NaiveGCClear(gc);
+  ijoVMDeinit(&vm);
 }

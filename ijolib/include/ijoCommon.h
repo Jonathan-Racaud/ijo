@@ -18,7 +18,7 @@ extern "C"
 
 #define HAS_ENUM(val, test) ((val & test) != 0)
 
-#define LOG_LEVEL_ALL 0
+#define LOG_LEVEL_ALL 1
 #define LOG_LEVEL_INFO 0
 #define LOG_LEVEL_DEBUG 0
 #define LOG_LEVEL_WARNING 0

@@ -260,7 +260,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode, FILE *stream)
         }
         case OP_JUMP_IF_FALSE:
         {
-            Value value = ijoVMStackPop(vm);
+            Value value = ijoVMStackPeek(vm, 0);
             uint32_t offset = READ_BYTE();
 
             if (AS_BOOL(value) == false)

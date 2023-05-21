@@ -301,16 +301,15 @@ void ifStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *intern
     emitInstruction(parser, chunk, OP_POP);
     statement(parser, compiler, chunk, interned);
 
-    uint32_t elseJump = emitJump(parser, chunk, OP_JUMP);
     patchJump(chunk, thenJump, 1);
-    emitInstruction(parser, chunk, OP_POP);
 
     if (match(parser, TOKEN_ELSE))
     {
+        uint32_t elseJump = emitJump(parser, chunk, OP_JUMP);
+        emitInstruction(parser, chunk, OP_POP);
         statement(parser, compiler, chunk, interned);
+        patchJump(chunk, elseJump, 2);
     }
-
-    patchJump(chunk, elseJump, 2);
 }
 
 void and (Parser * parser, Compiler *compiler, Chunk *chunk, Table *interned)
@@ -592,13 +591,6 @@ uint32_t emitJump(Parser *parser, Chunk *chunk, uint32_t instruction)
 void endCompiler(Parser *parser, Chunk *chunk)
 {
     emitReturn(parser, chunk);
-
-#if DEBUG_PRINT_CODE
-    if (!parser->hadError)
-    {
-        DisassembleChunk(chunk, "Code");
-    }
-#endif
 }
 
 void number(Parser *parser, Compiler *compiler, Chunk *chunk, Table *strings)
