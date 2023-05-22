@@ -269,6 +269,12 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode, FILE *stream)
             }
             break;
         }
+        case OP_JUMP_BACK:
+        {
+            uint32_t offset = READ_BYTE();
+            vm->ip -= offset;
+            break;
+        }
         case OP_RETURN:
         {
             if (mode == COMPILE_REPL && (lastOpCode != OP_PRINT))
@@ -284,6 +290,7 @@ InterpretResult ijoVMRun(ijoVM *vm, CompileMode mode, FILE *stream)
         }
 
         default:
+            lastOpCode = instruction; // For debug purposes.
             return INTERPRET_RUNTIME_ERROR;
         }
 

@@ -45,6 +45,7 @@ void emitInstructions(Parser *parser, Chunk *chunk, uint32_t instruction1, uint3
 void emitConstant(Parser *parser, Chunk *chunk, Value value);
 void emitReturn(Parser *parser, Chunk *chunk);
 uint32_t emitJump(Parser *parser, Chunk *chunk, uint32_t instruction);
+void emitLoopStart(Parser *parser, Chunk *chunk, uint32_t instruction);
 void endCompiler(Parser *parser, Chunk *chunk);
 void synchronize(Parser *parser);
 uint32_t makeConstant(Chunk *chunk, Value value);
@@ -240,7 +241,10 @@ void varDeclaration(Parser *parser, Compiler *compiler, Chunk *chunk, Table *int
         errorAtCurrent(parser, "Variable declaration must have a value.");
     }
 
-    consume(parser, TOKEN_EOL, "Only one expression per line");
+    if (!parser->parsingLoop)
+    {
+        consume(parser, TOKEN_EOL, "Only one expression per line");
+    }
 
     defineVariable(compiler);
 }
@@ -275,7 +279,10 @@ void declaration(Parser *parser, Compiler *compiler, Chunk *chunk, Table *intern
 void expressionStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned)
 {
     expression(parser, compiler, chunk, interned);
-    consume(parser, TOKEN_EOL, "Only one expression per line accepted.");
+    if (!parser->parsingLoop)
+    {
+        consume(parser, TOKEN_EOL, "Only one expression per line accepted.");
+    }
     emitInstruction(parser, chunk, OP_POP);
 }
 
@@ -334,6 +341,199 @@ void or (Parser * parser, Compiler *compiler, Chunk *chunk, Table *interned)
     patchJump(chunk, endJump, 0);
 }
 
+void cleanTempLoopChunks(Chunk *first, Chunk *second, Chunk *third, Chunk *body)
+{
+    ChunkDelete(first);
+    ChunkDelete(second);
+    ChunkDelete(third);
+    ChunkDelete(body);
+}
+
+void chunkAppendInto(Chunk *dest, Chunk *src)
+{
+    uint32_t destConstNum = dest->constants.count;
+
+    for (uint32_t i = 0; i < src->count; i++)
+    {
+
+        ChunkWriteCode(dest, src->code[i], src->lines[i]);
+        if (src->code[i] == OP_CONSTANT)
+        {
+            i++; // We now want to write the OP_CONSTANT ARG
+            ChunkWriteCode(dest, src->code[i] + ((destConstNum > 0) ? (destConstNum) : (0)), src->lines[i]);
+        }
+        else if (src->code[i] == OP_GET_LOCAL)
+        {
+            i++;
+            // We now want to write the arg, but it needs this case because GET_LOCAL can have 0 as arg
+            // which could be seen as OP_CONSTANT
+            ChunkWriteCode(dest, src->code[i], src->lines[i]);
+        }
+        else if (src->code[i] == OP_SET_LOCAL)
+        {
+            i++;
+            // We now want to write the arg, but it needs this case because SET_LOCAL can have 0 as arg
+            // which could be seen as OP_CONSTANT
+            ChunkWriteCode(dest, src->code[i], src->lines[i]);
+        }
+    }
+
+    for (uint32_t i = 0; i < src->constants.count; i++)
+    {
+        ChunkAddConstant(dest, src->constants.values[i]);
+    }
+}
+
+/**
+ * A loop statement can have these forms:
+ *
+ * ~(initializer; condition; increment) {}
+ * ~(condition;increment) {}
+ * ~(condition) {}
+ * ~() {} --> This is an infinite loop
+ */
+void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned)
+{
+    if (match(parser, TOKEN_SEMICOLON))
+    {
+        errorAtCurrent(parser, "Loop must be specified as one of:\n  ~(initializer; condition; increment) {...}\n  ~(condition;increment){...}\n  ~(condition){...}\n  ~(){...}");
+        return;
+    }
+
+    beginScope(compiler);
+    parser->parsingLoop = true;
+    int parsedStatement = 0;
+
+    Chunk firstStatement;
+    ChunkNew(&firstStatement);
+
+    Chunk secondStatement;
+    ChunkNew(&secondStatement);
+
+    Chunk thirdStatement;
+    ChunkNew(&thirdStatement);
+
+    Chunk bodyStatement;
+    ChunkNew(&bodyStatement);
+
+    if (match(parser, TOKEN_VAR))
+    {
+        varDeclaration(parser, compiler, &firstStatement, interned);
+        parsedStatement++;
+    }
+    else
+    {
+        expression(parser, compiler, &firstStatement, interned);
+        parsedStatement++;
+    }
+
+    if (match(parser, TOKEN_SEMICOLON))
+    {
+        if (match(parser, TOKEN_VAR))
+        {
+            errorAtCurrent(parser, "Tried to declare a variable when a boolean condition is expected.");
+            cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
+            endScope(parser, compiler, chunk);
+            parser->parsingLoop = false;
+            return;
+        }
+
+        expression(parser, compiler, &secondStatement, interned);
+        parsedStatement++;
+    }
+
+    if (match(parser, TOKEN_SEMICOLON))
+    {
+        if (match(parser, TOKEN_VAR))
+        {
+            errorAtCurrent(parser, "Tried to declare a variable when a boolean condition is expected.");
+            cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
+            endScope(parser, compiler, chunk);
+            parser->parsingLoop = false;
+            return;
+        }
+
+        expressionStatement(parser, compiler, &thirdStatement, interned);
+        parsedStatement++;
+    }
+
+    consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after loop clauses.");
+
+    if (!check(parser, TOKEN_LEFT_BRACE))
+    {
+        errorAtCurrent(parser, "Loop body must be between '{}'");
+        cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
+        endScope(parser, compiler, chunk);
+        parser->parsingLoop = false;
+        return;
+    }
+
+    statement(parser, compiler, &bodyStatement, interned);
+
+    uint32_t loopStart = chunk->count;
+
+    switch (parsedStatement)
+    {
+    case 1: // ~(condition) {}
+    {
+        loopStart = chunk->count;
+        chunkAppendInto(chunk, &firstStatement);
+        uint32_t jump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+        emitInstruction(parser, chunk, OP_POP);
+
+        chunkAppendInto(chunk, &bodyStatement);
+        patchJump(chunk, jump, 0);
+        break;
+    }
+    case 2: // ~(condition; increment) {}
+    {
+        loopStart = chunk->count;
+        chunkAppendInto(chunk, &firstStatement);
+        uint32_t jump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+        emitInstruction(parser, chunk, OP_POP);
+
+        chunkAppendInto(chunk, &bodyStatement);
+        chunkAppendInto(chunk, &secondStatement);
+
+        patchJump(chunk, jump, 0);
+        break;
+    }
+    case 3: // ~(init; condition; increment) {}
+    {
+        chunkAppendInto(chunk, &firstStatement);
+
+        loopStart = chunk->count;
+        chunkAppendInto(chunk, &secondStatement);
+        uint32_t jump = emitJump(parser, chunk, OP_JUMP_IF_FALSE);
+        emitInstruction(parser, chunk, OP_POP);
+
+        chunkAppendInto(chunk, &bodyStatement);
+        chunkAppendInto(chunk, &thirdStatement);
+
+        patchJump(chunk, jump, 0);
+        break;
+    }
+    case 0: // Infinite loop
+    {
+        chunkAppendInto(chunk, &bodyStatement);
+        break;
+    }
+    default:
+        errorAtCurrent(parser, "Invalid loop statement.");
+        cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
+        endScope(parser, compiler, chunk);
+        parser->parsingLoop = false;
+        return;
+    }
+
+    loopStart -= (parsedStatement >= 2) ? (2) : (0);
+    emitLoopStart(parser, chunk, loopStart);
+    endScope(parser, compiler, chunk);
+
+    cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
+    parser->parsingLoop = false;
+}
+
 void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned)
 {
     if (match(parser, TOKEN_EOL))
@@ -347,6 +547,11 @@ void statement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *interned
     else if (match(parser, TOKEN_IF))
     {
         ifStatement(parser, compiler, chunk, interned);
+        return;
+    }
+    else if (match(parser, TOKEN_LOOP))
+    {
+        loopStatement(parser, compiler, chunk, interned);
         return;
     }
     else if (match(parser, TOKEN_LEFT_BRACE))
@@ -588,6 +793,12 @@ uint32_t emitJump(Parser *parser, Chunk *chunk, uint32_t instruction)
     return current;
 }
 
+void emitLoopStart(Parser *parser, Chunk *chunk, uint32_t position)
+{
+    uint32_t offset = chunk->count - position;
+    emitInstructions(parser, chunk, OP_JUMP_BACK, offset);
+}
+
 void endCompiler(Parser *parser, Chunk *chunk)
 {
     emitReturn(parser, chunk);
@@ -757,6 +968,7 @@ void ParserInit(Parser *parser, Scanner *scanner)
 {
     parser->panicMode = false;
     parser->hadError = false;
+    parser->parsingLoop = false;
     parser->scanner = scanner;
 }
 

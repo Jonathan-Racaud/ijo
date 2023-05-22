@@ -50,6 +50,7 @@ const char *glsl_version = "#version 130";
 //----------------------------------------------------------------------------------
 // Controls Functions Declaration
 //----------------------------------------------------------------------------------
+ijoVM *Build();
 void Run();
 
 std::string SourceCodeMultiTextBoxText = "";
@@ -142,6 +143,17 @@ void Shortcuts(TextEditor &editor)
   if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_R))
   {
     Run();
+  }
+
+  if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_B))
+  {
+    ijoVM *vm = Build();
+    if (vm != NULL)
+    {
+      ChunkDelete(vm->chunk);
+      ijoVMDeinit(vm);
+      free(vm);
+    }
   }
 }
 
@@ -378,36 +390,47 @@ void ResetTextBoxes()
   ResultTextBoxText = "";
 }
 
-void Run()
+ijoVM *Build()
 {
   ResetTextBoxes();
 
-  ijoVM vm;
-  ijoVMInit(&vm);
+  ijoVM *vm = (ijoVM *)malloc(sizeof(ijoVM));
+  ijoVMInit(vm);
 
   gc = NaiveGCNodeCreate(NULL);
 
-  Chunk chunk;
-  ChunkNew(&chunk);
+  Chunk *chunk = (Chunk *)malloc(sizeof(Chunk));
+  ChunkNew(chunk);
 
   // This ensure a conform program.
   SourceCodeMultiTextBoxText.append("\n");
 
-  if (!Compile(SourceCodeMultiTextBoxText.c_str(), &chunk, &vm.interned, COMPILE_FILE))
+  if (!Compile(SourceCodeMultiTextBoxText.c_str(), chunk, &vm->interned, COMPILE_FILE))
   {
-    ChunkDelete(&chunk);
+    ChunkDelete(chunk);
     ByteCodeTextBoxText = "[ERROR]\n";
+    return NULL;
+  }
+
+  PrintByteCode(chunk);
+
+  vm->chunk = chunk;
+  vm->ip = vm->chunk->code;
+
+  return vm;
+}
+
+void Run()
+{
+  ijoVM *vm = Build();
+  if (!vm)
+  {
     return;
   }
 
-  PrintByteCode(&chunk);
-
-  vm.chunk = &chunk;
-  vm.ip = vm.chunk->code;
-
   FILE *tmpfile = std::tmpfile();
 
-  if (ijoVMRun(&vm, COMPILE_FILE, tmpfile) != INTERPRET_OK)
+  if (ijoVMRun(vm, COMPILE_FILE, tmpfile) != INTERPRET_OK)
   {
     ResultTextBoxText = "[ERROR]\n";
   }
@@ -424,8 +447,9 @@ void Run()
   // close and delete the temporary file
   std::fclose(tmpfile);
 
-  ChunkDelete(&chunk);
+  ChunkDelete(vm->chunk);
 
   NaiveGCClear(gc);
-  ijoVMDeinit(&vm);
+  ijoVMDeinit(vm);
+  free(vm);
 }

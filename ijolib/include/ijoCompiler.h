@@ -49,6 +49,9 @@ extern "C"
     /// @brief Tracks if we are in panic mode.
     bool panicMode;
 
+    /// @brief Tracks if we are in a loop statement.
+    bool parsingLoop;
+
     /// @brief The scanner associated with this Parser.
     Scanner *scanner;
 

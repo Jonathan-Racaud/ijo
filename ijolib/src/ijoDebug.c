@@ -70,6 +70,8 @@ uint32_t DisassembleInstruction(Chunk *chunk, uint32_t offset, FILE *stream)
         return DisassembleArgInstruction("OP_JUMP", chunk, offset, stream);
     case OP_JUMP_IF_FALSE:
         return DisassembleArgInstruction("OP_JUMP_IF_FALSE", chunk, offset, stream);
+    case OP_JUMP_BACK:
+        return DisassembleArgInstruction("OP_JUMP_BACK", chunk, offset, stream);
     default:
         return DisassembleUnknownInstruction(chunk, instruction, stream);
     }

@@ -26,7 +26,7 @@ extern "C"
 #define LOG_LEVEL_CRITICAL 1
 
 #define DEBUG_PRINT_CODE 0
-#define DEBUG_TRACE_EXECUTION 1
+#define DEBUG_TRACE_EXECUTION 0
 #define DEBUG_VM_CONSTANTS 0
 
 #if defined(__cplusplus)

@@ -1,0 +1,13 @@
+~($i = 0; i < 5; i = i + 1) {
+	%>> i
+}
+
+{
+	$cond = @true
+
+	~(cond) {
+		cond = @false
+	}
+
+	%>> cond
+}
