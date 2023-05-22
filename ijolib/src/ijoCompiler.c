@@ -526,7 +526,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
         return;
     }
 
-    loopStart -= (parsedStatement >= 2) ? (2) : (0);
+    loopStart -= 2;
     emitLoopStart(parser, chunk, loopStart);
     emitInstruction(parser, chunk, OP_POP);
     endScope(parser, compiler, chunk);
