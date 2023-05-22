@@ -528,6 +528,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
 
     loopStart -= (parsedStatement >= 2) ? (2) : (0);
     emitLoopStart(parser, chunk, loopStart);
+    emitInstruction(parser, chunk, OP_POP);
     endScope(parser, compiler, chunk);
 
     cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
