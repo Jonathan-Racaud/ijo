@@ -340,7 +340,7 @@ int main()
 
     ImGui::Begin("Result", nullptr, ImGuiWindowFlags_NoCollapse);
     Shortcuts(editor);
-    ImGui::Text(ResultTextBoxText.c_str());
+    ImGui::TextUnformatted(ResultTextBoxText.c_str());
     ImGui::End();
 
     ImGui::Render();
@@ -442,7 +442,7 @@ void Run()
   std::ifstream filestream(tmpfile);
   std::string programOutput((std::istreambuf_iterator<char>(filestream)), std::istreambuf_iterator<char>());
 
-  ResultTextBoxText.append(programOutput);
+  ResultTextBoxText = programOutput;
 
   // close and delete the temporary file
   std::fclose(tmpfile);

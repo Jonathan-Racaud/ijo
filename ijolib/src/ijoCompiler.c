@@ -459,7 +459,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
 
     consume(parser, TOKEN_RIGHT_PAREN, "Expect ')' after loop clauses.");
 
-    if (!check(parser, TOKEN_LEFT_BRACE))
+    if (!match(parser, TOKEN_LEFT_BRACE))
     {
         errorAtCurrent(parser, "Loop body must be between '{}'");
         cleanTempLoopChunks(&firstStatement, &secondStatement, &thirdStatement, &bodyStatement);
@@ -468,7 +468,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
         return;
     }
 
-    statement(parser, compiler, &bodyStatement, interned);
+    block(parser, compiler, &bodyStatement, interned);
 
     uint32_t loopStart = chunk->count;
 
@@ -482,6 +482,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
         emitInstruction(parser, chunk, OP_POP);
 
         chunkAppendInto(chunk, &bodyStatement);
+
         patchJump(chunk, jump, 0);
         break;
     }
@@ -494,6 +495,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
 
         chunkAppendInto(chunk, &bodyStatement);
         chunkAppendInto(chunk, &secondStatement);
+        emitInstruction(parser, chunk, OP_POP);
 
         patchJump(chunk, jump, 0);
         break;
@@ -516,6 +518,7 @@ void loopStatement(Parser *parser, Compiler *compiler, Chunk *chunk, Table *inte
     case 0: // Infinite loop
     {
         chunkAppendInto(chunk, &bodyStatement);
+        emitInstruction(parser, chunk, OP_POP);
         break;
     }
     default:
