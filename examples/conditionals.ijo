@@ -1,0 +1,17 @@
+{
+    $number = 12
+
+    ?(number > 0 && number < 20) {
+        %>> "Number between 0 and 20"
+    }
+
+    ?(number == 0 || number == 12) {
+        %>> "Number is 0 or 12"
+    }
+
+    ?(number == 13 || number == 14) {
+        %>> "[ERROR]: This should not be printed."
+    } ?() {
+        %>> "All is good"
+    }
+}

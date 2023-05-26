@@ -1,0 +1,6 @@
+target("ijolib")
+    set_kind("$(kind)")
+    set_basename("ijo")
+    set_languages("c17")
+    add_includedirs("include")
+    add_files("src/**.c")

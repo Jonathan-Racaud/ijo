@@ -1,4 +1,19 @@
-.vscode/
+# Xmake cache
+.xmake/
 build/
-dist/
-misc/
+
+# MacOS cache
+.DS_Store
+
+# Visual Studio cache
+.vscode
+
+# Sublime text specific files and folder
+.cache
+*.sublime-workspace
+*.sublime-project
+
+.idea
+
+# XMake generated files and folder
+vsxmake*
