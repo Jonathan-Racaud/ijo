@@ -1,0 +1,2 @@
+const TokenType = enum { Error, EOF, Comma, Dot, LeftBrace, LeftParen, Minus, Plus, RightBrace, RightParen, Semicolon, Slash, Star, Percent, Bang, BangEqual, Equal, EqualEqual, Greater, GreaterEqual, Less, LessEqual, Identifier, Number, String, And, Array, Assert, Const, Else, Enum, False, Func, If, Map, Module, Nil, Or, Print, PrintLn, Return, Struct, Super, This, True, Var, Loop, EOL, All = ~((1 << Error) | (1 << EOF)) };
+const Token = struct { type: TokenType, start: *u8, length: u32, identifierStart: *u8, identifierLength: u32, line: u32 };
