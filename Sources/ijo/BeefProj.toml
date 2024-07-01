@@ -1,0 +1,6 @@
+FileVersion = 1
+
+[Project]
+Name = "ijo"
+TargetType = "BeefLib"
+StartupObject = "ijo.Program"

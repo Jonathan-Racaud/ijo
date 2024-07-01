@@ -1,0 +1,54 @@
+// Class definition
+Person = #{
+    name = $""
+    age = $0
+}
+
+#Person {
+
+}
+
+// Enum definition
+Direction = #| North, South, West, East |
+#Direction | North, South, West, East |
+
+
+// Array
+Languages = #[ "French", "English", "Chinese" ]
+#Languages [ "French", "English", "Chinese" ]
+
+// Map/Dict
+Lenses = #<27 = "TTArtisan", 35 = "TTArtisan", 70: "Fuji">
+#Lenses<27 = "TTArtisan", 35 = "TTArtisan", 70 = "Fuji">
+
+// Function
+main = #() -> $0 {
+    // Do something
+}
+#main() {
+
+}
+
+// Lambda
+map = #(func) {
+    func()
+}
+map(#(x) {
+    x * x
+})
+
+number = {
+    x = $4
+    y = $2
+
+    x + y
+}
+// number is equal to the result of the block which is: 6
+
+name = $?(number == 6) {
+    "Six"
+}
+// name is equal to "Six"
+
+// This is only allowed because name is mutable
+name = "Six"
