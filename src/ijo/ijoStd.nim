@@ -17,8 +17,8 @@ proc println(params: seq[ijoValue]): ijoValue =
     result = Undefined()
 
 template globalRecord*: ijoRecord = newTable([
-    ("@>", BuiltInFunction("@>", -1, print)),
-    ("@>>", BuiltInFunction("@>>", -1, println)),
+    ("print", BuiltInFunction("print", -1, print)),
+    ("println", BuiltInFunction("println", -1, println)),
     ("+", BuiltInFunction("+", 2, ijoAdd)),
     ("-", BuiltInFunction("-", 2, ijoSub)),
     ("/", BuiltInFunction("/", 2, ijoDiv)),

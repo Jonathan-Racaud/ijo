@@ -1,4 +1,3 @@
-import std/parseutils
 import std/strformat
 import std/strutils
 
@@ -12,13 +11,18 @@ type
         line: int
 
 proc isAtEnd(self: ijoScanner): bool =
-    result = self.current == self.source.len
+    if self.current >= self.source.len: 
+        return true
 
-proc advance(self: ijoScanner): char {.discardable.} =
+    result = self.source[self.current] == '\0'
+
+proc advance(self: var ijoScanner): char {.discardable.} =
     self.current += 1
     result = self.source[self.current - 1]
 
 proc peek(self: ijoScanner): char =
+    if self.isAtEnd: return '\0'
+
     result = self.source[self.current]
 
 proc peekNext(self: ijoScanner): char =
@@ -26,200 +30,227 @@ proc peekNext(self: ijoScanner): char =
 
     result = self.source[self.current + 1]
 
-proc match(self: ijoScanner, expected: char): bool =
-    if self.isAtEnd or peek(self) != expected: return false
+proc match(self: var ijoScanner, expected: char): bool =
+    if self.isAtEnd or (self.peek() != expected): return false
 
     self.current += 1
     result = true
 
 proc make(self: ijoScanner, tokenType: ijoTokenType): ijoToken =
+    let str = self.source.substr(self.start, self.current - 1)
+
     result = ijoToken(
         tokenType: tokenType,
-        literal: self.source[self.start..self.current],
-        identifier: self.source[self.start..self.current],
+        literal: str,
+        identifier: str,
         line: self.line
     )
 
-proc makeComplex(self: ijoScanner, tokenType: ijoTokenType, start: int, length: int): ijoToken =
+proc makeComplex(self: ijoScanner, tokenType: ijoTokenType, startIdx: int, endIdx: int): ijoToken =
+    let literalStr = self.source.substr(self.start, self.current)
+    let identifierStr = self.source.substr(startIdx, endIdx)
+
     result = ijoToken(
         tokenType: tokenType,
-        literal: self.source[self.start..self.current],
-        identifier: self.source[start..length],
+        literal: literalStr,
+        identifier: identifierStr,
         line: self.line
     )
 
 proc error(self: ijoScanner, message: string): ijoToken =
     stderr.write(&"{message} at {self.line}")
+    let literalStr = self.source.substr(self.start, self.current)
 
     result = ijoToken(
         tokenType: Error,
-        literal: self.source[self.start..self.current],
+        literal: literalStr,
         identifier: message,
         line: self.line
     )
 
-proc str(self: ijoScanner): ijoToken =
-    var tokenStr: string
-
-    let parsedCount = parseUntil(self.source[self.current..^1], tokenStr, '"')
-    if parsedCount == 0:
-        return error(self, "Non terminated string")
+proc str(self: var ijoScanner): ijoToken =
+    while self.peek() != '"' and not self.isAtEnd:
+        if self.peek() == '\n':
+            self.line += 1
+        
+        self.advance()
     
-    self.line += tokenStr.count('\n')
-    self.current = parsedCount
+    if self.isAtEnd:
+        return self.error("Non terminated String")
 
-    result = make(self, String)
+    self.advance()
 
-proc interpolatedStr(self: ijoScanner): ijoToken =
-    var tokenStr: string
+    result = self.make(String)
 
-    let parsedCount = parseUntil(self.source[self.current..^1], tokenStr, '`')
-    if parsedCount == 0:
-        return error(self, "Non terminated string")
+proc interpolatedStr(self: var ijoScanner): ijoToken =
+    while self.peek() != '`' and not self.isAtEnd:
+        if self.peek() == '\n':
+            self.line += 1
+        
+        self.advance()
     
-    self.line += tokenStr.count('\n')
-    self.current = parsedCount
+    if self.isAtEnd:
+        return self.error("Non terminated InterpolatedString")
 
-    result = make(self, InterpolatedString)
+    self.advance()
 
-proc number(self: ijoScanner): ijoToken =
+    result = self.make(InterpolatedString)
+
+proc number(self: var ijoScanner): ijoToken =
     var numberType = Integer
 
-    while peek(self).isDigit:
-        advance(self)
+    while self.peek().isDigit:
+        self.advance()
     
-    if peek(self) == '.' and peekNext(self).isDigit:
+    if self.peek() == '.' and self.peekNext().isDigit:
         numberType = Double
-        advance(self)
+        self.advance()
 
-        while peek(self).isDigit:
-            advance(self)
+        while self.peek().isDigit:
+            self.advance()
 
-    result = make(self, numberType)
+    result = self.make(numberType)
 
 proc checkKeyword(self: ijoScanner, start: int, length: int, rest: string, tokenType: ijoTokenType): ijoTokenType =
-    if self.current - self.start == start + length and self.source[self.current+start..length] == rest:
+    let str = self.source.substr(self.current + start, self.current + length)
+    
+    if self.current - self.start == start + length and str == rest:
         return tokenType
 
     return Identifier
 
 proc identifierType(self: ijoScanner): ijoTokenType =
-    case self.source[self.start]
-        of 't': return checkKeyword(self, 2, 3, "rue", True)
-        of 'f': return checkKeyword(self, 2, 3, "rue", True)
+    case self.source[self.current]
+        of 't': return self.checkKeyword(2, 3, "rue", True)
+        of 'f': return self.checkKeyword(2, 3, "rue", True)
         else: return Identifier
 
-proc identifier(self: ijoScanner): ijoToken =
-    while peek(self).isAlphaNumeric:
-        advance(self)
+proc identifier(self: var ijoScanner): ijoToken =
+    while self.peek().isAlphaNumeric:
+        self.advance()
     
-    result = make(self, identifierType(self))
+    result = self.make(identifierType(self))
 
-proc constOrKeyword(self: ijoScanner): ijoToken =
+proc constOrKeyword(self: var ijoScanner): ijoToken =
     var c: char
 
-    while peek(self).isSpaceAscii:
+    while self.peek().isSpaceAscii:
         if self.isAtEnd:
-            return error(self, "Unexpected end of program")
+            return self.error("Unexpected end of program")
         
-        advance(self)
+        self.advance()
 
     var identifierStart = self.current;
-    var identifierLength = 0;
 
     # We parse the identifier
-    while peek(self).isAlphaNumeric:
-        if peek(self).isSpaceAscii or peek(self) == '\n': break
+    while self.peek().isAlphaNumeric:
+        if self.peek().isSpaceAscii or self.peek() == '\n': break
 
-        if self.isAtEnd: return error(self, "Expected identifier")
+        if self.isAtEnd: return self.error("Expected identifier")
 
-        c = advance(self)
-        identifierLength += 1
+        c = self.advance()
+    
+    let identifierEnd = self.current - 1# we do not want the '(' in the identifier6
 
     # We ignore whitespace that may be between the identifier and the 'keyword' sign.
-    while peek(self).isSpaceAscii:
-        if self.isAtEnd: return error(self, "Expected start of identifier definition")
+    while self.peek().isSpaceAscii:
+        if self.isAtEnd: return self.error("Expected start of identifier definition")
 
-        advance(self)
+        self.advance()
 
     # We consume the current char so we can select what to do.
-    c = advance(self)
+    c = self.advance()
 
     case c
-        of '{': return makeComplex(self, Struct, identifierStart, identifierLength)
-        of '[': return makeComplex(self, Array, identifierStart, identifierLength)
-        of '<': return makeComplex(self, Map, identifierStart, identifierLength)
-        of '|': return makeComplex(self, Enum, identifierStart, identifierLength)
-        of '%': return makeComplex(self, Module, identifierStart, identifierLength)
-        of '(': return makeComplex(self, Func, identifierStart, identifierLength)
-        of '@': return makeComplex(self, Assert, identifierStart, identifierLength)
-        of '=': return makeComplex(self, Const, identifierStart, identifierLength)
-        else: return error(self, "Unknown identifier type")
+        of '{': return self.makeComplex(Struct, identifierStart, identifierEnd)
+        of '[': return self.makeComplex(Array, identifierStart, identifierEnd)
+        of '<': return self.makeComplex(Map, identifierStart, identifierEnd)
+        of '|': return self.makeComplex(Enum, identifierStart, identifierEnd)
+        of '%': return self.makeComplex(Module, identifierStart, identifierEnd)
+        of '(': return self.makeComplex(Func, identifierStart, identifierEnd)
+        of '@': return self.makeComplex(Assert, identifierStart, identifierEnd)
+        of '=': return self.makeComplex(Const, identifierStart, identifierEnd)
+        else: return self.error("Unknown identifier type")
 
-proc init*(self: ijoScanner, source: string) =
+proc skipWhitespace(self: var ijoScanner) =
+    while true:
+        let c = self.peek()
+
+        case c
+            of ' ', '\r', '\t': self.advance()
+            of '/':
+                if self.peekNext() == '/':
+                    while self.peek() != '\n' and not self.isAtEnd:
+                        self.advance()
+                return
+            else: return
+
+proc init*(self: var ijoScanner, source: string) =
     self.source = source
     self.line = 1
 
-proc scan*(self: ijoScanner): ijoToken =
-    self.current = skipWhitespace(self.source)
+proc ijoScannerNew*(source: string): ijoScanner =
+    result = ijoScanner()
+    result.init(source)
+
+proc scan*(self: var ijoScanner): ijoToken =
+    self.skipWhitespace()
     self.start = self.current
 
     if self.isAtEnd:
-        return make(self, EOF)
+        return self.make(EOF)
 
-    var c: char
-
-    self.current = parseChar(self.source, c)
+    let c = self.advance()
 
     if c.isDigit:
-        return number(self)
+        return self.number()
 
     if c.isAlphaAscii or c == '@' or c == '_':
-        return identifier(self)
+        return self.identifier()
 
     case c
-        of '(': return make(self, LeftParen)
-        of ')': return make(self, RightParen)
-        of '[': return make(self, LeftBracket)
-        of ']': return make(self, RightBracket)
-        of '{': return make(self, LeftBrace)
-        of '}': return make(self, RightBrace)
-        of ';': return make(self, Semicolon)
-        of ',': return make(self, Comma)
-        of '.': return make(self, Dot)
-        of '+': return make(self, Plus)
-        of '/': return make(self, Slash)
-        of '*': return make(self, Star)
-        of '%': return make(self, Percent)
-        of '-': return make(self, if match(self, '>'): Return else: Minus)
+        of '(': return self.make(LeftParen)
+        of ')': return self.make(RightParen)
+        of '[': return self.make(LeftBracket)
+        of ']': return self.make(RightBracket)
+        of '{': return self.make(LeftBrace)
+        of '}': return self.make(RightBrace)
+        of ';': return self.make(Semicolon)
+        of ',': return self.make(Comma)
+        of '.': return self.make(Dot)
+        of '+': return self.make(Plus)
+        of '/': return self.make(Slash)
+        of '*': return self.make(Star)
+        of '%': return self.make(Percent)
+        of '-': return self.make(if self.match('>'): Return else: Minus)
 
         of '?':
-            if match(self, '('):
-                if match(self, ')'):
-                    return make(self, Else)
+            if self.match('('):
+                if self.match(')'):
+                    return self.make(Else)
 
-                return make(self, If)
-            if match(self, '{'):
-                return make(self, Switch)
-            return error(self, "Unknown token")
+                return self.make(If)
+            if self.match('{'):
+                return self.make(Switch)
+            return self.error("Unknown token")
 
-        of '&': return if match(self, '&'): make(self, And) else: error(self, "Unknown token")
-        of '|': return if match(self, '|'): make(self, Or) else: make(self, Pipe)
-        of '~': return if match(self, '('): make(self, Loop) else: error(self, "Unknown token")
-        of '!': return make(self, if match(self, '='): BangEqual else: Bang)
-        of '=': return make(self, if match(self, '='): EqualEqual else: Equal)
+        of '&': return if self.match('&'): self.make(And) else: self.error("Unknown token")
+        of '|': return if self.match('|'): self.make(Or) else: self.make(Pipe)
+        of '~': return if self.match('('): self.make(Loop) else: self.error("Unknown token")
+        of '!': return self.make(if self.match('='): BangEqual else: Bang)
+        of '=': return self.make(if self.match('='): EqualEqual else: Equal)
         of '<':
-            if match(self, '='): return make(self, LessEqual)
-            if match(self, '-'): return make(self, Break)
-            return make(self, Less)
-        of '>': return make(self, if match(self, '='): GreaterEqual else: Greater)
-        of '"': return str(self)
-        of '`': return interpolatedStr(self)
+            if self.match('='): return self.make(LessEqual)
+            if self.match('-'): return self.make(Break)
+            return self.make(Less)
+        of '>': return self.make(if self.match('='): GreaterEqual else: Greater)
+        of '"': return self.str()
+        of '`': return self.interpolatedStr()
 
-        of '#': return constOrKeyword(self)
-        of '$': return make(self, Var)
+        of '#': return self.constOrKeyword()
+        of '$': return self.make(Var)
         of '\n':
             self.line += 1
-            return make(self, EOL)
-        else: return error(self, "Unexpected character")
+            return self.make(EOL)
+        else: return self.error("Unexpected character")
 

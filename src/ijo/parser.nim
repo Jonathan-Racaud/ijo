@@ -17,7 +17,7 @@ type
         parsingLoop: bool
         precedence: Precedence
         scopeDepth: int
-        rules: array[parseRuleCount, ParseRule]
+        rules: seq[ParseRule]
 
     Precedence = enum
         None,
@@ -136,7 +136,9 @@ proc parsePrecedence(self: var ijoParser, expected: Precedence): ijoExpr =
     self.precedence = expected
     let prefix: ijoExpr = rule.prefix(self)
 
-    while int(self.precedence) <= int(self.getRuleFrom(self.current.tokenType).precedence):
+    let rulePrecedence = self.getRuleFrom(self.current.tokenType).precedence
+
+    while int(self.precedence) <= int(rulePrecedence):
         self.advance()
 
         let op = self.previous
@@ -192,7 +194,8 @@ proc parseFunctionCallExpression(self: var ijoParser, identifier: string): ijoEx
     var expressions: seq[ijoExpr]
 
     while not self.check(RightParen) and not self.check(EOF):
-        expressions.add(self.parseExpression())
+        let expression = self.parseExpression()
+        expressions.add(expression)
 
         if self.check(Comma):
             self.advance()
@@ -206,7 +209,7 @@ proc parseFunctionCallExpression(self: var ijoParser, identifier: string): ijoEx
     functionCallExpr(identifier, expressions)
 
 proc parseIdentifierExpression(self: var ijoParser): ijoExpr =
-    let identifier = self.previous.literal
+    let identifier = self.previous.identifier
     var canAssign = int(self.precedence) <= int(Assigment)
 
     case identifier
@@ -241,7 +244,8 @@ proc parseFloatExpression(self: var ijoParser): ijoExpr =
     result = floatExpr(parseFloat(self.previous.literal))
 
 proc parseIntegerExpression(self: var ijoParser): ijoExpr =
-    result = intExpr(parseInt(self.previous.literal))
+    let value = parseInt(self.previous.literal)
+    result = intExpr(value)
 
 proc parseGroupingExpression(self: var ijoParser): ijoExpr =
     var expressions: seq[ijoExpr]
@@ -472,57 +476,59 @@ proc newParseRule(prefix: ParseFunc, infix: ParseFunc, precedence: Precedence, a
     result = ParseRule(prefix: prefix, infix: infix, precedence: precedence, acceptedTokens: acceptedTokens)
 
 proc initRules(self: var ijoParser) =
-    self.rules[int(Comma)]       = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Dot)]         = newParseRule(parseExpression, nil, None, AllToken)
-    self.rules[int(LeftBrace)]   = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(LeftParen)]   = newParseRule(parseGroupingExpression, nil, None, AllToken)
-    self.rules[int(Minus)]       = newParseRule(parseUnaryExpression, parseBinaryExpression, Term, {Integer, Double})
-    self.rules[int(Plus)]        = newParseRule(nil, parseBinaryExpression, Term, {Integer, Double})
-    self.rules[int(RightBrace)]  = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(RightParen)]  = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Semicolon)]   = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Slash)]       = newParseRule(nil, parseBinaryExpression, Factor, {Integer, Double})
-    self.rules[int(Star)]        = newParseRule(nil, parseBinaryExpression, Factor, {Integer, Double})
-    self.rules[int(Percent)]     = newParseRule(nil, parseBinaryExpression, None, AllToken)
+    self.rules = newSeq[ParseRule](int(EOL) + 1)
+
+    self.rules[int(ijoTokenType.Comma)]       = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Dot)]         = newParseRule(parseExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.LeftBrace)]   = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.LeftParen)]   = newParseRule(parseGroupingExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Minus)]       = newParseRule(parseUnaryExpression, parseBinaryExpression, Precedence.Term, {Integer, Double})
+    self.rules[int(ijoTokenType.Plus)]        = newParseRule(nil, parseBinaryExpression, Precedence.Term, {Integer, Double})
+    self.rules[int(ijoTokenType.RightBrace)]  = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.RightParen)]  = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Semicolon)]   = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Slash)]       = newParseRule(nil, parseBinaryExpression, Precedence.Factor, {Integer, Double})
+    self.rules[int(ijoTokenType.Star)]        = newParseRule(nil, parseBinaryExpression, Precedence.Factor, {Integer, Double})
+    self.rules[int(ijoTokenType.Percent)]     = newParseRule(nil, parseBinaryExpression, Precedence.None, AllToken)
     
-    self.rules[int(Bang)]            = newParseRule(parseUnaryExpression, nil, None, AllToken)
-    self.rules[int(BangEqual)]       = newParseRule(nil, parseBinaryExpression, Equality, AllToken)
-    self.rules[int(Equal)]           = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(EqualEqual)]      = newParseRule(nil, parseBinaryExpression, Equality, AllToken)
-    self.rules[int(Greater)]         = newParseRule(nil, parseBinaryExpression, Comparison, AllToken)
-    self.rules[int(GreaterEqual)]    = newParseRule(nil, parseBinaryExpression, Comparison, AllToken)
-    self.rules[int(Less)]            = newParseRule(nil, parseBinaryExpression, Comparison, AllToken)
-    self.rules[int(LessEqual)]       = newParseRule(nil, parseBinaryExpression, Comparison, AllToken)
+    self.rules[int(ijoTokenType.Bang)]            = newParseRule(parseUnaryExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.BangEqual)]       = newParseRule(nil, parseBinaryExpression, Precedence.Equality, AllToken)
+    self.rules[int(ijoTokenType.Equal)]           = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.EqualEqual)]      = newParseRule(nil, parseBinaryExpression, Precedence.Equality, AllToken)
+    self.rules[int(ijoTokenType.Greater)]         = newParseRule(nil, parseBinaryExpression, Precedence.Comparison, AllToken)
+    self.rules[int(ijoTokenType.GreaterEqual)]    = newParseRule(nil, parseBinaryExpression, Precedence.Comparison, AllToken)
+    self.rules[int(ijoTokenType.Less)]            = newParseRule(nil, parseBinaryExpression, Precedence.Comparison, AllToken)
+    self.rules[int(ijoTokenType.LessEqual)]       = newParseRule(nil, parseBinaryExpression, Precedence.Comparison, AllToken)
 
-    self.rules[int(Identifier)]          = newParseRule(parseIdentifierExpression, nil, None, AllToken)
-    self.rules[int(Integer)]             = newParseRule(parseIntegerExpression, nil, None, AllToken)
-    self.rules[int(Double)]              = newParseRule(parseFloatExpression, nil, None, AllToken)
-    self.rules[int(String)]              = newParseRule(parseStringExpression, nil, None, AllToken)
-    self.rules[int(InterpolatedString)]  = newParseRule(parseInterpolatedStringExpression, nil, None, AllToken)
+    self.rules[int(ijoTokenType.Identifier)]          = newParseRule(parseIdentifierExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Integer)]             = newParseRule(parseIntegerExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Double)]              = newParseRule(parseFloatExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.String)]              = newParseRule(parseStringExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.InterpolatedString)]  = newParseRule(parseInterpolatedStringExpression, nil, Precedence.None, AllToken)
 
-    self.rules[int(And)]     = newParseRule(nil, parseAndExpression, And, AllToken)
-    self.rules[int(Array)]   = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Assert)]  = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Else)]    = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Enum)]    = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(False)]   = newParseRule(parseLiteralExpression, nil, None, AllToken)
-    self.rules[int(Func)]    = newParseRule(parseFunctionDefExpression, nil, None, AllToken)
-    self.rules[int(Lambda)]  = newParseRule(parseFunctionDefExpression, nil, None, AllToken)
-    self.rules[int(If)]      = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Map)]     = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Module)]  = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Or)]      = newParseRule(nil, parseOrExpression, Or, AllToken)
-    self.rules[int(Builtin)] = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Return)]  = newParseRule(parseReturnExpression, nil, None, AllToken)
-    self.rules[int(Struct)]  = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(This)]    = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(True)]    = newParseRule(parseLiteralExpression, nil, None, AllToken)
-    self.rules[int(Var)]     = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(Loop)]    = newParseRule(nil, nil, None, AllToken)
+    self.rules[int(ijoTokenType.And)]     = newParseRule(nil, parseAndExpression, Precedence.And, AllToken)
+    self.rules[int(ijoTokenType.Array)]   = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Assert)]  = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Else)]    = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Enum)]    = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.False)]   = newParseRule(parseLiteralExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Func)]    = newParseRule(parseFunctionDefExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Lambda)]  = newParseRule(parseFunctionDefExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.If)]      = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Map)]     = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Module)]  = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Or)]      = newParseRule(nil, parseOrExpression, Precedence.Or, AllToken)
+    self.rules[int(ijoTokenType.Builtin)] = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Return)]  = newParseRule(parseReturnExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Struct)]  = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.This)]    = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.True)]    = newParseRule(parseLiteralExpression, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Var)]     = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.Loop)]    = newParseRule(nil, nil, Precedence.None, AllToken)
 
-    self.rules[int(Error)]   = newParseRule(nil, nil, None, AllToken)
-    self.rules[int(EOL)]     = newParseRule(parseNoopExpression, parseNoopExpression, None, AllToken)
-    self.rules[int(EOF)]     = newParseRule(parseNoopExpression, parseNoopExpression, None, AllToken)
+    self.rules[int(ijoTokenType.Error)]   = newParseRule(nil, nil, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.EOL)]     = newParseRule(parseNoopExpression, parseNoopExpression, Precedence.None, AllToken)
+    self.rules[int(ijoTokenType.EOF)]     = newParseRule(parseNoopExpression, parseNoopExpression, Precedence.None, AllToken)
 
 proc parserNew*(scanner: ijoScanner): ijoParser =
     var p = ijoParser(scanner: scanner)
@@ -540,6 +546,8 @@ proc parse*(self: var ijoParser): seq[ijoExpr] =
             continue
         
         expressions.add(self.parseInternal())
+    
+    result = expressions
 
 proc getRuleFrom(self: ijoParser, tokenType: ijoTokenType): ParseRule =
     return self.rules[int(tokenType)]
