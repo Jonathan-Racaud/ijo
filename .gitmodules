@@ -1,6 +1,0 @@
-[submodule "playground/libs/ImGuiColorTextEdit"]
-	path = playground/libs/ImGuiColorTextEdit
-	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
-[submodule "playground/libs/imgui"]
-	path = playground/libs/imgui
-	url = https://github.com/ocornut/imgui.git
