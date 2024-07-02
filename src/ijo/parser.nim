@@ -6,8 +6,6 @@ import scanner
 import types
 import token
 
-const parseRuleCount = int(EOL) + 1
-
 type
     ijoParser = object
         scanner: ijoScanner
