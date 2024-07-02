@@ -4,17 +4,26 @@ import std/tables
 import types
 import value
 
-proc print(params: seq[ijoValue]): ijoValue =
-    for _, param in params:
-        stdout.write &"{param.toString}"
+proc joinValuesAsString(values: seq[ijoValue]): string =
+    var finalStr: string
+    for _, value in values:
+        finalStr &= &"{value.toString}"
+    
+    result = finalStr
 
-    result = Undefined()
+proc print(params: seq[ijoValue]): ijoValue =
+    let str = joinValuesAsString(params)
+    stdout.write(str)
+
+    result = String(str)
 
 proc println(params: seq[ijoValue]): ijoValue =
-    discard print(params)
-    echo "\n"
+    var str = joinValuesAsString(params)
+    str &= "\n"
+
+    stdout.write(str)
     
-    result = Undefined()
+    result = String(str)
 
 template globalRecord*: ijoRecord = newTable([
     ("print", BuiltInFunction("print", -1, print)),
