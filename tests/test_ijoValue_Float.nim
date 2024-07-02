@@ -46,7 +46,7 @@ suite "ijoFloat tests":
   test "ijoFloat % ijoFloat returns when both positive returns modulo of both":
     let a = Float(1)
     let b = Float(5)
-    let res = float(1 mod 5)
+    let res = 1.0 mod 5.0
     check (a % b).floatVal == res
 
   test "ijoFloat % ijoFloat returns when b negative returns ijoUndefined":
