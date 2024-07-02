@@ -7,6 +7,11 @@
 
 import unittest
 
-import ijo/submodule
-test "correct welcome":
-  check getWelcomeMessage() == "Hello, World!"
+import ijo/types
+import ijo/value
+
+suite "ijoBool tests":
+  test "Bool() returns ijoBool":
+    let value = Bool(false)
+    check value.kind == ijoBool
+    check value.boolVal == false
