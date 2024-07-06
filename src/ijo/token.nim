@@ -71,10 +71,11 @@ type
         EOL = 57
 
     ijoToken* = object
-        tokenType*: ijoTokenType
+        kind*: ijoTokenType
         literal*: string
         identifier*: string
         line*: int
+        col*: int
 
 const
     # For when a parsing rule can accept any kind of token.

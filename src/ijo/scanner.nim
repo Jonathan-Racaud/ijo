@@ -36,22 +36,22 @@ proc match(self: var ijoScanner, expected: char): bool =
     self.current += 1
     result = true
 
-proc make(self: ijoScanner, tokenType: ijoTokenType): ijoToken =
+proc make(self: ijoScanner, kind: ijoTokenType): ijoToken =
     let str = self.source.substr(self.start, self.current - 1)
 
     result = ijoToken(
-        tokenType: tokenType,
+        kind: kind,
         literal: str,
         identifier: str,
         line: self.line
     )
 
-proc makeComplex(self: ijoScanner, tokenType: ijoTokenType, startIdx: int, endIdx: int): ijoToken =
+proc makeComplex(self: ijoScanner, kind: ijoTokenType, startIdx: int, endIdx: int): ijoToken =
     let literalStr = self.source.substr(self.start, self.current)
     let identifierStr = self.source.substr(startIdx, endIdx)
 
     result = ijoToken(
-        tokenType: tokenType,
+        kind: kind,
         literal: literalStr,
         identifier: identifierStr,
         line: self.line
@@ -62,7 +62,7 @@ proc error(self: ijoScanner, message: string): ijoToken =
     let literalStr = self.source.substr(self.start, self.current)
 
     result = ijoToken(
-        tokenType: Error,
+        kind: Error,
         literal: literalStr,
         identifier: message,
         line: self.line
@@ -111,11 +111,11 @@ proc number(self: var ijoScanner): ijoToken =
 
     result = self.make(numberType)
 
-proc checkKeyword(self: ijoScanner, start: int, length: int, rest: string, tokenType: ijoTokenType): ijoTokenType =
+proc checkKeyword(self: ijoScanner, start: int, length: int, rest: string, kind: ijoTokenType): ijoTokenType =
     let str = self.source.substr(self.current + start, self.current + length)
     
     if self.current - self.start == start + length and str == rest:
-        return tokenType
+        return kind
 
     return Identifier
 

@@ -61,9 +61,9 @@ type
 proc errorAt(self: var ijoParser, token: ijoToken, message: string) =
     stderr.write(&"line {token.line} ")
 
-    if token.tokenType == EOF:
+    if token.kind == EOF:
         stderr.write(&" at end ")
-    elif token.tokenType == Error:
+    elif token.kind == Error:
         discard
     else:
         stderr.write(&" at {token.literal} ")
@@ -77,12 +77,12 @@ proc errorAtCurrent(self: var ijoParser, message: string) =
     self.errorAt(self.previous, message)
 
 # proc checkIsOperator(self: var ijoParser): bool =
-#     case self.current.tokenType
+#     case self.current.kind
 #         of EqualEqual, Less, LessEqual, Greater, GreaterEqual, BangEqual: return true
 #         else: return false
 
 proc check(self: var ijoParser, expected: ijoTokenType): bool =
-    result = self.current.tokenType == expected
+    result = self.current.kind == expected
 
 proc advance(self: var ijoParser) =
     self.previous = self.current
@@ -90,7 +90,7 @@ proc advance(self: var ijoParser) =
     while true:
         self.current = self.scanner.scan()
 
-        if self.current.tokenType != Error: break
+        if self.current.kind != Error: break
 
         self.errorAtCurrent("")
 
@@ -122,9 +122,9 @@ proc parseInternal(self: var ijoParser): ijoExpr
 proc parsePrecedence(self: var ijoParser, expected: Precedence): ijoExpr =
     self.advance()
 
-    let rule = self.getRuleFrom(self.previous.tokenType)
+    let rule = self.getRuleFrom(self.previous.kind)
 
-    if not rule.acceptedTokens.contains(self.current.tokenType):
+    if not rule.acceptedTokens.contains(self.current.kind):
         self.errorAt(self.current, $ErrorInvalidToken)
 
     if rule.prefix == nil:
@@ -134,13 +134,13 @@ proc parsePrecedence(self: var ijoParser, expected: Precedence): ijoExpr =
     self.precedence = expected
     let prefix: ijoExpr = rule.prefix(self)
 
-    let rulePrecedence = self.getRuleFrom(self.current.tokenType).precedence
+    let rulePrecedence = self.getRuleFrom(self.current.kind).precedence
 
     while int(self.precedence) <= int(rulePrecedence):
         self.advance()
 
         let op = self.previous
-        let infixRule = self.getRuleFrom(self.previous.tokenType).infix
+        let infixRule = self.getRuleFrom(self.previous.kind).infix
 
         let infix: ijoExpr = self.infixRule()
 
@@ -161,7 +161,7 @@ proc parseAndExpression(self: var ijoParser): ijoExpr =
     result = self.parsePrecedence(And)
 
 proc parseFunctionDefExpression(self: var ijoParser): ijoExpr =
-    let typ = self.previous.tokenType
+    let typ = self.previous.kind
     let identifier = if typ == Func: self.previous.identifier else: "anon"
 
     # We do not need to consume the '(' as it has already been scanned and is part of
@@ -260,7 +260,7 @@ proc parseGroupingExpression(self: var ijoParser): ijoExpr =
     result = blockExpr(expressions)
 
 proc parseBinaryExpression(self: var ijoParser): ijoExpr =
-    let rule = self.getRuleFrom(self.previous.tokenType)
+    let rule = self.getRuleFrom(self.previous.kind)
 
     let precedence = cast[Precedence](int(rule.precedence) + 1)
     return self.parsePrecedence(precedence)
@@ -287,7 +287,7 @@ proc parseBlockExpression(self: var ijoParser): ijoExpr =
     if not self.consume(RightBrace, $ErrorMissingRightBrace):
         return errorExpr($ErrorMissingRightBrace)
 
-    return blockExpr(expressions)
+    result = blockExpr(expressions)
 
 proc parseLoopBody(self: var ijoParser): ijoExpr =
     if not self.match(LeftBrace):
@@ -360,6 +360,7 @@ proc parseLoopExpression(self: var ijoParser): ijoExpr =
             self.hadError = true
             return errorExpr($ErrorIncorrectLoop)
 
+# ?(condition) { true } ?() { false }
 proc parseIfExpression(self: var ijoParser): ijoExpr =
     let condition = self.parseExpression()
 
@@ -372,6 +373,9 @@ proc parseIfExpression(self: var ijoParser): ijoExpr =
     let body = self.parseBlockExpression()
 
     if self.match(Else):
+        if not self.consume(LeftBrace, $ErrorMissingLeftBrace):
+            return errorExpr($ErrorMissingLeftBrace)
+
         let otherwise = self.parseBlockExpression()
         return ifExpr(condition, body, otherwise)
     
