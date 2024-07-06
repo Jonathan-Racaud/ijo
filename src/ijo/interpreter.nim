@@ -9,33 +9,33 @@ import types
 const ijoVersion* = "0.1.0"
 
 # Forward declaration
-proc ijoEval*(expressions: seq[ijoExpr], env: ijoEnv): ijoValue
-proc ijoEval*(expression: ijoExpr, env: ijoEnv): ijoValue
+proc ijoEval*(expressions: seq[ijoExpr], env: var ijoEnv): ijoValue
+proc ijoEval*(expression: ijoExpr, env: var ijoEnv): ijoValue
 
 # Implementation
-proc ijoEvalBlock(expressions: seq[ijoExpr], env: ijoEnv): ijoValue =
+proc ijoEvalBlock(expressions: seq[ijoExpr], env: var ijoEnv): ijoValue =
   result = ijoValue(kind: ijoUndefined)
 
   for i, expression in expressions:
     result = ijoEval(expression, env)
 
-proc ijoEvalBody(expression: ijoExpr, env: ijoEnv): ijoValue =
+proc ijoEvalBody(expression: ijoExpr, env: var ijoEnv): ijoValue =
   if expression.kind == ijoBlockExpr:
     return ijoEvalBlock(expression.blockVal, env)
 
   return ijoEval(expression, env)
 
-proc ijoEval(expression: ijoExpr, env: ijoEnv): ijoValue =
+proc ijoEval(expression: ijoExpr, env: var ijoEnv): ijoValue =
   case expression.kind:
     of ijoIntExpr: result = ijoValue(kind: ijoInt, intVal: expression.intVal)
     of ijoFloatExpr: result = ijoValue(kind: ijoFloat, floatVal: expression.floatVal)
     of ijoBoolExpr: result = ijoValue(kind: ijoBool, boolVal: expression.boolVal)
     of ijoStringExpr: result = ijoValue(kind: ijoString, strVal: expression.strVal)
     of ijoVarExpr:
-      let val = ijoEval(expression.varVal, env)
+      var val = ijoEval(expression.varVal, env)
       result = env.defineVar(expression.varName, val)
     of ijoConstExpr:
-      let val = ijoEval(expression.constVal, env)
+      var val = ijoEval(expression.constVal, env)
       result = env.defineConst(expression.constName, val)
     of ijoSetIdentifierExpr:
       let val = ijoEval(expression.setVal, env)
@@ -45,7 +45,7 @@ proc ijoEval(expression: ijoExpr, env: ijoEnv): ijoValue =
     of ijoBlockExpr:
       result = ijoEvalBlock(expression.blockVal, env)
     of ijoFunctionDefinitionExpr:
-      let function = UserFunction(
+      var function = UserFunction(
         expression.funcName,
         expression.funcParams.len,
         expression.funcParams,
@@ -60,7 +60,7 @@ proc ijoEval(expression: ijoExpr, env: ijoEnv): ijoValue =
         # We only want to populate the record that will be associated with the struct
         discard ijoEval(structExpression, structEnv)
 
-      let struct = Struct(
+      var struct = Struct(
         expression.structName,
         structEnv.record
       )
@@ -90,7 +90,7 @@ proc ijoEval(expression: ijoExpr, env: ijoEnv): ijoValue =
         var activationEnv = ijoEnvironment(f.funcEnv)
         
         for i, param in callParams:
-          let paramVal = ijoEval(param, env)
+          var paramVal = ijoEval(param, env)
           discard activationEnv.defineConst(f.funcParams[i], paramVal)
 
         result = ijoEvalBody(f.funcBody, activationEnv)
@@ -105,29 +105,32 @@ proc ijoEval(expression: ijoExpr, env: ijoEnv): ijoValue =
       let loop = (expression.loopInit, expression.loopCondition, expression.loopIncrement, expression.loopBody)
 
       case loop
-        of (_, _, _, @body):
-          while true:
-            discard ijoEval(body, env)
-        of (_, @cond, _, @body):
-          while ijoEval(cond, env).boolVal == true:
-            discard ijoEval(body, env)
-        of (_, @cond, @incr, @body):
-          while ijoEval(cond, env).boolVal == true:
-            discard ijoEval(body, env)
-            discard ijoEval(incr, env)
         of (@init, @cond, @incr, @body):
           discard ijoEval(init, env)
 
           while ijoEval(cond, env).boolVal == true:
-            discard ijoEval(body, env)
+            result = ijoEval(body, env)
             discard ijoEval(incr, env)
+        of (_, @cond, @incr, @body):
+          echo "Parsing loop form 3"
+          while ijoEval(cond, env).boolVal == true:
+            result = ijoEval(body, env)
+            discard ijoEval(incr, env)
+        of (_, @cond, _, @body):
+          echo "Parsing loop form 2"
+          while ijoEval(cond, env).boolVal == true:
+            result = ijoEval(body, env)
+        of (_, _, _, @body):
+          echo "Parsing loop form 1"
+          while true:
+            result = ijoEval(body, env)
         else:
           echo "Wrong loop syntax"
           result = ijoValue(kind: ijoUndefined)
     of ijoListExpr, ijoUndefinedExpr, ijoErrorExpr:
       result = ijoValue(kind: ijoUndefined)
 
-proc ijoEval(expressions: seq[ijoExpr], env: ijoEnv): ijoValue =
+proc ijoEval(expressions: seq[ijoExpr], env: var ijoEnv): ijoValue =
   result = ijoValue(kind: ijoUndefined)
 
   for i, expression in expressions:

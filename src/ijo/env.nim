@@ -11,7 +11,7 @@ proc ijoEnvironment*(): ijoEnv =
   let record = new(ijoRecord)
   result = ijoEnv(parent: nil, record: record)
 
-proc resolve(self: ijoEnv, name: string): Option[ijoRecord] =
+proc resolve(self: var ijoEnv, name: string): Option[ijoRecord] =
   if self.record.hasKey(name):
     return some(self.record)
 
@@ -20,7 +20,7 @@ proc resolve(self: ijoEnv, name: string): Option[ijoRecord] =
 
   result = self.parent.resolve(name)
 
-proc lookup(self: ijoEnv, name: string): Option[ijoValue] =
+proc lookup(self: var ijoEnv, name: string): Option[ijoValue] =
   let recordResult = self.resolve(name)
   
   if recordResult.isNone:
@@ -29,7 +29,7 @@ proc lookup(self: ijoEnv, name: string): Option[ijoValue] =
   let record = recordResult.get
   result = some(record[name])
 
-proc getIdentifier*(self: ijoEnv, name: string): ijoValue =
+proc getIdentifier*(self: var ijoEnv, name: string): ijoValue =
   let valueResult = self.lookup(name)
 
   if valueResult.isNone:
@@ -37,7 +37,7 @@ proc getIdentifier*(self: ijoEnv, name: string): ijoValue =
   
   result = valueResult.get()
 
-proc setIdentifier*(self: ijoEnv, name: string, newValue: ijoValue): ijoValue =
+proc setIdentifier*(self: var ijoEnv, name: string, newValue: ijoValue): ijoValue =
   var recordResult = self.resolve(name)
 
   if recordResult.isNone:
@@ -46,11 +46,12 @@ proc setIdentifier*(self: ijoEnv, name: string, newValue: ijoValue): ijoValue =
   var record = recordResult.get() 
   if record[name].isMutable:
     record[name] = newValue
+    record[name].isMutable = true
     return newValue
 
   return ijoValue(kind: ijoUndefined)
 
-proc defineConst*(self: ijoEnv, name: string, value: ijoValue): ijoValue =
+proc defineConst*(self: var ijoEnv, name: string, value: var ijoValue): ijoValue =
   if self.record.hasKey(name):
     return ijoValue(kind: ijoUndefined)
 
@@ -59,7 +60,7 @@ proc defineConst*(self: ijoEnv, name: string, value: ijoValue): ijoValue =
 
   result = value
   
-proc defineVar*(self: ijoEnv, name: string, value: ijoValue): ijoValue =
+proc defineVar*(self: var ijoEnv, name: string, value: var ijoValue): ijoValue =
   if self.record.hasKey(name):
     return ijoValue(kind: ijoUndefined)
 

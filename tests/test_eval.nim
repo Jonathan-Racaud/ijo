@@ -10,7 +10,7 @@ import ijo/types
 import ijo/value
 
 proc eval(source: string): ijoValue =
-    let environment = ijoEnv(record: globalRecord)
+    var environment = ijoEnv(record: globalRecord)
     var ijoScanner = ijoScannerNew(source)
 
     var ijoParser = parserNew(ijoScanner)
@@ -73,6 +73,35 @@ test "conditional using constant result is false":
     check res.kind == ijoInt
     check res.intVal == 2
 
+test "block expression":
+    let res = eval(dedent """
+    {
+        42
+    }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 42
+
+test "var expression":
+    let res = eval(dedent """
+    {
+        $i = 42
+        i
+    }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 42
+
+test "const expression":
+    let res = eval(dedent """
+    #i = 42
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 42
+
 test "define function":
     let res = eval(dedent """
     #add(a, b) { a + b }
@@ -92,3 +121,36 @@ test "call function":
 
     check res.kind == ijoInt
     check res.intVal == 6
+
+# test "loop form 2 return 5":
+#     let res = eval(dedent """
+#     {
+#         $i = 0
+#         ~(i < 5) {
+#             i = i + 1
+#             i 
+#         }
+#     }
+#     """)
+
+#     check res.kind == ijoInt
+#     check res.intVal == 5
+
+# test "loop form 3 return 5":
+#     let res = eval(dedent """
+#     {
+#         $i = 0
+#         ~(i < 5; i = i + 1) {
+#             i 
+#         }
+#     }
+#     """)
+
+#     check res.kind == ijoInt
+#     check res.intVal == 5
+
+test "loop form 4 return 5":
+    let res = eval("~($i = 0; i < 5; i = i + 1) { i }")
+
+    check res.kind == ijoInt
+    check res.intVal == 5

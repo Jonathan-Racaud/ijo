@@ -9,9 +9,7 @@ import ijo/value
 
 when isMainModule:
     let source = dedent """
-    #number = 42
-
-    ?(number == 42) { print("yes") } ?() { print("false") }
+    ~($i = 0; i < 5; i = i + 1) { i }
     """
 
     let environment = ijoEnv(record: globalRecord)

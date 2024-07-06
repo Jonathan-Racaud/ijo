@@ -34,5 +34,9 @@ template globalRecord*: ijoRecord = newTable([
     ("*", BuiltInFunction("*", 2, ijoMul)),
     ("%", BuiltInFunction("%", 2, ijoMod)),
     ("==", BuiltInFunction("==", 2, ijoEq)),
-    ("!=", BuiltInFunction("!=", 2, ijoDiff))
+    ("!=", BuiltInFunction("!=", 2, ijoDiff)),
+    ("<", BuiltInFunction("!=", 2, ijoLess)),
+    ("<=", BuiltInFunction("!=", 2, ijoLessEq)),
+    (">", BuiltInFunction("!=", 2, ijoGreater)),
+    (">=", BuiltInFunction("!=", 2, ijoGreaterEq)),
 ])

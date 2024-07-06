@@ -311,6 +311,7 @@ proc parseLoopExpression(self: var ijoParser): ijoExpr =
 
     var parsedStatements = 0
     self.parsingLoop = true
+    self.scopeDepth += 1
 
     if self.match(RightParen):
         body = self.parseLoopBody()
@@ -332,7 +333,7 @@ proc parseLoopExpression(self: var ijoParser): ijoExpr =
 
             second = self.parseExpression()
             parsedStatements += 1
-        
+
         if self.match(Semicolon):
             if self.match(Var):
                 self.errorAtCurrent($ErrorExpectedExpression)
@@ -341,7 +342,7 @@ proc parseLoopExpression(self: var ijoParser): ijoExpr =
 
                 return errorExpr($ErrorExpectedExpression)
 
-            second = self.parseExpression()
+            third = self.parseExpression()
             parsedStatements += 1
         
         if not self.consume(RightParen, $ErrorMissingRightParen):
@@ -350,6 +351,7 @@ proc parseLoopExpression(self: var ijoParser): ijoExpr =
         
         body = self.parseLoopBody()
     
+    self.scopeDepth -= 1
     case parsedStatements
         of 0: result = loopExpr(body)
         of 1: result = loopExpr(first, body)
@@ -450,13 +452,13 @@ proc parseInternal(self: var ijoParser): ijoExpr =
     result = errorExpr()
 
     if self.match(Const):
-        result = self.parseConstExpression()
+        return self.parseConstExpression()
     elif self.match(Var):
-        result = self.parseVarExpression()
+        return self.parseVarExpression()
     elif self.match(Struct):
-        result = self.parseStructExpression()
+        return self.parseStructExpression()
     elif self.match(Return):
-        result = self.parseReturnExpression()
+        return self.parseReturnExpression()
     elif self.match(If):
         result = self.parseIfExpression()
     elif self.match(Switch):
@@ -468,9 +470,9 @@ proc parseInternal(self: var ijoParser): ijoExpr =
     else:
         result = self.parseExpression()
 
-    # if not self.parsingLoop and not self.check(EOL) and not self.check(RightBrace) and not self.check(Dot):
-    #     if not self.consume(EOL, $ErrorMultipleExpressionPerLine):
-    #         return errorExpr($ErrorMultipleExpressionPerLine)
+    if not self.parsingLoop and not self.check(EOL) and not self.check(RightBrace) and not self.check(Dot):
+        if not self.consume(EOL, $ErrorMultipleExpressionPerLine):
+            return errorExpr($ErrorMultipleExpressionPerLine)
     
     if result.kind == ijoErrorExpr:
         return errorExpr($ErrorInvalidExpression)
