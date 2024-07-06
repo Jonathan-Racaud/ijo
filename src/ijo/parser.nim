@@ -116,7 +116,7 @@ proc consume(self: var ijoParser, expected: ijoTokenType, message: string): bool
 proc getRuleFrom(self: ijoParser, tokenType: ijoTokenType): ParseRule
 proc parseBlockExpression(self: var ijoParser): ijoExpr
 proc parseVarExpression(self: var ijoParser): ijoExpr
-proc parseStatementExpression(self: var ijoParser): ijoExpr
+# proc parseStatementExpression(self: var ijoParser): ijoExpr
 proc parseInternal(self: var ijoParser): ijoExpr
 
 proc parsePrecedence(self: var ijoParser, expected: Precedence): ijoExpr =
@@ -366,22 +366,25 @@ proc parseIfExpression(self: var ijoParser): ijoExpr =
     if not self.consume(RightParen, $ErrorMissingRightParen):
         return errorExpr($ErrorMissingRightParen)
 
-    let body = self.parseStatementExpression()
+    if not self.consume(LeftBrace, $ErrorMissingLeftBrace):
+        return errorExpr($ErrorMissingLeftBrace)
+    
+    let body = self.parseBlockExpression()
 
     if self.match(Else):
-        let otherwise = self.parseStatementExpression()
+        let otherwise = self.parseBlockExpression()
         return ifExpr(condition, body, otherwise)
     
     result = ifExpr(condition, body)
 
-#    ?{expression}
-#      42 {
-#	    @>>("The answer to everthying, the universe and the rest" )
-#      }
-#      "Hello" {
-#	    @>>("Goodbye")
-#      }
-#     _0 > 18 && _0 < 65 {}
+# ?{expression}
+#   42 {
+#       print("The answer to everthying, the universe and the rest" )
+#   }
+#   "Hello" {
+#       println("Goodbye")
+#   }
+#   _0 > 18 && _0 < 65 {}
 #	?() {}
 proc parseSwitchExpression(self: var ijoParser): ijoExpr =
     result = errorExpr($ErrorNotImplemented)
@@ -433,25 +436,11 @@ proc parseVarExpression(self: var ijoParser): ijoExpr =
     
     result = varExpr(name, expression)
 
-proc parseStatementExpression(self: var ijoParser): ijoExpr =
-    # This might be removed entirely. Depends on if we need this type of expression or not
-    # if self.match(Builtin):
-    #     result = self.parseBuiltinExpression()
-    # el
-    if self.match(If):
-        result = self.parseIfExpression()
-    elif self.match(Switch):
-        result = self.parseSwitchExpression()
-    elif self.match(Loop):
-        result = self.parseLoopExpression()
-    elif self.match(LeftBrace):
-        result = self.parseBlockExpression()
-    
-    result = self.parseExpression()
-
-    if not self.parsingLoop and not self.check(EOL) and not self.check(RightBrace) and not self.check(Dot):
-        if not self.consume(EOL, $ErrorMultipleExpressionPerLine):
-            return errorExpr($ErrorMultipleExpressionPerLine)
+# proc parseStatementExpression(self: var ijoParser): ijoExpr =
+#     # This might be removed entirely. Depends on if we need this type of expression or not
+#     # if self.match(Builtin):
+#     #     result = self.parseBuiltinExpression()
+#     # el
 
 proc parseInternal(self: var ijoParser): ijoExpr =
     result = errorExpr()
@@ -464,8 +453,20 @@ proc parseInternal(self: var ijoParser): ijoExpr =
         result = self.parseStructExpression()
     elif self.match(Return):
         result = self.parseReturnExpression()
+    elif self.match(If):
+        result = self.parseIfExpression()
+    elif self.match(Switch):
+        result = self.parseSwitchExpression()
+    elif self.match(Loop):
+        result = self.parseLoopExpression()
+    elif self.match(LeftBrace):
+        result = self.parseBlockExpression()
     else:
-        result = self.parseStatementExpression()
+        result = self.parseExpression()
+
+    # if not self.parsingLoop and not self.check(EOL) and not self.check(RightBrace) and not self.check(Dot):
+    #     if not self.consume(EOL, $ErrorMultipleExpressionPerLine):
+    #         return errorExpr($ErrorMultipleExpressionPerLine)
     
     if result.kind == ijoErrorExpr:
         return errorExpr($ErrorInvalidExpression)

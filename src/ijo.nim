@@ -9,15 +9,9 @@ import ijo/value
 
 when isMainModule:
     let source = dedent """
-        #greet(name) { 
-            println("Hello ", name, "!")
-        }
+    #number = 42
 
-        #x = 5
-        #y = 4
-
-        println(x, ", ", y)
-        greet("Bob")
+    ?(number == 42) { print("yes") } ?() { print("false") }
     """
 
     let environment = ijoEnv(record: globalRecord)

@@ -35,6 +35,44 @@ test "println":
     check res.kind == ijoString
     check res.strVal == "Hello World!\n"
 
+test "conditional true":
+    let res = eval(dedent """
+    ?(true) { 42 }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 42
+
+test "conditional else":
+    let res = eval(dedent """
+    ?(false) { 42 } ?() { 60 }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 60
+
+test "conditional using constant result is true":
+    let res = eval(dedent """
+    #number = 42
+    ?(number == 42) { 1 }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 1
+
+test "conditional using constant result is false":
+    let res = eval(dedent """
+    #number = 43
+    ?(number == 42) { 
+        1
+    } ?() { 
+        2 
+    }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 2
+
 test "define function":
     let res = eval(dedent """
     #add(a, b) { a + b }
