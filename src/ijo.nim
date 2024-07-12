@@ -12,7 +12,7 @@ when isMainModule:
     ~($i = 0; i < 5; i = i + 1) { i }
     """
 
-    let environment = ijoEnv(record: globalRecord)
+    var environment = ijoEnv(record: globalRecord)
     var ijoScanner = ijoScannerNew(source)
 
     var ijoParser = parserNew(ijoScanner)

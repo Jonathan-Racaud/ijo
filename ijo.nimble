@@ -7,6 +7,7 @@ license       = "Proprietary"
 srcDir        = "src"
 installExt    = @["nim"]
 bin           = @["ijo"]
+binDir        = "bin"
 
 
 # Dependencies

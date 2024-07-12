@@ -99,29 +99,26 @@ proc ijoEval(expression: ijoExpr, env: var ijoEnv): ijoValue =
 
       if condition.boolVal == true:
         result = ijoEvalBody(expression.condThen, env)
-      else:
-        result = ijoEvalBody(expression.condElse, env)
+      elif expression.condElse.isSome:
+        result = ijoEvalBody(expression.condElse.get(), env)
     of ijoLoopExpr:
       let loop = (expression.loopInit, expression.loopCondition, expression.loopIncrement, expression.loopBody)
 
       case loop
-        of (@init, @cond, @incr, @body):
+        of (Some(@init), Some(@cond), Some(@incr), @body):
           discard ijoEval(init, env)
 
           while ijoEval(cond, env).boolVal == true:
             result = ijoEval(body, env)
             discard ijoEval(incr, env)
-        of (_, @cond, @incr, @body):
-          echo "Parsing loop form 3"
+        of (None(), Some(@cond), Some(@incr), @body):
           while ijoEval(cond, env).boolVal == true:
             result = ijoEval(body, env)
             discard ijoEval(incr, env)
-        of (_, @cond, _, @body):
-          echo "Parsing loop form 2"
+        of (None(), Some(@cond), None(), @body):
           while ijoEval(cond, env).boolVal == true:
             result = ijoEval(body, env)
-        of (_, _, _, @body):
-          echo "Parsing loop form 1"
+        of (None(), None(), None(), @body):
           while true:
             result = ijoEval(body, env)
         else:

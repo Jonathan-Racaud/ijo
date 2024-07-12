@@ -1,3 +1,4 @@
+import std/options
 import std/tables
 
 type
@@ -89,11 +90,11 @@ type
       of ijoConditionalExpr:
         condition*: ijoExpr
         condThen*: ijoExpr
-        condElse*: ijoExpr
+        condElse*: Option[ijoExpr]
       of ijoLoopExpr:
-        loopInit*: ijoExpr
-        loopCondition*: ijoExpr
-        loopIncrement*: ijoExpr
+        loopInit*: Option[ijoExpr]
+        loopCondition*: Option[ijoExpr]
+        loopIncrement*: Option[ijoExpr]
         loopBody*: ijoExpr
       of ijoUndefinedExpr: undefinedVal*: ijoExpr
       of ijoErrorExpr: errorVal*: ijoExpr

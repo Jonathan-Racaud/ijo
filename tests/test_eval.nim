@@ -122,35 +122,38 @@ test "call function":
     check res.kind == ijoInt
     check res.intVal == 6
 
-# test "loop form 2 return 5":
-#     let res = eval(dedent """
-#     {
-#         $i = 0
-#         ~(i < 5) {
-#             i = i + 1
-#             i 
-#         }
-#     }
-#     """)
-
-#     check res.kind == ijoInt
-#     check res.intVal == 5
-
-# test "loop form 3 return 5":
-#     let res = eval(dedent """
-#     {
-#         $i = 0
-#         ~(i < 5; i = i + 1) {
-#             i 
-#         }
-#     }
-#     """)
-
-#     check res.kind == ijoInt
-#     check res.intVal == 5
-
-test "loop form 4 return 5":
-    let res = eval("~($i = 0; i < 5; i = i + 1) { i }")
+test "loop form 2 return 5":
+    let res = eval(dedent """
+    {
+        $i = 0
+        ~(i < 5) {
+            i = i + 1
+        }
+        i
+    }
+    """)
 
     check res.kind == ijoInt
     check res.intVal == 5
+
+test "loop form 3 return 5":
+    let res = eval(dedent """
+    {
+        $i = 0
+        ~(i < 5; i = i + 1) {}
+        i
+    }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 5
+
+test "loop form 4 return 4":
+    let res = eval(dedent """
+    ~($i = 0; i < 5; i = i + 1) {
+        i
+    }
+    """)
+
+    check res.kind == ijoInt
+    check res.intVal == 4

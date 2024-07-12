@@ -253,11 +253,13 @@ proc ijoGreaterEq*(params: seq[ijoValue]): ijoValue =
   result = a >= b
 
 proc `<`*(a: ijoValue, b: ijoValue): ijoValue =
-  result = (a > b)
+  if a.kind != b.kind:
+    return Undefined()
 
-  if result.kind == ijoUndefined: return
-
-  result.boolVal = if result.boolVal: false else: true
+  case a.kind
+    of ijoInt: return Bool(a.intVal < b.intVal)
+    of ijoFloat: return Bool(a.floatVal < b.floatVal)
+    of ijoString, ijoList, ijoBool, ijoFunc, ijoStruct, ijoUndefined: return Undefined()
 
 proc ijoLess*(params: seq[ijoValue]): ijoValue = 
   if params.len != 2: return Undefined()
@@ -268,11 +270,13 @@ proc ijoLess*(params: seq[ijoValue]): ijoValue =
   result = a < b
 
 proc `<=`*(a: ijoValue, b: ijoValue): ijoValue =
-  result = (a >= b)
+  if a.kind != b.kind:
+    return Undefined()
 
-  if result.kind == ijoUndefined: return
-
-  result.boolVal = if result.boolVal: false else: true
+  case a.kind
+    of ijoInt: return Bool(a.intVal <= b.intVal)
+    of ijoFloat: return Bool(a.floatVal <= b.floatVal)
+    of ijoString, ijoList, ijoBool, ijoFunc, ijoStruct, ijoUndefined: return Undefined()
 
 proc ijoLessEq*(params: seq[ijoValue]): ijoValue = 
   if params.len != 2: return Undefined()
