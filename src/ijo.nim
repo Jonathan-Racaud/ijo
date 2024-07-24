@@ -8,10 +8,6 @@ import ijo/types
 import ijo/value
 
 when isMainModule:
-    let source = dedent """
-    ~($i = 0; i < 5; i = i + 1) { i }
-    """
-
     var environment = ijoEnv(record: globalRecord)
     var ijoScanner = ijoScannerNew(source)
 
